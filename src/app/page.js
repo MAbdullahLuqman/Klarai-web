@@ -8,7 +8,6 @@ export default function Home() {
   const [activeService, setActiveService] = useState(null);
   const [isStrategyModalOpen, setIsStrategyModalOpen] = useState(false);
 
-  // Checks if any modal is open so the 3D scene knows to hide its text and start rotating
   const isAnyModalOpen = !!activeService || isStrategyModalOpen;
 
   return (
@@ -21,12 +20,14 @@ export default function Home() {
         isStrategyModalOpen={isStrategyModalOpen}
       />
       
+      {/* 1. NAVIGATION BAR (Button Removed) */}
       <nav className="fixed top-0 left-0 w-full p-6 md:p-10 flex justify-between items-center z-40 pointer-events-none">
         <div className="pointer-events-auto flex-shrink-0">
           <img 
             src="/klarailogo.webp" 
             alt="KLARAI Logo" 
             className="h-8 md:h-10 w-auto object-contain drop-shadow-lg cursor-pointer"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} // Clicking logo acts as a "Back to Top" button
           />
         </div>
 
@@ -39,13 +40,6 @@ export default function Home() {
           >
             Connect with Founder
           </a>
-          {/* UPDATED: Yellow Button that triggers the Strategy Form */}
-          <button 
-            onClick={() => setIsStrategyModalOpen(true)}
-            className="pointer-events-auto bg-[#eab308] hover:bg-[#ca8a04] text-black px-6 py-2 md:px-8 md:py-3 rounded-full font-extrabold transition-all shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:shadow-[0_0_30px_rgba(234,179,8,0.6)] text-sm md:text-base tracking-wide"
-          >
-            Get Strategy Call
-          </button>
         </div>
       </nav>
 
@@ -55,7 +49,6 @@ export default function Home() {
       </div>
 
       <AnimatePresence>
-        {/* 1. SERVICE DETAILS MODAL */}
         {activeService && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -76,13 +69,12 @@ export default function Home() {
                 onClick={() => { setActiveService(null); setIsStrategyModalOpen(true); }}
                 className="mt-10 bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-gray-200 transition-colors pointer-events-auto"
               >
-                Initiate Project
+                Request Deep Dive Audit
               </button>
             </div>
           </motion.div>
         )}
 
-        {/* 2. NEW STRATEGY CALL FORM MODAL */}
         {isStrategyModalOpen && (
           <motion.div 
             initial={{ opacity: 0, y: 50 }}
@@ -97,43 +89,44 @@ export default function Home() {
                 <X className="w-6 h-6" />
               </button>
               
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Initiate Growth.</h2>
-              <p className="text-gray-400 mb-8">Fill out the details below to schedule your custom AI architecture mapping.</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Claim Your Free Audit.</h2>
+              <p className="text-gray-400 mb-8">Enter your details below to see exactly where your competitors are outranking you in AI Search.</p>
               
-              <form className="space-y-6 pointer-events-auto" onSubmit={(e) => e.preventDefault()}>
+              {/* 2. THE WORKING FORM */}
+              {/* IMPORTANT: Replace the action link below with your actual Formspree link */}
+              <form 
+                className="space-y-6 pointer-events-auto" 
+                action="https://formspree.io/f/YOUR_FORM_ID_HERE" 
+                method="POST"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Full Name</label>
-                    <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#eab308] transition-colors" placeholder="John Doe" />
+                    <input type="text" name="name" required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#eab308] transition-colors" placeholder="John Doe" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Work Email</label>
-                    <input type="email" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#eab308] transition-colors" placeholder="john@company.com" />
+                    <input type="email" name="email" required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#eab308] transition-colors" placeholder="john@company.com" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Company Website</label>
-                  <input type="url" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#eab308] transition-colors" placeholder="https://" />
+                  <input type="url" name="website" required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#eab308] transition-colors" placeholder="https://" />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Primary Goal</label>
-                  <select className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#eab308] transition-colors appearance-none">
-                    <option>Answer Engine Optimization (AEO)</option>
-                    <option>Search Engine Optimization (SEO)</option>
-                    <option>3D Web Development</option>
-                    <option>Performance Marketing Scaling</option>
+                  <select name="goal" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#eab308] transition-colors appearance-none">
+                    <option value="AEO">Answer Engine Optimization (AEO)</option>
+                    <option value="SEO">Search Engine Optimization (SEO)</option>
+                    <option value="Web Dev">3D Web Development</option>
+                    <option value="Ads">Performance Marketing Scaling</option>
                   </select>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs text-gray-500 uppercase tracking-widest font-semibold">Current Bottlenecks / Notes</label>
-                  <textarea rows="3" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#eab308] transition-colors resize-none" placeholder="Tell us about your current challenges..."></textarea>
-                </div>
-
-                <button className="w-full bg-[#eab308] hover:bg-[#ca8a04] text-black py-4 rounded-xl font-bold text-lg transition-all shadow-[0_0_15px_rgba(234,179,8,0.2)] hover:shadow-[0_0_25px_rgba(234,179,8,0.4)]">
-                  Submit Application
+                <button type="submit" className="w-full bg-[#eab308] hover:bg-[#ca8a04] text-black py-4 rounded-xl font-bold text-lg transition-all shadow-[0_0_15px_rgba(234,179,8,0.2)] hover:shadow-[0_0_25px_rgba(234,179,8,0.4)]">
+                  Submit Audit Request
                 </button>
               </form>
             </div>
