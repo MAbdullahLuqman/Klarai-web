@@ -4,183 +4,234 @@ import { Sphere, Stars, ScrollControls, useScroll, Html, Text } from "@react-thr
 import { useRef, useState } from "react";
 import * as THREE from "three";
 
+// 1. DATA (Increased sizes, removed image URLs for maximum performance)
 const SERVICES_DATA = [
   {
-    id: "aeo", position: [3.5, 0.5, -30], size: 1.5, color: "#8b5cf6", speed: 0.01, label: "AEO",
+    id: "aeo", orbitRadius: 14, angle: 0.5, orbitSpeed: 0.002, spinSpeed: 0.01, size: 2.5, color: "#4f46e5", label: "AEO",
+    type: "earthLike", 
     title: "Answer Engine Optimization",
-    teaser: "Click to explore AEO engineering.",
+    teaser: "Click to explore AEO engineering & AI entity structuring.",
     extendedDescription: "In the era of Generative AI, traditional search is dying. We structure your brand's data so that when users ask ChatGPT, Gemini, or Claude questions about your industry, your business is cited as the definitive answer."
   },
   {
-    id: "seo", position: [-3.5, -0.5, -60], size: 1.8, color: "#3b82f6", speed: 0.008, label: "SEO",
+    id: "seo", orbitRadius: 21, angle: 2.1, orbitSpeed: 0.0015, spinSpeed: 0.008, size: 3.0, color: "#0ea5e9", label: "SEO",
+    type: "ice", 
     title: "Search Engine Optimization",
-    teaser: "Click to explore organic dominance.",
+    teaser: "Click to explore organic dominance and high-intent ranking.",
     extendedDescription: "Rank #1 on Google using data-backed regression models and intent-based keyword architecture. We engineer your site's content to mathematically outperform competitors in search algorithms."
   },
   {
-    id: "webdev", position: [3.5, 1, -90], size: 1.2, color: "#10b981", speed: 0.02, label: "WEB",
+    id: "webdev", orbitRadius: 29, angle: 4.0, orbitSpeed: 0.001, spinSpeed: 0.02, size: 2.2, color: "#10b981", label: "WEB",
+    type: "terrestrial", 
     title: "Web Development",
-    teaser: "Click to explore 3D web architecture.",
+    teaser: "Click to explore high-performance 3D web architecture.",
     extendedDescription: "We build high-performance, interactive 3D web experiences using Next.js and Three.js. Your website should be an immersive ecosystem that converts traffic into high-ticket clients."
   },
   {
-    id: "performance", position: [-3.5, -1, -120], size: 2, color: "#f97316", speed: 0.005, label: "ADS",
+    id: "performance", orbitRadius: 38, angle: 1.2, orbitSpeed: 0.0008, spinSpeed: 0.005, size: 3.8, color: "#ea580c", label: "ADS",
+    type: "gasGiant", 
     title: "Performance Marketing",
-    teaser: "Click to explore paid scaling.",
+    teaser: "Click to explore paid scaling and algorithmic bidding.",
     extendedDescription: "Data-backed paid advertising campaigns built to maximize ROI. We use advanced tracking and algorithmic bidding strategies to scale your revenue predictably."
   },
   {
-    id: "smma", position: [3.5, 0, -150], size: 1.6, color: "#ec4899", speed: 0.012, label: "SMMA",
+    id: "smma", orbitRadius: 48, angle: 5.5, orbitSpeed: 0.0005, spinSpeed: 0.012, size: 2.8, color: "#db2777", label: "SMMA",
+    type: "terrestrial",
     title: "Social Media Marketing",
-    teaser: "Click to explore brand authority.",
+    teaser: "Click to explore viral content and brand authority.",
     extendedDescription: "Viral content creation and community management. We engineer attention, transforming your social channels into powerful sales funnels."
   }
 ];
 
-function Planet({ data, onPlanetClick }) {
-  const groupRef = useRef();
-  const planetRef = useRef();
-  const [hovered, setHovered] = useState(false);
-  
-  useFrame(() => {
-    groupRef.current.rotation.y += data.speed;
-    const targetScale = hovered ? 1.05 : 1;
-    groupRef.current.scale.setScalar(THREE.MathUtils.lerp(groupRef.current.scale.x, targetScale, 0.1));
+// 2. THE STARFIELD
+function MovingStars() {
+  const starsRef = useRef();
+  useFrame((state, delta) => {
+    starsRef.current.rotation.y += delta * 0.02;
   });
-
-  const isRightSide = data.position[0] > 0;
-  const htmlXOffset = isRightSide ? -(data.size + 1.2) : (data.size + 1.2);
-
   return (
-    <group 
-      position={data.position} 
-      ref={groupRef}
-      onClick={(e) => {
-        e.stopPropagation(); 
-        if (typeof onPlanetClick === 'function') onPlanetClick(data);
-      }}
-      onPointerOver={() => {
-        setHovered(true);
-        document.body.style.cursor = 'pointer';
-      }}
-      onPointerOut={() => {
-        setHovered(false);
-        document.body.style.cursor = 'auto';
-      }}
-    >
-      {/* 1. SOLID PLANET BODY */}
-      <Sphere ref={planetRef} args={[data.size, 64, 64]}>
-        <meshPhysicalMaterial 
-          color={data.color} 
-          metalness={0.2} 
-          roughness={0.6} 
-          clearcoat={0.8}
-          clearcoatRoughness={0.2}
-          emissive={data.color}
-          emissiveIntensity={hovered ? 0.4 : 0.05}
-        />
-      </Sphere>
-
-      {/* 2. ATMOSPHERIC HALO */}
-      <Sphere args={[data.size * 1.05, 32, 32]}>
-        <meshBasicMaterial 
-          color={data.color}
-          transparent={true}
-          opacity={0.15}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-        />
-      </Sphere>
-
-      {/* 3D TEXT ON PLANET */}
-      <Text position={[0, 0, data.size + 0.06]} fontSize={data.size * 0.4} color="white" fontWeight="bold" anchorX="center" anchorY="middle">
-        {data.label}
-      </Text>
-      <Text position={[0, 0, -(data.size + 0.06)]} rotation={[0, Math.PI, 0]} fontSize={data.size * 0.4} color="white" fontWeight="bold" anchorX="center" anchorY="middle">
-        {data.label}
-      </Text>
-      
-      {/* HTML INFO BOX */}
-      <Html distanceFactor={15} position={[htmlXOffset, 0, 0]} center zIndexRange={[100, 0]}>
-        <div 
-          className="text-white w-64 md:w-72 bg-black/50 p-5 md:p-6 rounded-2xl backdrop-blur-xl border border-white/10 transition-colors hover:bg-black/70 hover:border-white/30 cursor-pointer shadow-2xl pointer-events-auto"
-          onClick={(e) => {
-             e.stopPropagation(); 
-             if (typeof onPlanetClick === 'function') onPlanetClick(data);
-          }}
-        >
-          <h2 className="text-lg md:text-xl font-bold mb-2 tracking-wide text-white pointer-events-none drop-shadow-md">{data.title}</h2>
-          <p className="text-xs md:text-sm text-gray-300 pointer-events-none">{data.teaser}</p>
-        </div>
-      </Html>
+    <group ref={starsRef} frustumCulled={false}>
+      <Stars radius={150} depth={100} count={8000} factor={4} saturation={0.5} fade speed={2} />
     </group>
   );
 }
 
+// 3. VISUAL ORBIT LINES
+function OrbitLine({ radius }) {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} frustumCulled={false}>
+      <ringGeometry args={[radius - 0.05, radius + 0.05, 128]} />
+      <meshBasicMaterial color="#ffffff" transparent opacity={0.1} side={THREE.DoubleSide} />
+    </mesh>
+  );
+}
+
+// 4. THE REVOLVING PLANET (Highly Optimized)
+function Planet({ data, onPlanetClick }) {
+  const orbitGroupRef = useRef(); 
+  const planetMeshRef = useRef(); 
+  const currentAngle = useRef(data.angle);
+  
+  // Velocity Scaling Refs
+  const scroll = useScroll();
+  const lastScroll = useRef(0);
+  const scaleRef = useRef(1);
+
+  const [hovered, setHovered] = useState(false);
+  
+  useFrame(() => {
+    // A. Orbit Math
+    currentAngle.current += data.orbitSpeed;
+    orbitGroupRef.current.position.x = Math.cos(currentAngle.current) * data.orbitRadius;
+    orbitGroupRef.current.position.z = Math.sin(currentAngle.current) * data.orbitRadius;
+    planetMeshRef.current.rotation.y += data.spinSpeed;
+
+    // B. Velocity-Based Scaling Logic
+    const currentScroll = scroll.offset;
+    let scrollDelta = Math.abs(currentScroll - lastScroll.current);
+    
+    if (scrollDelta > 0.5) scrollDelta = 0; 
+    lastScroll.current = currentScroll;
+
+    const isScrolling = scrollDelta > 0.0001;
+    const desiredScale = isScrolling ? 1.3 : 1.0;
+    
+    scaleRef.current = THREE.MathUtils.lerp(scaleRef.current, desiredScale, 0.08);
+    const finalScale = hovered ? 1.05 * scaleRef.current : scaleRef.current;
+    
+    orbitGroupRef.current.scale.setScalar(finalScale);
+  });
+
+  return (
+    <group 
+      ref={orbitGroupRef}
+      frustumCulled={false} 
+      // This click handler triggers the modal pop-up in your page.js
+      onClick={(e) => {
+        e.stopPropagation(); 
+        if (typeof onPlanetClick === 'function') onPlanetClick(data);
+      }}
+      onPointerOver={() => { setHovered(true); document.body.style.cursor = 'pointer'; }}
+      onPointerOut={() => { setHovered(false); document.body.style.cursor = 'auto'; }}
+    >
+      <group ref={planetMeshRef} frustumCulled={false}>
+        {/* Sleek, performant solid color physical material */}
+        <Sphere args={[data.size, 64, 64]} frustumCulled={false}>
+          <meshPhysicalMaterial 
+            color={data.color}
+            metalness={0.3} 
+            roughness={0.6} 
+            clearcoat={0.5} 
+            clearcoatRoughness={0.2}
+            emissive={data.color}
+            emissiveIntensity={hovered ? 0.4 : 0.1}
+          />
+        </Sphere>
+
+        {/* Subtle Atmospheric Glow */}
+        {(data.type === 'earthLike' || data.type === 'gasGiant') && (
+          <Sphere args={[data.size * 1.05, 32, 32]} frustumCulled={false}>
+            <meshBasicMaterial color={data.color} transparent opacity={0.15} blending={THREE.AdditiveBlending} depthWrite={false} />
+          </Sphere>
+        )}
+
+        {/* 3D Label Embedded on the Planet Surface */}
+        <Text position={[0, 0, data.size + 0.1]} fontSize={data.size * 0.35} color="white" fontWeight="bold" anchorX="center" anchorY="middle">
+          {data.label}
+        </Text>
+        <Text position={[0, 0, -(data.size + 0.1)]} rotation={[0, Math.PI, 0]} fontSize={data.size * 0.35} color="white" fontWeight="bold" anchorX="center" anchorY="middle">
+          {data.label}
+        </Text>
+      </group>
+    </group>
+  );
+}
+
+// 5. THE HERO TEXT
+function TopHeroText() {
+  const scroll = useScroll();
+  const opacityRef = useRef();
+
+  useFrame(() => {
+    let opacity = 1;
+    if (scroll.offset > 0.05 && scroll.offset < 0.95) {
+        opacity = 0;
+    } else if (scroll.offset <= 0.05) {
+        opacity = 1 - (scroll.offset / 0.05); 
+    } else if (scroll.offset >= 0.95) {
+        opacity = (scroll.offset - 0.95) / 0.05; 
+    }
+    
+    if (opacityRef.current) {
+       opacityRef.current.style.opacity = opacity;
+    }
+  });
+
+  return (
+    <Html fullscreen style={{ pointerEvents: "none" }} zIndexRange={[10, 0]}>
+      <div ref={opacityRef} className="absolute top-24 md:top-32 left-0 w-full flex justify-center transition-opacity duration-75">
+        <p className="text-2xl md:text-4xl font-bold text-orange-50 tracking-[0.3em] uppercase drop-shadow-[0_0_25px_rgba(255,136,0,0.9)] text-center px-4">
+          AI Growth Engine
+        </p>
+      </div>
+    </Html>
+  );
+}
+
+// 6. THE INFINITE CAMERA LOOP
 function CameraFlyer() {
   const scroll = useScroll(); 
+  
   useFrame((state) => {
-    const targetZ = 10 - scroll.offset * 190; 
+    const radius = 90; 
+    const angle = (Math.PI / 2) - (scroll.offset * Math.PI * 2);
+    
+    const targetX = Math.cos(angle) * radius;
+    const targetZ = Math.sin(angle) * radius;
+    const targetY = 18 + Math.sin(scroll.offset * Math.PI * 2) * 5; 
+    
+    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetX, 0.05);
+    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, targetY, 0.05);
     state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, 0.05);
+    
+    state.camera.lookAt(0, 0, 0); 
   });
+  
   return null;
 }
 
+// 7. MAIN SCENE
 export default function SolarSystem({ onPlanetClick }) {
   return (
     <div className="absolute inset-0 h-screen w-full bg-[#030303]">
-      <Canvas camera={{ position: [0, 2, 10], fov: 60 }}>
-        <ambientLight intensity={0.1} />
-        <pointLight position={[0, 0, 0]} intensity={150} color="#ffedd5" distance={300} decay={1.5} /> 
-        <Stars radius={100} depth={50} count={8000} factor={3} saturation={0.5} fade speed={0.5} />
+      <Canvas camera={{ position: [0, 15, 90], fov: 60 }}>
+        <ambientLight intensity={0.2} />
+        <pointLight position={[0, 0, 0]} intensity={250} color="#ffedd5" distance={500} decay={1.5} /> 
+        
+        <MovingStars />
 
-        {/* Reduced pages from 15 to 11 to increase the scroll speed */}
-        <ScrollControls pages={11} damping={0.2}>
+        {SERVICES_DATA.map((service) => (
+          <OrbitLine key={`orbit-${service.id}`} radius={service.orbitRadius} />
+        ))}
+
+        <ScrollControls pages={10} damping={0.2} infinite={true}>
           
-          <group position={[0, 0, 0]}>
-            {/* Inner burning core - Changed from pure white to a deep solar yellow */}
-            <Sphere args={[2.8, 64, 64]}>
-              <meshBasicMaterial color="#ffb703" />
+          <group position={[0, 0, 0]} frustumCulled={false}>
+            <Sphere args={[5.5, 64, 64]} frustumCulled={false}>
+              <meshBasicMaterial color="#e65c00" />
             </Sphere>
-            
-            {/* Primary Corona - Thickened slightly for realism */}
-            <Sphere args={[3.2, 64, 64]}>
-              <meshBasicMaterial 
-                color="#ffaa00" 
-                transparent={true} 
-                opacity={0.8} 
-                blending={THREE.AdditiveBlending} 
-                depthWrite={false}
-              />
+            <Sphere args={[6.5, 64, 64]} frustumCulled={false}>
+              <meshBasicMaterial color="#ff8800" transparent={true} opacity={0.8} blending={THREE.AdditiveBlending} depthWrite={false} />
             </Sphere>
-
-            {/* Outer Atmospheric Glow */}
-            <Sphere args={[4.5, 32, 32]}>
-              <meshBasicMaterial 
-                color="#ff4400" 
-                transparent={true} 
-                opacity={0.15} 
-                blending={THREE.AdditiveBlending} 
-                depthWrite={false}
-              />
+            <Sphere args={[8.5, 32, 32]} frustumCulled={false}>
+              <meshBasicMaterial color="#ff4400" transparent={true} opacity={0.15} blending={THREE.AdditiveBlending} depthWrite={false} />
             </Sphere>
-
-            <Html distanceFactor={20} position={[0, 4.5, 0]} center>
-              <div className="text-center pointer-events-none w-96 mt-4">
-                {/* Removed the KLARAI heading and styled the Growth Engine text to stand on its own */}
-                <p className="text-xl md:text-2xl font-bold text-orange-100 tracking-[0.3em] uppercase drop-shadow-[0_0_15px_rgba(255,170,0,0.8)]">
-                  AI Growth Engine
-                </p>
-              </div>
-            </Html>
           </group>
 
+          <TopHeroText />
+
           {SERVICES_DATA.map((service) => (
-            <Planet 
-              key={service.id} 
-              data={service} 
-              onPlanetClick={onPlanetClick} 
-            />
+            <Planet key={service.id} data={service} onPlanetClick={onPlanetClick} />
           ))}
 
           <CameraFlyer />
