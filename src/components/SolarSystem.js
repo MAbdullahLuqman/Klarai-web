@@ -90,7 +90,6 @@ function TopHeroText({ isModalOpen }) {
   const opacityRef = useRef();
 
   useFrame(() => {
-    // Simplified logic for standard scrolling (0 is top, 1 is bottom)
     let opacity = 1;
     if (scroll.offset > 0.05) {
         opacity = 0;
@@ -105,19 +104,24 @@ function TopHeroText({ isModalOpen }) {
   return (
     <Html fullscreen zIndexRange={[10, 0]}>
       <div ref={opacityRef} className="absolute inset-0 pointer-events-none flex flex-col items-center pt-24 md:pt-32 transition-opacity duration-300 px-4">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[#eab308] text-[10px] md:text-xs font-bold tracking-widest uppercase mb-6 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-[#eab308] animate-pulse"></span>
-            Next-Gen Answer Engine Optimization
+        
+        {/* NEW: Glassmorphism Wrapper around the text */}
+        <div className="bg-black/30 backdrop-blur-md border border-white/10 p-8 md:p-12 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] flex flex-col items-center max-w-4xl mx-auto text-center mt-10 md:mt-0">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[#eab308] text-[10px] md:text-xs font-bold tracking-widest uppercase mb-6 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-[#eab308] animate-pulse"></span>
+                Next-Gen Answer Engine Optimization
+            </div>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight mb-4 leading-[1.1] drop-shadow-2xl">
+                Dominate AI Search.<br className="hidden md:block" />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#eab308] to-orange-500">
+                    Scale Revenue Predictably.
+                </span>
+            </h1>
+            <p className="text-sm md:text-lg text-gray-300 max-w-2xl mb-2 drop-shadow-md">
+                Stop losing high-ticket clients to outdated SEO. We engineer your digital architecture so ChatGPT, Gemini, and Google recommend <strong className="text-white">KLARAI</strong> first.
+            </p>
         </div>
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight mb-4 text-center leading-[1.1] drop-shadow-2xl">
-            Dominate AI Search.<br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#eab308] to-orange-500">
-                Scale Revenue Predictably.
-            </span>
-        </h1>
-        <p className="text-sm md:text-lg text-gray-300 max-w-2xl text-center mb-8 drop-shadow-md">
-            Stop losing high-ticket clients to outdated SEO. We engineer your digital architecture so ChatGPT, Gemini, and Google recommend <strong className="text-white">KLARAI</strong> first.
-        </p>
+
       </div>
     </Html>
   );
@@ -142,7 +146,7 @@ function CameraFlyer({ isStrategyModalOpen }) {
       const angle = (Math.PI / 2) - (scroll.offset * Math.PI * 2);
       const targetX = Math.cos(angle) * radius;
       const targetZ = Math.sin(angle) * radius;
-      const targetY = 25 + Math.sin(scroll.offset * Math.PI) * 10; // Changed to Math.PI for a smooth half-arc
+      const targetY = 25 + Math.sin(scroll.offset * Math.PI) * 10; 
       
       state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetX, 0.05);
       state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, targetY, 0.05);
@@ -166,7 +170,6 @@ export default function SolarSystem({ onPlanetClick, onSunClick, isModalOpen, is
         <MovingStars />
         {SERVICES_DATA.map((service) => <OrbitLine key={`orbit-${service.id}`} radius={service.orbitRadius} />)}
 
-        {/* INFINITE SCROLL REMOVED HERE */}
         <ScrollControls pages={10} damping={0.2}>
           <group 
             position={[0, 0, 0]} 

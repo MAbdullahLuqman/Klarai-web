@@ -20,20 +20,21 @@ export default function Home() {
         isStrategyModalOpen={isStrategyModalOpen}
       />
       
-      {/* 1. NAVIGATION BAR (Button Removed) */}
+      {/* NAVIGATION BAR */}
       <nav className="fixed top-0 left-0 w-full p-6 md:p-10 flex justify-between items-center z-40 pointer-events-none">
         <div className="pointer-events-auto flex-shrink-0">
           <img 
             src="/klarailogo.webp" 
             alt="KLARAI Logo" 
             className="h-8 md:h-10 w-auto object-contain drop-shadow-lg cursor-pointer"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} // Clicking logo acts as a "Back to Top" button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
           />
         </div>
 
         <div className="flex items-center gap-6">
+          {/* UPDATED: Connected to your actual LinkedIn */}
           <a 
-            href="#" 
+            href="https://www.linkedin.com/in/abdullahluqman/" 
             target="_blank" 
             rel="noopener noreferrer"
             className="hidden md:block pointer-events-auto text-sm text-gray-300 hover:text-white transition-colors border-b border-transparent hover:border-white pb-1"
@@ -42,6 +43,17 @@ export default function Home() {
           </a>
         </div>
       </nav>
+
+      {/* NEW: Floating "Get Audit" Button at the bottom of the page */}
+      <div className={`fixed bottom-6 right-6 z-50 transition-opacity duration-500 ${isAnyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        <button 
+          onClick={() => setIsStrategyModalOpen(true)}
+          className="pointer-events-auto bg-[#eab308] hover:bg-[#ca8a04] text-black px-6 py-3 rounded-full font-extrabold transition-all shadow-[0_0_20px_rgba(234,179,8,0.4)] hover:shadow-[0_0_30px_rgba(234,179,8,0.6)] text-sm md:text-base tracking-wide flex items-center gap-2"
+        >
+          <span className="w-2 h-2 rounded-full bg-black animate-pulse"></span>
+          Get Free Audit
+        </button>
+      </div>
 
       <div className={`fixed bottom-10 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2 pointer-events-none transition-opacity duration-500 ${isAnyModalOpen ? 'opacity-0' : 'opacity-70'}`}>
         <span className="text-white text-[10px] md:text-xs tracking-[0.3em] uppercase drop-shadow-md">Scroll to Explore</span>
@@ -92,11 +104,10 @@ export default function Home() {
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Claim Your Free Audit.</h2>
               <p className="text-gray-400 mb-8">Enter your details below to see exactly where your competitors are outranking you in AI Search.</p>
               
-              {/* 2. THE WORKING FORM */}
-              {/* IMPORTANT: Replace the action link below with your actual Formspree link */}
+              {/* UPDATED: Formspree Link Attached */}
               <form 
                 className="space-y-6 pointer-events-auto" 
-                action="https://formspree.io/f/YOUR_FORM_ID_HERE" 
+                action="https://formspree.io/f/mwvrdbly" 
                 method="POST"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
