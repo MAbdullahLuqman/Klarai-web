@@ -5,9 +5,6 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import * as THREE from "three";
 
-// 1. ADVANCED ORBITAL MECHANICS:
-// Replaced 'orbitRadius' with 'radiusX' and 'radiusZ' to create Ovals (Ellipses).
-// Added 'tiltX', 'tiltY', 'tiltZ' to rotate each orbit onto completely different 3D axes.
 const SERVICES_DATA = [
   { id: "aeo", href: "/aeo-services", shape: "icosahedron", radiusX: 38, radiusZ: 25, tiltX: 0.15, tiltY: 0.1, tiltZ: -0.15, angle: 0.5, orbitSpeed: 0.002, spinSpeed: 0.01, size: 3.5, color: "#fcd34d", label: "AEO" }, 
   { id: "seo", href: "/seo-services", shape: "torus", radiusX: 55, radiusZ: 40, tiltX: -0.25, tiltY: -0.15, tiltZ: 0.2, angle: 2.1, orbitSpeed: 0.0015, spinSpeed: 0.008, size: 3.8, color: "#185FA5", label: "SEO" }, 
@@ -19,20 +16,15 @@ const SERVICES_DATA = [
 function MovingStars() {
   const starsRef = useRef();
   useFrame((state, delta) => { if(starsRef.current) starsRef.current.rotation.y += delta * 0.005; });
-  // Kept the ultra-bright, deep sparkling stars from the previous version
   return <group ref={starsRef} frustumCulled={false}><Stars radius={300} depth={200} count={6000} factor={15} saturation={1.0} fade speed={1.5} /></group>;
 }
 
-// 2. OVAL & TILTED ORBIT LINES
 function OrbitLine({ data, isMobile }) {
   const rX = isMobile ? data.radiusX * 0.65 : data.radiusX;
   const rZ = isMobile ? data.radiusZ * 0.65 : data.radiusZ;
-  
-  // Mathematically squashes the perfect circle into an oval without distorting line thickness too much
   const scaleY = rZ / rX; 
 
   return (
-    // Rotates the entire oval ring into its unique 3D axis
     <group rotation={[data.tiltX, data.tiltY, data.tiltZ]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} scale={[1, scaleY, 1]} frustumCulled={false}>
         <ringGeometry args={[rX - 0.25, rX + 0.25, 128]} />
@@ -76,11 +68,9 @@ function Planet({ data, isMobile }) {
 
     currentAngle.current += data.orbitSpeed;
     
-    // Calculate the flat Oval (Elliptical) position
     const localX = Math.cos(currentAngle.current) * rX;
     const localZ = Math.sin(currentAngle.current) * rZ;
 
-    // Apply the 3D Tilt (Euler angles) to the flat oval to match the orbit ring
     const pos = new THREE.Vector3(localX, 0, localZ);
     const euler = new THREE.Euler(data.tiltX, data.tiltY, data.tiltZ);
     pos.applyEuler(euler);
@@ -148,6 +138,7 @@ function TopHeroText({ isStrategyModalOpen, onOpenModal }) {
   return (
     <Html fullscreen style={{ pointerEvents: 'none' }} zIndexRange={[10, 0]}>
       <div ref={opacityRef} style={{ pointerEvents: 'none' }} className="absolute inset-0 flex flex-col items-center justify-center px-4 transition-opacity duration-300">
+        
         <div className="relative z-10 w-full flex flex-col items-center text-center max-w-[95%] sm:max-w-2xl md:max-w-4xl mx-auto bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 p-8 sm:p-12 rounded-[2rem] shadow-2xl">
             <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 rounded-full bg-[#111] border border-white/10 text-[#3b82f6] text-[9px] md:text-xs font-bold tracking-widest uppercase mb-6 shadow-sm">
                 <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#3b82f6]"></span>
@@ -171,6 +162,54 @@ function TopHeroText({ isStrategyModalOpen, onOpenModal }) {
                 Get Free Audit
             </button>
         </div>
+
+        {/* CRITICAL FIX: Changed absolute to fixed so it anchors to the real screen bottom */}
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce opacity-80 bg-black/40 px-4 py-2 rounded-full backdrop-blur-md border border-white/10">
+            <span className="text-[10px] md:text-xs uppercase tracking-widest text-gray-300 font-bold">Scroll or Drag to Explore</span>
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+        </div>
+      </div>
+    </Html>
+  );
+}
+
+// THE FOOTER FIX
+function DynamicFooter() {
+  const scroll = useScroll();
+  const footerRef = useRef();
+
+  useFrame(() => {
+    if(!scroll || !footerRef.current) return;
+    
+    // CRITICAL FIX: Lowered threshold to 0.75 so it fades in much sooner on mobile devices
+    let opacity = 0;
+    if (scroll.offset > 0.75) {
+      opacity = (scroll.offset - 0.75) / 0.15; 
+    }
+    opacity = Math.min(Math.max(opacity, 0), 1); 
+    
+    footerRef.current.style.opacity = opacity;
+    footerRef.current.style.pointerEvents = opacity > 0.5 ? 'auto' : 'none';
+  });
+
+  return (
+    <Html fullscreen style={{ pointerEvents: 'none' }} zIndexRange={[100, 0]}>
+      <div 
+        ref={footerRef} 
+        // CRITICAL FIX: Changed absolute to fixed bottom-0 to lock it to the physical screen
+        className="fixed bottom-0 left-0 w-full p-4 md:py-4 md:px-8 bg-[#030303]/90 backdrop-blur-xl border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-3 transition-opacity duration-100"
+      >
+        <div className="flex items-center gap-3">
+            <img src="/klarailogo.webp" alt="Klarai Logo" className="h-4 md:h-5 object-contain opacity-80" />
+            <div className="h-4 w-px bg-white/20 hidden md:block"></div>
+            <span className="text-[10px] sm:text-xs text-gray-400 font-medium tracking-wide">
+                © {new Date().getFullYear()} KLARAI. All Rights Reserved.
+            </span>
+        </div>
+        
+        <p className="text-[8px] sm:text-[10px] text-gray-500 text-center md:text-right max-w-xs md:max-w-md uppercase tracking-wider">
+            Strictly Protected. Copyright infringement & unauthorized duplication is prohibited.
+        </p>
       </div>
     </Html>
   );
@@ -262,6 +301,9 @@ export default function SolarSystem({ onOpenModal, isStrategyModalOpen }) {
           <TopHeroText isStrategyModalOpen={isStrategyModalOpen} onOpenModal={onOpenModal} />
           {SERVICES_DATA.map((service) => <Planet key={service.id} data={service} isMobile={isMobile} />)}
           <CameraFlyer isStrategyModalOpen={isStrategyModalOpen} isMobile={isMobile} />
+          
+          <DynamicFooter />
+          
         </ScrollControls>
       </Canvas>
     </div>
