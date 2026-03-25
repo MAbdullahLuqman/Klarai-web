@@ -23,7 +23,6 @@ function OrbitLine({ data, isMobile }) {
   const rX = isMobile ? data.radiusX * 0.65 : data.radiusX;
   const rZ = isMobile ? data.radiusZ * 0.65 : data.radiusZ;
   const scaleY = rZ / rX; 
-
   return (
     <group rotation={[data.tiltX, data.tiltY, data.tiltZ]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} scale={[1, scaleY, 1]} frustumCulled={false}>
@@ -65,18 +64,13 @@ function Planet({ data, isMobile }) {
 
   useFrame(() => {
     if(!orbitGroupRef.current || !planetMeshRef.current || !scroll) return;
-
     currentAngle.current += data.orbitSpeed;
-    
     const localX = Math.cos(currentAngle.current) * rX;
     const localZ = Math.sin(currentAngle.current) * rZ;
-
     const pos = new THREE.Vector3(localX, 0, localZ);
     const euler = new THREE.Euler(data.tiltX, data.tiltY, data.tiltZ);
     pos.applyEuler(euler);
-
     orbitGroupRef.current.position.copy(pos);
-
     planetMeshRef.current.rotation.y += data.spinSpeed;
     planetMeshRef.current.rotation.x += data.spinSpeed * 0.5;
 
@@ -130,16 +124,17 @@ function TopHeroText({ isStrategyModalOpen, onOpenModal }) {
 
   useFrame(() => {
     if(!scroll) return;
-    let opacity = scroll.offset > 0.05 ? 0 : 1 - (scroll.offset / 0.05); 
+    // Fades out faster now (by 15% of the new, shorter scroll)
+    let opacity = scroll.offset > 0.15 ? 0 : 1 - (scroll.offset / 0.15); 
     if (isStrategyModalOpen) opacity = 0;
-    if (opacityRef.current) opacityRef.current.style.opacity = opacity;
+    if (opacityRef.current) opacityRef.current.style.opacity = Math.max(0, opacity);
   });
 
   return (
     <Html fullscreen style={{ pointerEvents: 'none' }} zIndexRange={[10, 0]}>
-      <div ref={opacityRef} style={{ pointerEvents: 'none' }} className="absolute inset-0 flex flex-col items-center justify-center px-4 transition-opacity duration-300">
+      <div ref={opacityRef} style={{ pointerEvents: 'none', opacity: 1 }} className="absolute inset-0 flex flex-col items-center justify-center px-4 pt-20 md:pt-24 will-change-[opacity]">
         
-        <div className="relative z-10 w-full flex flex-col items-center text-center max-w-[95%] sm:max-w-2xl md:max-w-4xl mx-auto bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 p-8 sm:p-12 rounded-[2rem] shadow-2xl">
+        <div className="relative z-10 w-full flex flex-col items-center text-center max-w-[95%] sm:max-w-2xl md:max-w-4xl mx-auto bg-[#0a0a0a]/60 backdrop-blur-xl border border-white/10 p-8 sm:p-12 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.8)]">
             <div className="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 rounded-full bg-[#111] border border-white/10 text-[#3b82f6] text-[9px] md:text-xs font-bold tracking-widest uppercase mb-6 shadow-sm">
                 <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#3b82f6]"></span>
                 Next-Gen Answer Engine Optimization
@@ -161,33 +156,90 @@ function TopHeroText({ isStrategyModalOpen, onOpenModal }) {
             >
                 Get Free Audit
             </button>
-        </div>
 
-        {/* CRITICAL FIX: Changed absolute to fixed so it anchors to the real screen bottom */}
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce opacity-80 bg-black/40 px-4 py-2 rounded-full backdrop-blur-md border border-white/10">
-            <span className="text-[10px] md:text-xs uppercase tracking-widest text-gray-300 font-bold">Scroll or Drag to Explore</span>
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+            {/* NEW CATCHY TEXT: Built directly into the card so it never gets lost at the bottom */}
+            <div className="mt-8 md:mt-10 flex flex-col items-center gap-2 animate-bounce opacity-80">
+                <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] text-gray-400 font-bold drop-shadow-md">
+                    [ Ignite Launch Sequence ]
+                </span>
+                <svg className="w-4 h-4 text-[#3b82f6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+            </div>
         </div>
       </div>
     </Html>
   );
 }
 
-// THE FOOTER FIX
+function TransitionSlideShow() {
+  const scroll = useScroll();
+  const slide1Ref = useRef();
+  const slide2Ref = useRef();
+
+  useFrame(() => {
+    if(!scroll || !slide1Ref.current || !slide2Ref.current) return;
+    const offset = scroll.offset;
+
+    // Adjusted Math for the faster 5-page scroll
+    // Slide 1: Engine Start (15% to 35%)
+    let op1 = 0;
+    if (offset > 0.15 && offset < 0.35) {
+      const p = (offset - 0.15) / 0.20; 
+      op1 = Math.sin(p * Math.PI); 
+    }
+    slide1Ref.current.style.opacity = Math.max(0, op1);
+
+    // Slide 2: Selection Ready (35% to 65%)
+    let op2 = 0;
+    if (offset > 0.35 && offset < 0.65) {
+      const p = (offset - 0.35) / 0.30;
+      op2 = Math.sin(p * Math.PI); 
+    }
+    slide2Ref.current.style.opacity = Math.max(0, op2);
+  });
+
+  return (
+    <Html fullscreen style={{ pointerEvents: 'none' }} zIndexRange={[100, 0]}>
+      {/* Slide 1 */}
+      <div ref={slide1Ref} className="fixed bottom-12 md:bottom-20 left-1/2 -translate-x-1/2 w-[95%] md:w-auto flex justify-center will-change-[opacity]" style={{ opacity: 0 }}>
+         <div className="flex flex-col items-center gap-2 bg-[#050505]/95 px-6 md:px-10 py-4 md:py-5 rounded-2xl backdrop-blur-xl border border-[#3b82f6]/40 shadow-[0_0_40px_rgba(0,0,0,0.9)]">
+           <span className="text-[#3b82f6] text-[10px] md:text-sm font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase drop-shadow-[0_0_8px_rgba(59,130,246,0.8)] text-center">
+             [ SYS_INIT ]
+           </span>
+           <span className="text-gray-200 text-xs md:text-base font-semibold tracking-widest uppercase text-center">
+             Synchronizing Orbital Grid...
+           </span>
+         </div>
+      </div>
+
+      {/* Slide 2 */}
+      <div ref={slide2Ref} className="fixed bottom-12 md:bottom-20 left-1/2 -translate-x-1/2 w-[95%] md:w-auto flex justify-center will-change-[opacity]" style={{ opacity: 0 }}>
+        <div className="flex flex-col items-center gap-3 bg-[#050505]/95 px-8 md:px-12 py-5 rounded-3xl backdrop-blur-xl border border-[#fcd34d]/40 shadow-[0_0_40px_rgba(0,0,0,0.9)]">
+          <span className="text-[#fcd34d] text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase drop-shadow-[0_0_8px_rgba(252,211,77,0.8)] text-center">
+            [ READY ]
+          </span>
+          <p className="text-sm md:text-lg text-white font-extrabold tracking-widest uppercase text-center flex items-center gap-3">
+            Select a module to explore
+            <span className="w-2 h-2 rounded-full bg-[#fcd34d] animate-pulse shadow-[0_0_10px_rgba(252,211,77,0.8)]"></span>
+          </p>
+        </div>
+      </div>
+
+    </Html>
+  );
+}
+
 function DynamicFooter() {
   const scroll = useScroll();
   const footerRef = useRef();
 
   useFrame(() => {
     if(!scroll || !footerRef.current) return;
-    
-    // CRITICAL FIX: Lowered threshold to 0.75 so it fades in much sooner on mobile devices
     let opacity = 0;
-    if (scroll.offset > 0.75) {
-      opacity = (scroll.offset - 0.75) / 0.15; 
+    // Shows up sooner since the total scroll is shorter
+    if (scroll.offset > 0.80) { 
+      opacity = (scroll.offset - 0.80) / 0.20; 
     }
     opacity = Math.min(Math.max(opacity, 0), 1); 
-    
     footerRef.current.style.opacity = opacity;
     footerRef.current.style.pointerEvents = opacity > 0.5 ? 'auto' : 'none';
   });
@@ -196,8 +248,8 @@ function DynamicFooter() {
     <Html fullscreen style={{ pointerEvents: 'none' }} zIndexRange={[100, 0]}>
       <div 
         ref={footerRef} 
-        // CRITICAL FIX: Changed absolute to fixed bottom-0 to lock it to the physical screen
-        className="fixed bottom-0 left-0 w-full p-4 md:py-4 md:px-8 bg-[#030303]/90 backdrop-blur-xl border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-3 transition-opacity duration-100"
+        className="fixed bottom-0 left-0 w-full p-4 md:py-4 md:px-8 bg-[#030303]/90 backdrop-blur-xl border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-3 will-change-[opacity]"
+        style={{ opacity: 0 }}
       >
         <div className="flex items-center gap-3">
             <img src="/klarailogo.webp" alt="Klarai Logo" className="h-4 md:h-5 object-contain opacity-80" />
@@ -220,7 +272,6 @@ function CameraFlyer({ isStrategyModalOpen, isMobile }) {
   useFrame((state) => {
     if(!scroll) return;
     const time = state.clock.elapsedTime;
-    const radius = isMobile ? 220 : 180; 
     const driftRadius = 20; 
     
     let targetX, targetZ, targetY;
@@ -233,12 +284,18 @@ function CameraFlyer({ isStrategyModalOpen, isMobile }) {
       const angle = (Math.PI / 2) - (scroll.offset * Math.PI * 2);
       targetX = Math.cos(angle) * driftRadius;
       targetZ = Math.sin(angle) * driftRadius;
-      targetY = (isMobile ? 260 : 200) + Math.sin(scroll.offset * Math.PI) * 20; 
+      
+      // Camera drops EARLIER (at 60% scroll depth) so users reach the planets much faster
+      if (scroll.offset < 0.60) {
+          targetY = isMobile ? 260 : 200; 
+      } else {
+          targetY = isMobile ? 80 : 50; 
+      }
     }
     
-    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetX, 0.05);
-    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, targetY, 0.05);
-    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, 0.05);
+    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, targetX, 0.03);
+    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, targetY, 0.03);
+    state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, targetZ, 0.03);
     state.camera.lookAt(0, 0, 0); 
   });
   return null;
@@ -265,43 +322,28 @@ export default function SolarSystem({ onOpenModal, isStrategyModalOpen }) {
         <MovingStars />
         {SERVICES_DATA.map((service) => <OrbitLine key={`orbit-${service.id}`} data={service} isMobile={isMobile} />)}
 
-        <ScrollControls pages={8} damping={0.2}>
+        {/* FASTER SCROLL: Reduced pages from 8 to 5 to make the scroll sequence much faster */}
+        <ScrollControls pages={5} damping={0.2}>
           
           <group position={[0, 0, 0]} frustumCulled={false} onClick={(e) => { e.stopPropagation(); onOpenModal(); }} onPointerOver={() => { setSunHovered(true); document.body.style.cursor = 'pointer'; }} onPointerOut={() => { setSunHovered(false); document.body.style.cursor = 'auto'; }}>
-            
             <mesh frustumCulled={false}>
               <sphereGeometry args={[11.0, 64, 64]} />
               <meshPhysicalMaterial color="#ea580c" emissive="#c2410c" emissiveIntensity={0.8} clearcoat={1} roughness={0.7} />
             </mesh>
-            
             <mesh frustumCulled={false} scale={1.05}>
               <sphereGeometry args={[11.0, 32, 32]} />
               <meshBasicMaterial color="#f59e0b" wireframe transparent opacity={0.2} blending={THREE.AdditiveBlending} />
             </mesh>
-
             <mesh frustumCulled={false} scale={1.2}>
               <sphereGeometry args={[11.0, 32, 32]} />
               <meshBasicMaterial color="#facc15" transparent opacity={0.25} blending={THREE.AdditiveBlending} depthWrite={false} />
             </mesh>
-            
-            <Html center style={{ pointerEvents: 'none' }} zIndexRange={[100, 0]}>
-                <div className="flex flex-col items-center">
-                    <img 
-                      src="/klarailogo.webp" 
-                      alt="Klarai" 
-                      className="w-48 md:w-64 drop-shadow-[0_0_30px_rgba(250,204,21,1)] filter brightness-125 contrast-125" 
-                    />
-                    <div className={`transition-opacity duration-300 whitespace-nowrap mt-4 ${sunHovered && !isStrategyModalOpen ? 'opacity-100' : 'opacity-0'}`}>
-                        <p className="text-white font-bold tracking-widest uppercase drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] bg-black/60 px-5 py-2 rounded-full border border-[#f59e0b]/50">Initiate Strategy</p>
-                    </div>
-                </div>
-            </Html>
           </group>
           
           <TopHeroText isStrategyModalOpen={isStrategyModalOpen} onOpenModal={onOpenModal} />
+          <TransitionSlideShow />
           {SERVICES_DATA.map((service) => <Planet key={service.id} data={service} isMobile={isMobile} />)}
           <CameraFlyer isStrategyModalOpen={isStrategyModalOpen} isMobile={isMobile} />
-          
           <DynamicFooter />
           
         </ScrollControls>
