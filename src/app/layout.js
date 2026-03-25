@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import "./globals.css";
 
 // Initialize the modern fonts
@@ -44,6 +45,7 @@ export default function RootLayout({ children }) {
     >
       <body className="bg-[#030303] text-white antialiased min-h-screen">
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
