@@ -1,14 +1,42 @@
 import React from 'react';
 import Link from 'next/link';
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
-export const metadata = {
-  title: 'Meta Ads Management — Facebook & Instagram Advertising That Converts',
-  description: 'Klarai runs high-ROI Meta Ads campaigns on Facebook and Instagram. Ad creative, Meta Ads Manager setup, and full campaign management for UK businesses.',
-  alternates: { canonical: 'https://klaraiweb.com/meta-ads' },
-  robots: 'index, follow'
-};
+export async function generateMetadata() {
+  try {
+    const docRef = doc(db, "pages", "ads");
+    const docSnap = await getDoc(docRef);
+    const data = docSnap.exists() ? docSnap.data() : null;
+    const metaTitle = data?.title ? `${data.title} | Klarai` : 'Meta Ads Management — Facebook & Instagram Advertising That Converts | Klarai';
+    const metaDesc = data?.meta || 'Klarai runs high-ROI Meta Ads campaigns on Facebook and Instagram. Ad creative, Meta Ads Manager setup, and full campaign management for UK businesses.';
 
-export default function MetaAds() {
+    return {
+      title: metaTitle,
+      description: metaDesc,
+      alternates: { canonical: 'https://www.klarai.uk/meta-ads' },
+      robots: 'index, follow',
+      openGraph: { title: metaTitle, description: metaDesc, url: 'https://www.klarai.uk/meta-ads', type: 'website' }
+    };
+  } catch (error) {
+    return { title: 'Meta Ads Management | Klarai', description: 'High-ROI Meta Ads campaigns.', alternates: { canonical: 'https://www.klarai.uk/meta-ads' } };
+  }
+}
+
+async function getPageData() {
+  try {
+    const docRef = doc(db, "pages", "ads");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) return docSnap.data();
+    return null;
+  } catch (error) { return null; }
+}
+
+export default async function MetaAds() {
+  const data = await getPageData();
+  const pageTitle = data?.title || "Meta Ads Management — Facebook & Instagram Advertising That Converts";
+  const pageSubtitle = data?.subtitle || "We handle your meta ads manager and facebook meta advertising to scale your revenue predictably.";
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -28,8 +56,8 @@ export default function MetaAds() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 pt-20">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 leading-tight">Meta Ads Management — Facebook & Instagram Advertising That Converts</h1>
-        <p className="text-xl mb-12 max-w-3xl leading-relaxed">We handle your <strong className="text-white">meta ads manager</strong> and <strong className="text-white">facebook meta advertising</strong> to scale your revenue predictably.</p>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 leading-tight">{pageTitle}</h1>
+        <p className="text-xl mb-12 max-w-3xl leading-relaxed">{pageSubtitle}</p>
 
         <section className="mb-20 grid md:grid-cols-3 gap-6">
             {['Campaign Setup', 'Ad Creative', 'Audience Targeting', 'Retargeting', 'Pixel Setup', 'Reporting'].map(item => (

@@ -1,14 +1,42 @@
 import React from 'react';
 import Link from 'next/link';
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
-export const metadata = {
-  title: 'Social Media Marketing Agency for UK & European Brands — Grow Organically',
-  description: 'Klarai manages your social media on Instagram, LinkedIn, and TikTok. Strategy, content creation, and community management for UK and European brands.',
-  alternates: { canonical: 'https://klaraiweb.com/social-media-marketing' },
-  robots: 'index, follow'
-};
+export async function generateMetadata() {
+  try {
+    const docRef = doc(db, "pages", "smma");
+    const docSnap = await getDoc(docRef);
+    const data = docSnap.exists() ? docSnap.data() : null;
+    const metaTitle = data?.title ? `${data.title} | Klarai` : 'Social Media Marketing Agency for UK & European Brands | Klarai';
+    const metaDesc = data?.meta || 'Klarai manages your social media on Instagram, LinkedIn, and TikTok. Strategy, content creation, and community management for UK and European brands.';
 
-export default function SocialMediaMarketing() {
+    return {
+      title: metaTitle,
+      description: metaDesc,
+      alternates: { canonical: 'https://www.klarai.uk/social-media-marketing' },
+      robots: 'index, follow',
+      openGraph: { title: metaTitle, description: metaDesc, url: 'https://www.klarai.uk/social-media-marketing', type: 'website' }
+    };
+  } catch (error) {
+    return { title: 'Social Media Marketing | Klarai', alternates: { canonical: 'https://www.klarai.uk/social-media-marketing' } };
+  }
+}
+
+async function getPageData() {
+  try {
+    const docRef = doc(db, "pages", "smma");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) return docSnap.data();
+    return null;
+  } catch (error) { return null; }
+}
+
+export default async function SocialMediaMarketing() {
+  const data = await getPageData();
+  const pageTitle = data?.title || "Social Media Marketing Agency for UK & European Brands — Grow Organically";
+  const pageSubtitle = data?.subtitle || "As top tier social marketing agencies, we handle digital marketing social media marketing strategies that actually convert followers to clients.";
+
   return (
     <main className="min-h-screen bg-[#030303] text-gray-300 font-sans pb-20">
       <nav className="w-full p-6 md:p-10 flex justify-between items-center border-b border-white/5">
@@ -16,8 +44,8 @@ export default function SocialMediaMarketing() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 pt-20">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 leading-tight">Social Media Marketing Agency for UK & European Brands — Grow Organically</h1>
-        <p className="text-xl mb-12 max-w-3xl leading-relaxed">As top tier <strong className="text-white">social marketing agencies</strong>, we handle <strong className="text-white">digital marketing social media marketing</strong> strategies that actually convert followers to clients.</p>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 leading-tight">{pageTitle}</h1>
+        <p className="text-xl mb-12 max-w-3xl leading-relaxed">{pageSubtitle}</p>
 
         <section className="mb-20">
           <h2 className="text-2xl font-bold text-white mb-6">Our Services</h2>

@@ -1,20 +1,62 @@
 import React from 'react';
 import Link from 'next/link';
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
-export const metadata = {
-  title: 'Search Engine Optimisation Services That Rank UK Businesses Faster | Klarai',
-  description: 'Expert SEO and search engine optimisation for UK businesses. On-page audits, off-page backlinks, affordable packages. Transparent and results-focused.',
-  alternates: { canonical: 'https://klaraiweb.com/seo-services' },
-  robots: 'index, follow',
-  openGraph: {
-    title: 'Search Engine Optimisation Services That Rank UK Businesses Faster',
-    description: 'Expert SEO and search engine optimisation for UK businesses. On-page audits, off-page backlinks, affordable packages.',
-    url: 'https://klaraiweb.com/seo-services',
-    type: 'website',
+// 1. DYNAMIC METADATA: Pulls the SEO description from Firebase for Google Bots
+export async function generateMetadata() {
+  try {
+    const docRef = doc(db, "pages", "seo");
+    const docSnap = await getDoc(docRef);
+    const data = docSnap.exists() ? docSnap.data() : null;
+
+    const metaTitle = data?.title ? `${data.title} | Klarai` : 'Search Engine Optimisation Services That Rank UK Businesses Faster | Klarai';
+    const metaDesc = data?.meta || 'Expert SEO and search engine optimisation for UK businesses. On-page audits, off-page backlinks, affordable packages. Transparent and results-focused.';
+
+    return {
+      title: metaTitle,
+      description: metaDesc,
+      alternates: { canonical: 'https://www.klarai.uk/seo-services' },
+      robots: 'index, follow',
+      openGraph: {
+        title: metaTitle,
+        description: metaDesc,
+        url: 'https://www.klarai.uk/seo-services',
+        type: 'website',
+      }
+    };
+  } catch (error) {
+    return {
+      title: 'Search Engine Optimisation Services That Rank UK Businesses Faster | Klarai',
+      description: 'Expert SEO and search engine optimisation for UK businesses. On-page audits, off-page backlinks, affordable packages. Transparent and results-focused.',
+      alternates: { canonical: 'https://www.klarai.uk/seo-services' },
+      robots: 'index, follow',
+    };
   }
-};
+}
 
-export default function SeoServices() {
+// 2. DATA FETCHER: Grabs the page content securely on the server
+async function getPageData() {
+  try {
+    const docRef = doc(db, "pages", "seo");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) return docSnap.data();
+    return null;
+  } catch (error) {
+    console.error("Firebase fetch error:", error);
+    return null;
+  }
+}
+
+export default async function SeoServices() {
+  // 3. WAIT FOR FIREBASE DATA
+  const data = await getPageData();
+
+  // 4. SET FALLBACKS: Uses your original text if Firebase is empty
+  const pageTitle = data?.title || "Search Engine Optimisation Services That Rank UK Businesses Faster";
+  const pageSubtitle = data?.subtitle || "Stop guessing. We are a premier seo optimisation agency providing comprehensive search engine optimisation service to dominate Google rankings.";
+  const pageBody = data?.body || "Search Engine Optimisation is the mathematical alignment of your digital architecture with Google's core algorithms. It ensures that when your customers search for your services, your business appears first.";
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -40,14 +82,24 @@ export default function SeoServices() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 pt-20">
-        <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight">Search Engine Optimisation Services That Rank UK Businesses Faster</h1>
-        <p className="text-xl mb-12 max-w-3xl leading-relaxed">Stop guessing. We are a premier <strong className="text-white">seo optimisation agency</strong> providing comprehensive <strong className="text-white">search engine optimisation service</strong> to dominate Google rankings.</p>
+        
+        {/* DYNAMIC TEXT INTEGRATION */}
+        <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6 leading-tight">
+          {pageTitle}
+        </h1>
+        
+        <p className="text-xl mb-12 max-w-3xl leading-relaxed">
+          {pageSubtitle}
+        </p>
 
         <section className="mb-20">
           <h2 className="text-3xl font-bold text-white mb-6">What is SEO?</h2>
-          <p className="leading-relaxed bg-white/5 p-8 rounded-2xl border border-white/10 backdrop-blur-md">Search Engine Optimisation is the mathematical alignment of your digital architecture with Google's core algorithms. It ensures that when your customers search for your services, your business appears first.</p>
+          <p className="leading-relaxed bg-white/5 p-8 rounded-2xl border border-white/10 backdrop-blur-md">
+            {pageBody}
+          </p>
         </section>
 
+        {/* The rest of your hardcoded arrays stay exactly the same */}
         <section className="mb-20">
           <h2 className="text-3xl font-bold text-white mb-8">Our SEO Services</h2>
           <div className="grid md:grid-cols-2 gap-6">

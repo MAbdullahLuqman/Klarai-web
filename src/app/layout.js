@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import GlobalFooter from "@/components/GlobalFooter";
 
 // Initialize the modern fonts
 const geistSans = Geist({
@@ -44,6 +45,8 @@ export default function RootLayout({ children }) {
     >
       <body className="bg-[#030303] text-white antialiased min-h-screen">
         {children}
+
+        <GlobalFooter />
       </body>
     </html>
   );

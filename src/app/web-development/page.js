@@ -1,14 +1,42 @@
 import React from 'react';
 import Link from 'next/link';
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
-export const metadata = {
-  title: 'Web Design & Development for UK Businesses — Fast, SEO-Ready',
-  description: 'Klarai builds clean, conversion-focused websites for UK businesses. SEO-optimised from day one — fast loading, mobile-friendly, designed to rank on Google.',
-  alternates: { canonical: 'https://klaraiweb.com/web-development' },
-  robots: 'index, follow'
-};
+export async function generateMetadata() {
+  try {
+    const docRef = doc(db, "pages", "web");
+    const docSnap = await getDoc(docRef);
+    const data = docSnap.exists() ? docSnap.data() : null;
+    const metaTitle = data?.title ? `${data.title} | Klarai` : 'Web Design & Development for UK Businesses | Klarai';
+    const metaDesc = data?.meta || 'Klarai builds clean, conversion-focused websites for UK businesses. SEO-optimised from day one — fast loading, mobile-friendly, designed to rank on Google.';
 
-export default function WebDevelopment() {
+    return {
+      title: metaTitle,
+      description: metaDesc,
+      alternates: { canonical: 'https://www.klarai.uk/web-development' },
+      robots: 'index, follow',
+      openGraph: { title: metaTitle, description: metaDesc, url: 'https://www.klarai.uk/web-development', type: 'website' }
+    };
+  } catch (error) {
+    return { title: 'Web Design | Klarai', alternates: { canonical: 'https://www.klarai.uk/web-development' } };
+  }
+}
+
+async function getPageData() {
+  try {
+    const docRef = doc(db, "pages", "web");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) return docSnap.data();
+    return null;
+  } catch (error) { return null; }
+}
+
+export default async function WebDevelopment() {
+  const data = await getPageData();
+  const pageTitle = data?.title || "Web Design & Development for UK Businesses — Fast, SEO-Ready Websites";
+  const pageSubtitle = data?.subtitle || "Searching for web designing near me? We build high-converting, web design seo architectures.";
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -27,8 +55,8 @@ export default function WebDevelopment() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 pt-20">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 leading-tight">Web Design & Development for UK Businesses — Fast, SEO-Ready Websites</h1>
-        <p className="text-xl mb-12 max-w-3xl leading-relaxed">Searching for <strong className="text-white">web designing near me</strong>? We build high-converting, <strong className="text-white">web design seo</strong> architectures.</p>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6 leading-tight">{pageTitle}</h1>
+        <p className="text-xl mb-12 max-w-3xl leading-relaxed">{pageSubtitle}</p>
 
         <section className="mb-20 grid md:grid-cols-2 gap-6">
             {['Business Websites', 'E-commerce', 'Landing Pages', 'WordPress Search Engine Optimisation'].map(item => (
