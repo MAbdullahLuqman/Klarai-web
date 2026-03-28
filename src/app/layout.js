@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import "./globals.css";
 import GlobalFooter from "@/components/GlobalFooter";
 
@@ -21,7 +22,7 @@ export const metadata = {
   openGraph: {
     title: 'KLARAI | AI-Powered Growth',
     description: 'We build AI-powered growth systems.',
-    url: 'https://klarai.com',
+    url: 'https://www.klarai.uk',
     siteName: 'KLARAI',
     images: [
       {
@@ -30,7 +31,7 @@ export const metadata = {
         height: 630,
       },
     ],
-    locale: 'en_US',
+    locale: 'en_GB',
     type: 'website',
   },
 };
@@ -40,13 +41,17 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      // Combine the dark theme class with the font variables
       className={`dark ${geistSans.variable} ${geistMono.variable}`}
     >
-      <body className="bg-[#030303] text-white antialiased min-h-screen">
+      <body className="bg-[#030303] text-white antialiased min-h-screen flex flex-col">
+        {/* Main Content */}
         {children}
-
+        
+        {/* Global Footer (Hidden on homepage automatically by its own code) */}
         <GlobalFooter />
+        
+        {/* Vercel Analytics */}
+        <SpeedInsights />
       </body>
     </html>
   );
