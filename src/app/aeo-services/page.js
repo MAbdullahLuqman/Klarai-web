@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
+export const revalidate = 0;
+
 // 1. DYNAMIC METADATA: Pulls the AEO description from Firebase
 export async function generateMetadata() {
   try {

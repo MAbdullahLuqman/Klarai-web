@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
-
+export const revalidate = 0;
 // 1. DYNAMIC METADATA: Pulls the SEO description from Firebase for Google Bots
 export async function generateMetadata() {
   try {

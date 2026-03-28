@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-
+export const revalidate = 0;
 export const metadata = {
   title: 'Privacy Policy | Klarai',
   description: 'How KLARAI collects, uses, and protects your data.',
