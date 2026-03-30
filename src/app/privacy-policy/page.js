@@ -14,7 +14,7 @@ export default function PrivacyPolicy() {
       {/* Top Navigation */}
       <nav className="w-full p-6 md:p-10 flex justify-between items-center border-b border-white/5">
         <Link href="/">
-          <img src="/klarailogo.webp" alt="KLARAI Logo" className="h-8 md:h-10 w-auto object-contain cursor-pointer" />
+          <img src="/klarailogo.webp" alt="KLARAI Logo" className="h-7 md:h-10 w-auto object-contain cursor-pointer" />
         </Link>
         <Link href="https://www.linkedin.com/in/abdullahluqman/" target="_blank" className="text-sm text-gray-300 hover:text-white transition-colors">
           Connect with Founder

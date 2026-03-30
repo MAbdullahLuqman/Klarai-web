@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import "./globals.css";
+import GlobalHeader from '@/components/GlobalHeader';
 import GlobalFooter from "@/components/GlobalFooter";
 
 // Initialize the modern fonts
@@ -44,7 +45,9 @@ export default function RootLayout({ children }) {
       className={`dark ${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="bg-[#030303] text-white antialiased min-h-screen flex flex-col">
+       <GlobalHeader />
         {/* Main Content */}
+
         {children}
         
         {/* Global Footer (Hidden on homepage automatically by its own code) */}
