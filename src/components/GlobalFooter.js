@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
-export default function GlobalFooter() {
+// Added 'isHomeOverlay' prop
+export default function GlobalFooter({ isHomeOverlay = false }) {
   const pathname = usePathname();
   const [footerData, setFooterData] = useState({
     trademark: `© ${new Date().getFullYear()} KLARAI™ All Rights Reserved.`,
@@ -18,9 +19,7 @@ export default function GlobalFooter() {
       try {
         const docRef = doc(db, "pages", "footer");
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setFooterData((prev) => ({ ...prev, ...docSnap.data() }));
-        }
+        if (docSnap.exists()) setFooterData((prev) => ({ ...prev, ...docSnap.data() }));
       } catch (e) {
         console.error("Footer fetch error", e);
       }
@@ -28,8 +27,8 @@ export default function GlobalFooter() {
     fetchFooter();
   }, []);
 
-  // Hides the footer on the homepage so it doesn't break SolarSystem.js
-  if (pathname === "/") return null;
+  // Bypass the hidden rule if we explicitly call it as an overlay in the 3D canvas
+  if (pathname === "/" && !isHomeOverlay) return null;
 
   return (
     <footer className="w-full bg-[#050505] border-t border-white/10 py-8 px-6 mt-auto relative z-50">
@@ -37,11 +36,9 @@ export default function GlobalFooter() {
         <div className="flex items-center gap-3">
           <img src="/klarailogo.webp" alt="KLARAI Logo" className="h-6 object-contain opacity-80" />
         </div>
-        
         <p className="text-xs text-gray-500 font-medium tracking-wider text-center md:text-left">
           {footerData.trademark}
         </p>
-
         <div className="flex gap-6 text-xs font-bold tracking-widest uppercase text-gray-400">
           <Link href="/privacy-policy" className="hover:text-white transition-colors">
             {footerData.privacyText}

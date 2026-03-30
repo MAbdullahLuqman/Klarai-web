@@ -2,7 +2,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import SolarSystem from "../components/SolarSystem";
+import dynamic from 'next/dynamic';
+
+// Force the 3D canvas to strictly load on the client-side
+const SolarSystem = dynamic(() => import("@/components/SolarSystem"), { 
+  ssr: false,
+  loading: () => <div className="h-screen w-full bg-[#030303]" />
+});
 
 export default function Home() {
   const [isStrategyModalOpen, setIsStrategyModalOpen] = useState(false);
