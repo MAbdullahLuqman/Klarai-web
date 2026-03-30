@@ -41,10 +41,7 @@ export default function Home() {
 
       {/* FLOATING CTA BUTTON (Bottom Right) */}
       <div className={`fixed bottom-6 right-6 z-50 transition-opacity duration-500 ${isStrategyModalOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-        <button onClick={() => setIsStrategyModalOpen(true)} className="pointer-events-auto bg-[#185FA5] hover:bg-[#144d85] text-white px-6 py-3 rounded-full font-extrabold transition-all shadow-[0_0_20px_rgba(24,95,165,0.4)] hover:shadow-[0_0_30px_rgba(24,95,165,0.6)] text-sm md:text-base tracking-wide flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-          Get a Free Audit
-        </button>
+       
       </div>
 
       {/* 3. SEO CONTENT (Hidden from immediate view but crawlable by Google) */}
