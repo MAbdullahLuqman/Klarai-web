@@ -20,11 +20,10 @@ function Planet({ index, data }) {
   const spinRef = useRef();  
   
   const texture = useTexture(data.textureUrl);
-  // Optional: If you want the textures to look even more realistic, you can tell Three.js to encode them properly
   texture.colorSpace = THREE.SRGBColorSpace;
   
   const vec = useMemo(() => new THREE.Vector3(), []); 
-  const rotationSpeedY = useMemo(() => Math.random() * 0.08 + 0.02, []); // Even slower, heavier realism
+  const rotationSpeedY = useMemo(() => Math.random() * 0.08 + 0.02, []); 
   const rotationSpeedX = useMemo(() => Math.random() * 0.05 + 0.01, []);
 
   const { width } = useThree().size;
@@ -63,7 +62,6 @@ function Planet({ index, data }) {
       <Float speed={1} rotationIntensity={0.05} floatIntensity={0.1}>
         <group ref={spinRef}>
           
-          {/* REALISTIC PLANET MATERIAL */}
           <mesh>
             <sphereGeometry args={[1, 64, 64]} />
             <meshStandardMaterial 
@@ -73,13 +71,11 @@ function Planet({ index, data }) {
             />
           </mesh>
 
-          {/* TIGHTER, DARKER ATMOSPHERE */}
           <mesh scale={1.03}>
             <sphereGeometry args={[1, 32, 32]} />
             <meshBasicMaterial color="#ffffff" transparent opacity={0.05} blending={THREE.AdditiveBlending} depthWrite={false} />
           </mesh>
 
-          {/* SHARP, MINIMALIST RINGS */}
           {data.ring && (
             <mesh rotation={[Math.PI / 2.5, 0, 0]}>
               <torusGeometry args={[1.5, 0.005, 32, 100]} />
@@ -132,13 +128,8 @@ export default function SolarSystemCarousel() {
       
       <div className="absolute inset-0 z-0">
         <Canvas camera={{ position: [0, 0, 10], fov: 45 }}>
-          {/* PURE OLED BLACK BACKGROUND */}
           <color attach="background" args={['#000000']} />
-          
-          {/* REALISTIC DEEP-SPACE LIGHTING */}
-          {/* Very low ambient light creates pitch-black shadows on the dark side of the planets */}
           <ambientLight intensity={0.15} /> 
-          {/* Extremely bright, directional "Sun" light creates harsh realism */}
           <directionalLight position={[8, 5, 2]} intensity={5} color="#ffffff" />
           
           <Stars radius={150} depth={50} count={4000} factor={4} saturation={0} fade speed={0.5} />
@@ -157,7 +148,6 @@ export default function SolarSystemCarousel() {
 
       <div className={`absolute inset-0 pointer-events-none z-10 flex flex-col justify-between pt-32 pb-20 px-4 md:px-16 transition-opacity duration-700 ${showFooter ? 'opacity-0' : 'opacity-100'}`}>
         
-        {/* TOP STATUS INDICATOR (Nothing Phone Vibe) */}
         <div className="text-center mt-8 flex flex-col items-center gap-2">
           <div className="flex items-center gap-3">
              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
@@ -168,20 +158,16 @@ export default function SolarSystemCarousel() {
 
         <div className="absolute top-[40%] md:top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl px-4">
           
-          {/* DEEP BLACK GLASSMORPHISM */}
           <div className="flex flex-col items-center justify-center p-8 md:p-14 rounded-3xl bg-black/50 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.8)] transition-all duration-500">
             
-            {/* NOTHING PHONE DOTTED FONT */}
             <h2 className="font-nothing text-4xl md:text-6xl lg:text-7xl text-white tracking-widest mb-4 transition-all duration-300 text-center uppercase" style={{ textShadow: `0 0 20px rgba(255,255,255,0.2)` }}>
               {activeService.title}
             </h2>
             
-            {/* TECHNICAL MONOSPACE FONT */}
             <p className="font-tech text-xs md:text-sm text-gray-400 tracking-[0.2em] uppercase mb-10 transition-all duration-300 text-center max-w-xl">
               [ {activeService.subtitle} ]
             </p>
             
-            {/* SHARP, MINIMALIST BUTTON */}
             <Link href={activeService.link} className="pointer-events-auto inline-flex relative items-center justify-center group bg-transparent border border-white/40 hover:bg-white hover:text-black text-white px-10 py-4 font-tech font-bold text-xs uppercase tracking-[0.2em] transition-all duration-300">
               <span className="relative z-10 flex items-center gap-4">
                 INITIATE
@@ -191,13 +177,29 @@ export default function SolarSystemCarousel() {
 
           </div>
         </div>
+
+        {/* --- INJECTED BOLD SCROLL INDICATOR --- */}
+        <div className={`absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 transition-opacity duration-700 pointer-events-none ${activeIndex === 0 ? 'opacity-100' : 'opacity-0'}`}>
+          <p className="font-tech text-white text-xs md:text-sm font-bold uppercase tracking-[0.4em] drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">
+            Initiate Scroll
+          </p>
+          <div className="flex flex-col items-center gap-1">
+            <div className="w-6 h-10 md:w-7 md:h-11 border-[2px] border-white rounded-full flex justify-center pt-2 shadow-[0_0_15px_rgba(255,255,255,0.3)] bg-black/20 backdrop-blur-sm">
+              <div className="w-1.5 h-2.5 bg-white rounded-full animate-scroll-wheel shadow-[0_0_10px_rgba(255,255,255,1)]"></div>
+            </div>
+            <svg className="w-5 h-5 text-white animate-bounce mt-1 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="miter" strokeWidth="3" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
+          </div>
+        </div>
+        {/* --- END INJECTED BOLD SCROLL INDICATOR --- */}
+
       </div>
 
       <div className={`absolute bottom-0 left-0 w-full z-50 pointer-events-auto transition-transform duration-700 ease-in-out ${showFooter ? 'translate-y-0' : 'translate-y-full'}`}>
         <GlobalFooter isHomeOverlay={true} />
       </div>
 
-      {/* CSS INJECTIONS: Nothing Phone Fonts */}
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Space+Mono:wght@400;700&display=swap');
         
@@ -206,6 +208,19 @@ export default function SolarSystemCarousel() {
         }
         .font-tech {
           font-family: 'Space Mono', monospace;
+        }
+
+        /* Added CSS to hide scrollbars for cleaner UI */
+        ::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+
+        /* Animation for the scroll mouse wheel */
+        @keyframes scrollWheel {
+          0% { transform: translateY(0); opacity: 1; }
+          100% { transform: translateY(12px); opacity: 0; }
+        }
+        .animate-scroll-wheel {
+          animation: scrollWheel 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
         }
       `}} />
     </div>
