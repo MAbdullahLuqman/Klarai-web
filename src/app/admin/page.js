@@ -4,12 +4,24 @@ import { db, auth } from "@/lib/firebase";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 
+const generateBaseSchema = (serviceName, keyword) => ({
+  meta: { title: `${keyword} Services in the UK | Klarai`, description: `Expert ${keyword} services for UK businesses. More patients, more calls, more revenue. Book a free audit today.` },
+  hero: { visible: true, h1: `${keyword} for Ambitious Brands in the UK`, sub: "More traffic. More calls. More revenue. Stop guessing and start scaling.", trust: "UK-based team | 50+ businesses helped | No long-term contracts", btn1Text: "Get Your Free Audit →", btn1Link: "/#audit", btn2Text: "See How It Works ↓", btn2Link: "#what-is" },
+  definition: { visible: true, h2: `What Is ${serviceName} — And Why It Matters for UK Businesses`, para: `${serviceName} is the mathematical alignment of your digital architecture with search engine algorithms. It ensures that when your customers search for your services, your business appears first.`, bullets: "Captures high-intent local traffic\nBuilds long-term brand authority\nOutperforms paid ads in ROI" },
+  included: { visible: true, h2: `What's Included in Our ${serviceName} Package`, items: "Keyword Research & Strategy: We find the exact terms your buyers are searching for.\nTechnical Optimisation: We make your site lightning fast and perfectly readable by bots.\nMonthly Reporting: Transparent, plain-English reports on your growth." },
+  process: { visible: true, h2: `How Our ${serviceName} Process Works`, steps: "Free Audit & Discovery: We analyze your current architecture and competitors.\nStrategy & Roadmap: We build a bespoke 6-month growth plan.\nImplementation: Our engineers and writers execute the strategy flawlessly.\nReporting & Refinement: We track rankings and optimize for maximum ROI." },
+  results: { visible: true, h2: "Real Results for UK Businesses", caseStudy: "UK Private Dental Clinic | +340% organic traffic in 4 months | Generated £40k+ in new patient bookings", quote: '"Klarai completely transformed our lead generation. We had to hire more staff just to handle the calls."', author: "Dr. Sarah J. - Clinic Director" },
+  pricing: { visible: true, h2: `Transparent ${serviceName} Pricing — No Hidden Fees`, starter: "Starter|£499/mo|/#audit|Basic Keyword Strategy, Monthly Audit, Standard Reporting", growth: "Growth|£899/mo|/#audit|Advanced AEO/SEO, Content Creation, Backlink Building, Priority Support", premium: "Premium|£1,499/mo|/#audit|Full Domination, AI Entity Mapping, Technical Overhaul, Dedicated Account Manager" },
+  faq: { visible: true, h2: `Frequently Asked Questions About ${serviceName} in the UK`, qas: "How long does it take to see results?|Typically, you will see initial movement within 3-6 months, with compounding ROI after 6-12 months.\nDo I need to sign a long-term contract?|No. We believe in earning your business every single month. No hidden lock-ins." },
+  cta: { visible: true, h2: "Ready to Grow Your Business? Let's Talk.", text: "Stop losing customers to your competitors. Get your free, comprehensive technical audit today.", btnText: "Book a Free Consultation", btnLink: "mailto:founder@klarai.uk" }
+});
+
 const INITIAL_DATA = {
-  aeo: { title: "Answer Engine Optimisation (AEO)", subtitle: "Dominate AI search engines like ChatGPT, Gemini, and Claude.", body: "Traditional SEO is no longer enough. We optimize your brand to be the definitive answer provided by Next-Gen AI engines.", meta: "Klarai AEO Services - Rank in AI Search" },
-  seo: { title: "Search Engine Optimisation Services That Rank UK Businesses Faster", subtitle: "Stop guessing. We are a premier seo optimisation agency providing comprehensive search engine optimisation service to dominate Google rankings.", body: "Search Engine Optimisation is the mathematical alignment of your digital architecture with Google's core algorithms. It ensures that when your customers search for your services, your business appears first.", meta: "Expert SEO and search engine optimisation for UK businesses. On-page audits, off-page backlinks, affordable packages. Transparent and results-focused." },
-  web: { title: "Web Design & Development for UK Businesses — Fast, SEO-Ready Websites", subtitle: "Searching for web designing near me? We build high-converting, web design seo architectures.", body: "", meta: "Klarai builds clean, conversion-focused websites for UK businesses. SEO-optimised from day one — fast loading, mobile-friendly, designed to rank on Google." },
-  ads: { title: "Meta Ads Management — Facebook & Instagram Advertising That Converts", subtitle: "We handle your meta ads manager and facebook meta advertising to scale your revenue predictably.", body: "", meta: "Klarai runs high-ROI Meta Ads campaigns on Facebook and Instagram. Ad creative, Meta Ads Manager setup, and full campaign management for UK businesses." },
-  smma: { title: "Social Media Marketing Agency for UK & European Brands — Grow Organically", subtitle: "As top tier social marketing agencies, we handle digital marketing social media marketing strategies that actually convert followers to clients.", body: "", meta: "Klarai manages your social media on Instagram, LinkedIn, and TikTok. Strategy, content creation, and community management for UK and European brands." },
+  seo: generateBaseSchema("Search Engine Optimisation", "Next-Gen SEO"),
+  aeo: generateBaseSchema("Answer Engine Optimisation", "AEO"),
+  web: generateBaseSchema("Web Design & Development", "High-Converting Web Design"),
+  ads: generateBaseSchema("Meta Ads Management", "High-ROI Meta Ads"),
+  smma: generateBaseSchema("Social Media Marketing", "Organic Social Media"),
   footer: { trademark: `© ${new Date().getFullYear()} KLARAI™ All Rights Reserved.`, privacyText: "Privacy Policy", termsText: "Terms & Conditions" }
 };
 
@@ -38,7 +50,6 @@ export default function AdminDashboard() {
     setIsDataLoading(true);
     const pages = ["aeo", "seo", "web", "ads", "smma", "footer"];
     let liveData = { ...INITIAL_DATA };
-    
     try {
       for (let p of pages) {
         const docRef = doc(db, "pages", p);
@@ -48,11 +59,8 @@ export default function AdminDashboard() {
         }
       }
       setContent(liveData);
-    } catch (error) {
-      console.error("Error fetching live data:", error);
-    } finally {
-      setIsDataLoading(false);
-    }
+    } catch (error) { console.error("Error fetching live data:", error); } 
+    finally { setIsDataLoading(false); }
   };
 
   const handleLogin = async (e) => {
@@ -66,7 +74,17 @@ export default function AdminDashboard() {
     try { await signOut(auth); } catch (error) { console.error("Logout Error:", error); }
   };
 
-  const handleInputChange = (field, value) => {
+  const handleNestedChange = (section, field, value) => {
+    setContent(prev => ({
+      ...prev,
+      [activeTab]: {
+        ...prev[activeTab],
+        [section]: { ...prev[activeTab]?.[section], [field]: value }
+      }
+    }));
+  };
+
+  const handleFlatChange = (field, value) => {
     setContent(prev => ({ ...prev, [activeTab]: { ...prev[activeTab], [field]: value } }));
   };
 
@@ -77,11 +95,27 @@ export default function AdminDashboard() {
       const docRef = doc(db, "pages", activeTab);
       await setDoc(docRef, dataToSave, { merge: true });
       alert(`Success! ${activeTab.toUpperCase()} content synced to Firebase live database.`);
-    } catch (error) {
-      alert("Failed to save. Check your Firebase connection.");
-    } finally {
-      setIsSaving(false);
-    }
+    } catch (error) { alert("Failed to save. Check your Firebase connection."); } 
+    finally { setIsSaving(false); }
+  };
+
+  // CORRECTED TOGGLE HEADER: Always shows inputs below it, just changes the live site status
+  const SectionHeader = ({ sectionKey, title }) => {
+    const isVisible = pageData[sectionKey]?.visible !== false;
+    return (
+      <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4 bg-[#0a0a0a] rounded-t-2xl z-10">
+        <h3 className="text-sm font-bold tracking-widest uppercase text-gray-400">{title}</h3>
+        <label className="flex items-center gap-3 cursor-pointer group">
+          <span className={`text-xs font-bold uppercase transition-colors ${isVisible ? 'text-[#10b981]' : 'text-red-500'}`}>
+            {isVisible ? 'LIVE ON SITE' : 'HIDDEN ON SITE'}
+          </span>
+          <div className={`w-11 h-6 rounded-full transition-colors relative ${isVisible ? 'bg-[#10b981]' : 'bg-red-500/40'}`}>
+            <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${isVisible ? 'translate-x-5' : ''}`}></div>
+          </div>
+          <input type="checkbox" className="hidden" checked={isVisible} onChange={(e) => handleNestedChange(sectionKey, 'visible', e.target.checked)} />
+        </label>
+      </div>
+    );
   };
 
   if (isAuthLoading) return <div className="min-h-screen bg-[#030303] text-white flex items-center justify-center">Authenticating...</div>;
@@ -90,23 +124,13 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen bg-[#030303] flex items-center justify-center px-4 font-sans selection:bg-[#185FA5] selection:text-white">
         <div className="w-full max-w-md bg-[#0a0a0a] border border-white/10 p-8 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-          <div className="flex justify-center mb-8">
-            <img src="/klarailogo.webp" alt="KLARAI Logo" className="h-8 object-contain" />
-          </div>
+          <div className="flex justify-center mb-8"><img src="/klarailogo.webp" alt="KLARAI Logo" className="h-8 object-contain" /></div>
           <h1 className="text-xl font-bold text-white text-center mb-2 tracking-wide">Admin Portal</h1>
-          <p className="text-xs text-gray-400 text-center mb-8 uppercase tracking-widest">Restricted Access Only</p>
-          
           <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Admin Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#3b82f6] transition-all" required />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#3b82f6] transition-all" required />
-            </div>
+            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Admin Email</label><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#3b82f6]" required /></div>
+            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Password</label><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#3b82f6]" required /></div>
             {loginError && <p className="text-xs text-red-500 text-center font-bold">{loginError}</p>}
-            <button type="submit" className="w-full bg-[#185FA5] hover:bg-[#144d85] text-white font-bold py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(24,95,165,0.4)] mt-4">Access Dashboard</button>
+            <button type="submit" className="w-full bg-[#185FA5] hover:bg-[#144d85] text-white font-bold py-3 rounded-xl mt-4">Access Dashboard</button>
           </form>
         </div>
       </div>
@@ -115,110 +139,138 @@ export default function AdminDashboard() {
 
   if (isDataLoading) return <div className="min-h-screen bg-[#030303] text-white flex items-center justify-center">Loading Secure Admin Panel...</div>;
 
+  const pageData = content[activeTab];
+
   return (
     <div className="min-h-screen bg-[#030303] text-gray-200 flex font-sans selection:bg-[#3b82f6] selection:text-white">
       
-      {/* SIDEBAR */}
-      <aside className="w-64 bg-[#0a0a0a] border-r border-white/10 flex flex-col hidden md:flex">
-        <div className="h-20 flex items-center px-8 border-b border-white/10">
-          <span className="text-xl font-bold tracking-widest text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">KLARAI <span className="text-[#3b82f6]">ADMIN</span></span>
-        </div>
-        
-        <div className="p-4 flex-1">
+      <aside className="w-64 bg-[#0a0a0a] border-r border-white/10 flex flex-col hidden md:flex h-screen sticky top-0">
+        <div className="h-20 flex items-center px-8 border-b border-white/10 shrink-0"><span className="text-xl font-bold tracking-widest text-white">KLARAI <span className="text-[#3b82f6]">ADMIN</span></span></div>
+        <div className="p-4 flex-1 overflow-y-auto">
           <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Pages Overview</p>
           <nav className="flex flex-col gap-2">
-            {[
-              { id: "seo", name: "SEO Services" },
-              { id: "aeo", name: "AEO Services" },
-              { id: "web", name: "Web Development" },
-              { id: "ads", name: "Meta Ads" },
-              { id: "smma", name: "Social Media" },
-              { id: "footer", name: "Global Footer" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${activeTab === tab.id ? "bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]" : "text-gray-400 hover:text-white hover:bg-white/5"}`}
-              >
-                {tab.name}
-              </button>
+            {[ { id: "seo", name: "SEO Services" }, { id: "aeo", name: "AEO Services" }, { id: "web", name: "Web Development" }, { id: "ads", name: "Meta Ads" }, { id: "smma", name: "Social Media" }, { id: "footer", name: "Global Footer" } ].map((tab) => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${activeTab === tab.id ? "bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>{tab.name}</button>
             ))}
           </nav>
         </div>
-
-        <div className="p-4 border-t border-white/10">
-            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors font-bold">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                Sign Out
-            </button>
+        <div className="p-4 border-t border-white/10 shrink-0">
+            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-400/10 rounded-lg font-bold">Sign Out</button>
         </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        
-        <header className="h-20 flex items-center justify-between px-8 bg-[#050505]/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-10">
+        <header className="h-20 flex items-center justify-between px-8 bg-[#050505]/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-10 shrink-0">
           <div><h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-3">Editing: <span className="text-[#fcd34d] bg-[#fcd34d]/10 px-3 py-1 rounded-md text-sm border border-[#fcd34d]/20 uppercase">{activeTab}</span></h2></div>
-          <button onClick={handleSaveToFirebase} disabled={isSaving} className="bg-[#185FA5] hover:bg-[#144d85] text-white font-bold px-6 py-2.5 rounded-lg transition-all shadow-[0_0_15px_rgba(24,95,165,0.4)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm">
+          <button onClick={handleSaveToFirebase} disabled={isSaving} className="bg-[#185FA5] hover:bg-[#144d85] text-white font-bold px-6 py-2.5 rounded-lg transition-all shadow-[0_0_15px_rgba(24,95,165,0.4)] disabled:opacity-50 flex items-center gap-2 text-sm">
             {isSaving ? "Pushing to Live..." : "Save to Firebase"}
           </button>
         </header>
 
         <div className="flex-1 overflow-y-auto p-8">
-            <div className="max-w-4xl mx-auto space-y-8 pb-20">
+            <div className="max-w-4xl mx-auto space-y-8 pb-32">
                 
-                {/* Regular Pages Settings */}
                 {activeTab !== "footer" ? (
                   <>
                     <section className="bg-[#0a0a0a] p-6 rounded-2xl border border-white/10 shadow-xl">
-                        <h3 className="text-sm font-bold tracking-widest uppercase text-gray-400 mb-6">SEO & Meta Data</h3>
-                        <div>
-                            <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Meta Description (For Google)</label>
-                            <textarea rows="2" value={content[activeTab]?.meta || ""} onChange={(e) => handleInputChange('meta', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#3b82f6] transition-all resize-none" />
+                        <h3 className="text-sm font-bold tracking-widest uppercase text-gray-400 mb-6">Meta Data & SEO</h3>
+                        <div className="space-y-4">
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Meta Title</label><input type="text" value={pageData.meta?.title || ""} onChange={(e) => handleNestedChange('meta', 'title', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Meta Description</label><textarea rows="2" value={pageData.meta?.description || ""} onChange={(e) => handleNestedChange('meta', 'description', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
                         </div>
                     </section>
 
-                    <section className="bg-[#0a0a0a] p-6 rounded-2xl border border-white/10 shadow-xl">
-                        <h3 className="text-sm font-bold tracking-widest uppercase text-gray-400 mb-6">Page Content</h3>
-                        <div className="space-y-5">
-                            <div>
-                                <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Main H1 Title</label>
-                                <input type="text" value={content[activeTab]?.title || ""} onChange={(e) => handleInputChange('title', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#3b82f6] transition-all font-bold" />
+                    {/* BLOCKS: ALWAYS VISIBLE IN ADMIN */}
+                    <section className={`bg-[#0a0a0a] p-6 rounded-2xl border ${pageData.hero?.visible !== false ? 'border-white/10' : 'border-red-500/30'} shadow-xl`}>
+                        <SectionHeader sectionKey="hero" title="Block 1: Hero Section" />
+                        <div className="space-y-4">
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Main H1 Headline</label><input type="text" value={pageData.hero?.h1 || ""} onChange={(e) => handleNestedChange('hero', 'h1', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white font-bold" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Subheadline</label><textarea rows="2" value={pageData.hero?.sub || ""} onChange={(e) => handleNestedChange('hero', 'sub', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Trust Bar (Separate with | )</label><input type="text" value={pageData.hero?.trust || ""} onChange={(e) => handleNestedChange('hero', 'trust', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-4 mt-4">
+                                <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Primary Button Text</label><input type="text" value={pageData.hero?.btn1Text || ""} onChange={(e) => handleNestedChange('hero', 'btn1Text', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                                <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Primary Button Link URL</label><input type="text" value={pageData.hero?.btn1Link || ""} onChange={(e) => handleNestedChange('hero', 'btn1Link', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-[#3b82f6]" /></div>
+                                <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Secondary Button Text</label><input type="text" value={pageData.hero?.btn2Text || ""} onChange={(e) => handleNestedChange('hero', 'btn2Text', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                                <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Secondary Button Link URL</label><input type="text" value={pageData.hero?.btn2Link || ""} onChange={(e) => handleNestedChange('hero', 'btn2Link', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-[#3b82f6]" /></div>
                             </div>
-                            <div>
-                                <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Hero Subtitle</label>
-                                <textarea rows="3" value={content[activeTab]?.subtitle || ""} onChange={(e) => handleInputChange('subtitle', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-300 focus:outline-none focus:border-[#3b82f6] transition-all resize-none" />
+                        </div>
+                    </section>
+
+                    <section className={`bg-[#0a0a0a] p-6 rounded-2xl border ${pageData.definition?.visible !== false ? 'border-white/10' : 'border-red-500/30'} shadow-xl`}>
+                        <SectionHeader sectionKey="definition" title="Block 2: Definition (Snippet Target)" />
+                        <div className="space-y-4">
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={pageData.definition?.h2 || ""} onChange={(e) => handleNestedChange('definition', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Paragraph (40-60 words)</label><textarea rows="3" value={pageData.definition?.para || ""} onChange={(e) => handleNestedChange('definition', 'para', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Bullet Points (One per line)</label><textarea rows="3" value={pageData.definition?.bullets || ""} onChange={(e) => handleNestedChange('definition', 'bullets', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" placeholder="Point 1&#10;Point 2"/></div>
+                        </div>
+                    </section>
+
+                    <section className={`bg-[#0a0a0a] p-6 rounded-2xl border ${pageData.included?.visible !== false ? 'border-white/10' : 'border-red-500/30'} shadow-xl`}>
+                        <SectionHeader sectionKey="included" title="Block 3: What's Included" />
+                        <div className="space-y-4">
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={pageData.included?.h2 || ""} onChange={(e) => handleNestedChange('included', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Items (Format: Title: Description) - One per line</label><textarea rows="4" value={pageData.included?.items || ""} onChange={(e) => handleNestedChange('included', 'items', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                        </div>
+                    </section>
+
+                    <section className={`bg-[#0a0a0a] p-6 rounded-2xl border ${pageData.process?.visible !== false ? 'border-white/10' : 'border-red-500/30'} shadow-xl`}>
+                        <SectionHeader sectionKey="process" title="Block 4: Process" />
+                        <div className="space-y-4">
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={pageData.process?.h2 || ""} onChange={(e) => handleNestedChange('process', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Steps (Format: Step Title: Description) - One per line</label><textarea rows="4" value={pageData.process?.steps || ""} onChange={(e) => handleNestedChange('process', 'steps', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                        </div>
+                    </section>
+
+                    <section className={`bg-[#0a0a0a] p-6 rounded-2xl border ${pageData.results?.visible !== false ? 'border-white/10' : 'border-red-500/30'} shadow-xl`}>
+                        <SectionHeader sectionKey="results" title="Block 5: Results / Social Proof" />
+                        <div className="space-y-4">
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={pageData.results?.h2 || ""} onChange={(e) => handleNestedChange('results', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Case Study (Format: Niche | Metric | Outcome)</label><input type="text" value={pageData.results?.caseStudy || ""} onChange={(e) => handleNestedChange('results', 'caseStudy', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Testimonial Quote</label><textarea rows="2" value={pageData.results?.quote || ""} onChange={(e) => handleNestedChange('results', 'quote', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Testimonial Author</label><input type="text" value={pageData.results?.author || ""} onChange={(e) => handleNestedChange('results', 'author', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                        </div>
+                    </section>
+
+                    <section className={`bg-[#0a0a0a] p-6 rounded-2xl border ${pageData.pricing?.visible !== false ? 'border-white/10' : 'border-red-500/30'} shadow-xl`}>
+                        <SectionHeader sectionKey="pricing" title="Block 6: Pricing" />
+                        <div className="space-y-4">
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={pageData.pricing?.h2 || ""} onChange={(e) => handleNestedChange('pricing', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Starter Tier (Format: Name | Price | Link URL | Feature 1, Feature 2)</label><input type="text" value={pageData.pricing?.starter || ""} onChange={(e) => handleNestedChange('pricing', 'starter', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Growth Tier (Format: Name | Price | Link URL | Feature 1, Feature 2)</label><input type="text" value={pageData.pricing?.growth || ""} onChange={(e) => handleNestedChange('pricing', 'growth', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Premium Tier (Format: Name | Price | Link URL | Feature 1, Feature 2)</label><input type="text" value={pageData.pricing?.premium || ""} onChange={(e) => handleNestedChange('pricing', 'premium', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                        </div>
+                    </section>
+
+                    <section className={`bg-[#0a0a0a] p-6 rounded-2xl border ${pageData.faq?.visible !== false ? 'border-white/10' : 'border-red-500/30'} shadow-xl`}>
+                        <SectionHeader sectionKey="faq" title="Block 7: FAQ" />
+                        <div className="space-y-4">
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={pageData.faq?.h2 || ""} onChange={(e) => handleNestedChange('faq', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Questions & Answers (Format: Question?|Answer) - One per line</label><textarea rows="4" value={pageData.faq?.qas || ""} onChange={(e) => handleNestedChange('faq', 'qas', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                        </div>
+                    </section>
+
+                     <section className={`bg-[#0a0a0a] p-6 rounded-2xl border ${pageData.cta?.visible !== false ? 'border-white/10' : 'border-red-500/30'} shadow-xl`}>
+                        <SectionHeader sectionKey="cta" title="Block 8: Final CTA" />
+                        <div className="space-y-4">
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={pageData.cta?.h2 || ""} onChange={(e) => handleNestedChange('cta', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Description Text</label><textarea rows="2" value={pageData.cta?.text || ""} onChange={(e) => handleNestedChange('cta', 'text', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Button Text</label><input type="text" value={pageData.cta?.btnText || ""} onChange={(e) => handleNestedChange('cta', 'btnText', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                                <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Button Link URL</label><input type="text" value={pageData.cta?.btnLink || ""} onChange={(e) => handleNestedChange('cta', 'btnLink', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-[#3b82f6]" /></div>
                             </div>
-                            {(activeTab === "seo" || activeTab === "aeo") && (
-                              <div>
-                                  <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Main Body Paragraph</label>
-                                  <textarea rows="4" value={content[activeTab]?.body || ""} onChange={(e) => handleInputChange('body', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-300 focus:outline-none focus:border-[#3b82f6] transition-all resize-none" />
-                              </div>
-                            )}
                         </div>
                     </section>
                   </>
                 ) : (
-                  /* Footer Specific Settings */
                   <section className="bg-[#0a0a0a] p-6 rounded-2xl border border-white/10 shadow-xl">
                       <h3 className="text-sm font-bold tracking-widest uppercase text-gray-400 mb-6">Global Footer Settings</h3>
                       <div className="space-y-5">
-                          <div>
-                              <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Trademark Text</label>
-                              <input type="text" value={content[activeTab]?.trademark || ""} onChange={(e) => handleInputChange('trademark', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#3b82f6] transition-all" />
-                          </div>
-                          <div>
-                              <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Privacy Policy Link Text</label>
-                              <input type="text" value={content[activeTab]?.privacyText || ""} onChange={(e) => handleInputChange('privacyText', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#3b82f6] transition-all" />
-                          </div>
-                          <div>
-                              <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Terms & Conditions Link Text</label>
-                              <input type="text" value={content[activeTab]?.termsText || ""} onChange={(e) => handleInputChange('termsText', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#3b82f6] transition-all" />
-                          </div>
+                          <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Trademark Text</label><input type="text" value={pageData.trademark || ""} onChange={(e) => handleFlatChange('trademark', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                          <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Privacy Policy Link Text</label><input type="text" value={pageData.privacyText || ""} onChange={(e) => handleFlatChange('privacyText', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
+                          <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Terms & Conditions Link Text</label><input type="text" value={pageData.termsText || ""} onChange={(e) => handleFlatChange('termsText', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
                       </div>
                   </section>
                 )}
-
             </div>
         </div>
       </main>
