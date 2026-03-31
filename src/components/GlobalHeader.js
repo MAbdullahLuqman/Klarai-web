@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -7,11 +7,16 @@ export default function GlobalHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
+  // THE FIX: If we are on the admin panel, do not render the public header at all
+  if (pathname && pathname.startsWith('/admin')) {
+    return null;
+  }
+
   // Your future pages go here!
   const navLinks = [
     { name: 'Home', href: '/' },
-    { name: 'Services', href: '/#services' },
-    { name: 'Work', href: '/work' },
+    
+    { name: 'Industries', href: '/industries' },
     { name: 'Blog', href: '/blog' },
   ];
 
