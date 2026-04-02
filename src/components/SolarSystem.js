@@ -113,122 +113,7 @@ function Planet({ index, data, isLightMode }) {
 // 🕷️ UPGRADED PROCEDURAL ERIDIAN (5 LEGS & SURFACE MATH)
 // 🕷️ HYPER-REALISTIC ERIDIAN (RIGHT-SIDE ANCHOR & SURFACE COLLISION)
 // 🕷️ GLASS-CRAWLING ERIDIAN (SMALLER, PERIMETER CRAWL)
-function RockyCharacter({ isLightMode }) {
-  const scroll = useScroll();
-  const rockyRef = useRef();
-  const legsRef = useRef([]);
 
-  const { width } = useThree().size;
-  const isDesktop = width > 1024;
-  const isTablet = width > 768 && width <= 1024;
-  
-  // 1. MATCHING THE HTML CARD BOUNDARIES IN 3D SPACE
-  // These numbers perfectly frame the max-w-4xl text card overlay
-  const w = isDesktop ? 4.8 : (isTablet ? 3.5 : 2.2); // Half-Width
-  const h = isDesktop ? 2.3 : (isTablet ? 2.0 : 1.8); // Half-Height
-  const perimeter = (w * 2) + (h * 2);
-  
-  // The HTML card is offset slightly higher (top-[45%]), so we shift his path up
-  const yOffset = 0.4; 
-
-  useFrame((state, delta) => {
-    if (!rockyRef.current || !scroll) return;
-
-    const currentScroll = scroll.offset * (SERVICES.length - 1);
-    
-    // 2. SCROLL TO PERIMETER MAPPING
-    // He completes 2 full laps around the card over the whole page scroll
-    const lapProgress = currentScroll / 2;
-    const laps = Math.floor(lapProgress);
-    const p = (lapProgress % 1) * perimeter; // Exact distance along the current lap
-
-    let targetX, targetY, targetRotZ;
-    
-    // We base rotation on total laps so he doesn't wildly spin 360 degrees 
-    // when crossing the finish line back to the start.
-    const baseRot = -laps * Math.PI * 2; 
-
-    if (p < w * 2) { 
-      // TOP EDGE (Moving Left to Right)
-      targetX = -w + p;
-      targetY = h + yOffset;
-      targetRotZ = baseRot + 0;
-    } else if (p < (w * 2) + (h * 2)) { 
-      // RIGHT EDGE (Moving Top to Bottom)
-      targetX = w;
-      targetY = (h + yOffset) - (p - (w * 2));
-      targetRotZ = baseRot - Math.PI / 2;
-    } else if (p < (w * 4) + (h * 2)) { 
-      // BOTTOM EDGE (Moving Right to Left)
-      targetX = w - (p - ((w * 2) + (h * 2)));
-      targetY = -h + yOffset;
-      targetRotZ = baseRot - Math.PI;
-    } else { 
-      // LEFT EDGE (Moving Bottom to Top)
-      targetX = -w;
-      targetY = (-h + yOffset) + (p - ((w * 4) + (h * 2)));
-      targetRotZ = baseRot - (Math.PI * 1.5);
-    }
-
-    // Apply smooth damping for movement and corner turns
-    rockyRef.current.position.x = THREE.MathUtils.damp(rockyRef.current.position.x, targetX, 8, delta);
-    rockyRef.current.position.y = THREE.MathUtils.damp(rockyRef.current.position.y, targetY, 8, delta);
-    rockyRef.current.rotation.z = THREE.MathUtils.damp(rockyRef.current.rotation.z, targetRotZ, 6, delta);
-    
-    // Slight breathing/wobble as he crawls
-    rockyRef.current.rotation.y = Math.sin(currentScroll * 20) * 0.2;
-
-    // 3. RAPID SCURRY ANIMATION
-    const walkSpeed = currentScroll * 60; // Fast scurrying legs
-    legsRef.current.forEach((legGroup, i) => {
-      if (!legGroup) return;
-      const phaseOffset = (i / 5) * Math.PI * 2;
-      const crawlMotion = Math.sin(walkSpeed + phaseOffset) * 0.5; // Leg swing
-      legGroup.rotation.z = THREE.MathUtils.damp(legGroup.rotation.z, crawlMotion, 10, delta);
-      legGroup.rotation.x = 0; // Keep flat to surface
-    });
-  });
-
-  return (
-    // SCALED DOWN MASSIVELY (0.35 instead of 1.2)
-    <group ref={rockyRef} scale={isDesktop ? 0.35 : 0.25} position={[0, 0, 1]}>
-      
-      <mesh position={[0, 0, 0]}>
-        <dodecahedronGeometry args={[1.2, 1]} />
-        <meshPhysicalMaterial 
-          color={isLightMode ? "#2a221b" : "#0a0a0a"} 
-          metalness={0.9} 
-          roughness={0.2} 
-          clearcoat={1.0} 
-        />
-      </mesh>
-
-      {[0, 1, 2, 3, 4].map((i) => {
-        const angle = (i / 5) * Math.PI * 2;
-        return (
-          <group key={i} rotation={[0, angle, 0]} position={[0, -0.2, 0]}>
-            <group ref={(el) => (legsRef.current[i] = el)} position={[0.8, 0, 0]}>
-              <mesh rotation={[0, 0, Math.PI / 6]} position={[0.6, 0.3, 0]}>
-                <cylinderGeometry args={[0.15, 0.08, 1.5, 12]} />
-                <meshPhysicalMaterial color="#111111" metalness={0.8} roughness={0.4} clearcoat={0.5} />
-              </mesh>
-              <mesh rotation={[0, 0, -Math.PI / 4]} position={[1.5, -0.4, 0]}>
-                <cylinderGeometry args={[0.08, 0.01, 1.8, 12]} />
-                <meshPhysicalMaterial color="#050505" metalness={1.0} roughness={0.2} />
-              </mesh>
-            </group>
-          </group>
-        );
-      })}
-
-      <pointLight color="#ff3300" intensity={4} distance={6} position={[0, -0.5, 0]} />
-      <mesh position={[0, -0.8, 0]}>
-        <sphereGeometry args={[0.5, 16, 16]} />
-        <meshBasicMaterial color="#ff3300" />
-      </mesh>
-    </group>
-  );
-}
 
 function SceneController({ onIndexChange, onReachEnd }) {
   const scroll = useScroll();
@@ -289,8 +174,7 @@ export default function SolarSystemCarousel() {
                 <Planet key={service.id} index={index} data={service} isLightMode={isLightMode} />
               ))}
 
-              {/* 🕷️ ROCKY DEPLOYED HERE */}
-              <RockyCharacter isLightMode={isLightMode} />
+             
 
               {/* END SCREEN & FOOTER */}
               <Scroll html style={{ width: '100%', height: '100%' }}>
