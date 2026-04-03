@@ -4,26 +4,33 @@ import Link from 'next/link';
 export default function ServicePageTemplate({ data }) {
   // --- BULLETPROOF VISIBILITY CHECKER ---
   const isVisible = (sectionData) => {
-    // If undefined, default to true. Only hide if strictly false.
     if (sectionData?.visible === false || sectionData?.visible === 'false') return false;
     return true;
   };
 
-  // --- SAFE DATA PARSING ---
-  const bullets = data?.definition?.bullets?.split('\n').filter(b => b.trim() !== '') || [];
-  const includedItems = data?.included?.items?.split('\n').filter(i => i.trim() !== '') || [];
-  const processSteps = data?.process?.steps?.split('\n').filter(s => s.trim() !== '') || [];
-  const caseStudyParts = data?.results?.caseStudy?.split('|').map(s => s.trim()) || ['', '', ''];
-  const faqs = data?.faq?.qas?.split('\n').filter(q => q.trim() !== '').map(qa => qa.split('|')) || [];
+  // --- ULTRA-SAFE DATA PARSING ---
+  // We wrap every string in ( ... || '' ) so .split() NEVER touches undefined data
+  const bullets = (data?.definition?.bullets || '').split('\n').filter(b => b.trim() !== '');
+  const includedItems = (data?.included?.items || '').split('\n').filter(i => i.trim() !== '');
+  const processSteps = (data?.process?.steps || '').split('\n').filter(s => s.trim() !== '');
+  
+  const rawCaseStudy = (data?.results?.caseStudy || '').split('|').map(s => s.trim());
+  const caseStudyParts = [rawCaseStudy[0] || '', rawCaseStudy[1] || '', rawCaseStudy[2] || ''];
+  
+  const faqs = (data?.faq?.qas || '').split('\n').filter(q => q.trim() !== '').map(qa => (qa || '').split('|'));
 
   const parsePricing = (tierStr) => {
-    const parts = tierStr?.split('|') || [];
-    let name = 'Tier', price = '£?', link = '#cta', featuresStr = 'Feature 1';
+    const parts = (tierStr || '').split('|');
+    let name = 'Tier', price = '£?', link = '#cta', featuresStr = '';
     
-    if (parts.length === 3) { [name, price, featuresStr] = parts; } 
-    else if (parts.length >= 4) { [name, price, link, featuresStr] = parts; }
+    if (parts.length === 3) {
+      name = parts[0]; price = parts[1]; featuresStr = parts[2];
+    } else if (parts.length >= 4) {
+      name = parts[0]; price = parts[1]; link = parts[2]; featuresStr = parts[3];
+    }
     
-    const features = featuresStr?.split(',').map(f => f.trim()) || [];
+    // Safely parse features
+    const features = (featuresStr || '').split(',').map(f => f.trim()).filter(f => f !== '');
     return { name, price, link, features };
   };
 
@@ -34,7 +41,7 @@ export default function ServicePageTemplate({ data }) {
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": faqs.map(([q, a]) => ({ "@type": "Question", "name": q, "acceptedAnswer": { "@type": "Answer", "text": a } }))
+    "mainEntity": faqs.map(([q, a]) => ({ "@type": "Question", "name": q || '', "acceptedAnswer": { "@type": "Answer", "text": a || '' } }))
   };
 
   return (
@@ -61,7 +68,8 @@ export default function ServicePageTemplate({ data }) {
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-tight tracking-tight">
               {data?.hero?.h1}
             </h1>
-            <p className="text-xl md:text-2xl mb-10 text-gray-400 font-medium">{data?.hero?.sub}</p>
+            {/* INJECTED HTML CAPABILITY FOR LINKS */}
+            <p className="text-xl md:text-2xl mb-10 text-gray-400 font-medium" dangerouslySetInnerHTML={{ __html: data?.hero?.sub || '' }} />
             <div className="flex flex-col sm:flex-row gap-4 mb-12 w-full sm:w-auto">
               <Link href={data?.hero?.btn1Link || "/#audit"} className="bg-[#185FA5] hover:bg-[#144d85] text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-[0_0_20px_rgba(24,95,165,0.4)] text-center">
                 {data?.hero?.btn1Text || "Get Your Free Audit →"}
@@ -71,7 +79,7 @@ export default function ServicePageTemplate({ data }) {
               </Link>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-xs font-bold tracking-widest uppercase text-gray-500">
-              {data?.hero?.trust?.split('|').map((badge, idx) => (
+              {(data?.hero?.trust || '').split('|').map((badge, idx) => (
                 <span key={idx} className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-[#185FA5]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path></svg>
                   {badge.trim()}
@@ -86,14 +94,16 @@ export default function ServicePageTemplate({ data }) {
           <section id="what-is" className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 leading-snug">{data?.definition?.h2}</h2>
-              <p className="text-lg text-gray-400 leading-relaxed mb-8">{data?.definition?.para}</p>
+              {/* INJECTED HTML CAPABILITY FOR LINKS */}
+              <p className="text-lg text-gray-400 leading-relaxed mb-8" dangerouslySetInnerHTML={{ __html: data?.definition?.para || '' }} />
             </div>
             <div className="bg-[#0a0a0a] border border-white/10 p-8 rounded-3xl shadow-xl">
               <ul className="space-y-4">
                 {bullets.map((bullet, idx) => (
                   <li key={idx} className="flex items-start gap-4">
                     <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#185FA5]/20 flex items-center justify-center mt-1"><span className="w-2 h-2 rounded-full bg-[#3b82f6]"></span></span>
-                    <span className="text-lg font-medium text-gray-200">{bullet}</span>
+                    {/* INJECTED HTML CAPABILITY FOR LINKS */}
+                    <span className="text-lg font-medium text-gray-200" dangerouslySetInnerHTML={{ __html: bullet }} />
                   </li>
                 ))}
               </ul>
@@ -111,7 +121,8 @@ export default function ServicePageTemplate({ data }) {
                 return (
                   <div key={idx} className="bg-white/5 border border-white/10 p-8 rounded-2xl hover:border-[#185FA5]/50 hover:bg-[#185FA5]/5 transition-all duration-300">
                     <h3 className="text-xl font-bold text-white mb-3">{title?.trim()}</h3>
-                    <p className="text-gray-400 leading-relaxed text-sm">{desc?.trim()}</p>
+                    {/* INJECTED HTML CAPABILITY FOR LINKS */}
+                    <p className="text-gray-400 leading-relaxed text-sm" dangerouslySetInnerHTML={{ __html: desc?.trim() || '' }} />
                   </div>
                 );
               })}
@@ -131,7 +142,8 @@ export default function ServicePageTemplate({ data }) {
                     <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#185FA5] text-white font-black text-xl flex items-center justify-center shadow-[0_0_15px_rgba(24,95,165,0.4)]">{idx + 1}</div>
                     <div>
                       <h3 className="text-xl font-bold text-white mb-2">{title?.trim()}</h3>
-                      <p className="text-gray-400">{desc?.trim()}</p>
+                      {/* INJECTED HTML CAPABILITY FOR LINKS */}
+                      <p className="text-gray-400" dangerouslySetInnerHTML={{ __html: desc?.trim() || '' }} />
                     </div>
                   </div>
                 );
@@ -154,7 +166,8 @@ export default function ServicePageTemplate({ data }) {
                 <div className="flex text-[#fcd34d] gap-1">
                   {[1, 2, 3, 4, 5].map(star => <svg key={star} className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>)}
                 </div>
-                <p className="text-gray-400 italic text-lg">{data?.results?.quote}</p>
+                {/* INJECTED HTML CAPABILITY FOR LINKS */}
+                <p className="text-gray-400 italic text-lg" dangerouslySetInnerHTML={{ __html: data?.results?.quote || '' }} />
                 <p className="text-white font-bold tracking-wide uppercase text-sm mt-2">{data?.results?.author}</p>
               </div>
             </div>
@@ -175,7 +188,8 @@ export default function ServicePageTemplate({ data }) {
                     {plan.features.map((feature, fIdx) => (
                       <li key={fIdx} className="flex items-start gap-3 text-sm text-gray-400">
                         <svg className="w-5 h-5 text-[#10b981] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                        {feature}
+                        {/* INJECTED HTML CAPABILITY FOR LINKS */}
+                        <span dangerouslySetInnerHTML={{ __html: feature }} />
                       </li>
                     ))}
                   </ul>
@@ -197,7 +211,8 @@ export default function ServicePageTemplate({ data }) {
               {faqs.map(([q, a], idx) => (
                 <div key={idx} className="bg-[#0a0a0a] border border-white/10 p-6 rounded-2xl">
                   <h3 className="text-lg font-bold text-white mb-3">{q}</h3>
-                  <p className="text-gray-400 leading-relaxed text-sm">{a}</p>
+                  {/* INJECTED HTML CAPABILITY FOR LINKS */}
+                  <p className="text-gray-400 leading-relaxed text-sm" dangerouslySetInnerHTML={{ __html: a || '' }} />
                 </div>
               ))}
             </div>
@@ -209,7 +224,8 @@ export default function ServicePageTemplate({ data }) {
           <section id="cta" className="text-center bg-[#185FA5] rounded-[3rem] p-12 md:p-20 relative overflow-hidden">
             <div className="relative z-10">
               <h2 className="text-4xl md:text-5xl font-black text-white mb-6">{data?.cta?.h2}</h2>
-              <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto font-medium">{data?.cta?.text}</p>
+              {/* INJECTED HTML CAPABILITY FOR LINKS */}
+              <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto font-medium" dangerouslySetInnerHTML={{ __html: data?.cta?.text || '' }} />
               <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
                 <Link href={data?.cta?.btnLink || "mailto:founder@klarai.uk"} className="bg-[#030303] hover:bg-black text-white px-10 py-5 rounded-xl font-bold text-lg transition-all shadow-xl hover:scale-105">
                   {data?.cta?.btnText || "Contact Us"}

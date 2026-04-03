@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { db, auth } from "@/lib/firebase"; 
 import { doc, setDoc, getDoc, collection, getDocs, query, orderBy, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
@@ -26,24 +26,75 @@ const INITIAL_DATA = {
   footer: { trademark: `© ${new Date().getFullYear()} KLARAI™ All Rights Reserved.`, privacyText: "Privacy Policy", termsText: "Terms & Conditions" }
 };
 
+// ==========================================
+// COMPONENT: RICH TEXT AREA (Handles Internal Linking)
+// ==========================================
+const RichTextArea = ({ label, value, onChange, rows = 3, placeholder = "" }) => {
+  const inputRef = useRef(null);
+
+  const handleInsertLink = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const selectedText = value.substring(start, end);
+    
+    const url = window.prompt("Enter link URL (e.g., /seo-services):", "");
+    if (!url) return;
+    
+    const textToWrap = selectedText || window.prompt("Enter text to display:", "Click here");
+    if (!textToWrap) return;
+    
+    // Injects an anchor tag with your blue hover styling
+    const linkHtml = `<a href="${url}" class="text-blue-400 hover:text-blue-300 underline transition-colors">${textToWrap}</a>`;
+    const newValue = value.substring(0, start) + linkHtml + value.substring(end);
+    
+    // Fire the onChange event with the newly injected HTML
+    onChange({ target: { value: newValue } });
+  };
+
+  return (
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-2">
+        {label ? <label className="block text-xs text-gray-500 font-bold uppercase">{label}</label> : <div></div>}
+        <button 
+          type="button" 
+          onClick={handleInsertLink} 
+          className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-1 rounded hover:bg-blue-500/20 border border-blue-500/30 transition-colors flex items-center gap-1 font-bold tracking-widest uppercase"
+        >
+          🔗 Make Link
+        </button>
+      </div>
+      <textarea 
+        ref={inputRef} 
+        rows={rows} 
+        value={value} 
+        onChange={onChange} 
+        placeholder={placeholder} 
+        className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none focus:border-blue-500 outline-none" 
+      />
+    </div>
+  );
+};
+
+// ==========================================
+// MAIN ADMIN DASHBOARD
+// ==========================================
 export default function AdminDashboard() {
-  // Auth State
   const [user, setUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
 
-  // Global Dashboard State
-  const [viewMode, setViewMode] = useState("core"); // "core", "leads", "builder", "nicheEdit"
+  const [viewMode, setViewMode] = useState("core"); 
   const [isDataLoading, setIsDataLoading] = useState(true);
 
-  // Core Pages State
   const [activeTab, setActiveTab] = useState("seo");
   const [content, setContent] = useState(INITIAL_DATA);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Niche Pages & Leads State
   const [nichePagesList, setNichePagesList] = useState({});
   const [activeNicheId, setActiveNicheId] = useState(null);
 
@@ -58,8 +109,6 @@ export default function AdminDashboard() {
 
   const fetchAllLiveContent = async () => {
     setIsDataLoading(true);
-    
-    // 1. Fetch Core Pages
     const pages = ["aeo", "seo", "web", "ads", "smma", "footer"];
     let liveData = { ...INITIAL_DATA };
     try {
@@ -73,13 +122,10 @@ export default function AdminDashboard() {
       setContent(liveData);
     } catch (error) { console.error("Error fetching core data:", error); } 
     
-    // 2. Fetch Niche Pages List
     try {
       const nicheQuery = await getDocs(collection(db, "niche_pages"));
       let fetchedNiches = {};
-      nicheQuery.forEach(doc => {
-        fetchedNiches[doc.id] = doc.data();
-      });
+      nicheQuery.forEach(doc => { fetchedNiches[doc.id] = doc.data(); });
       setNichePagesList(fetchedNiches);
     } catch (error) { console.error("Error fetching niche pages:", error); }
 
@@ -97,7 +143,6 @@ export default function AdminDashboard() {
     try { await signOut(auth); } catch (error) { console.error("Logout Error:", error); }
   };
 
-  // CORE PAGE HANDLERS
   const handleNestedChange = (section, field, value) => {
     setContent(prev => ({ ...prev, [activeTab]: { ...prev[activeTab], [section]: { ...prev[activeTab]?.[section], [field]: value } } }));
   };
@@ -133,7 +178,6 @@ export default function AdminDashboard() {
     );
   };
 
-  // --- AUTH RENDERING ---
   if (isAuthLoading) return <div className="min-h-screen bg-[#030303] text-white flex items-center justify-center">Authenticating...</div>;
   if (!user) {
     return (
@@ -157,12 +201,10 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[#030303] text-gray-200 flex font-sans selection:bg-[#3b82f6] selection:text-white">
       
-      {/* --- SIDEBAR --- */}
       <aside className="w-64 bg-[#0a0a0a] border-r border-white/10 flex flex-col hidden md:flex h-screen sticky top-0">
         <div className="h-20 flex items-center px-8 border-b border-white/10 shrink-0"><span className="text-xl font-bold tracking-widest text-white">KLARAI <span className="text-[#3b82f6]">ADMIN</span></span></div>
         <div className="p-4 flex-1 overflow-y-auto space-y-8">
           
-          {/* Dashboard Tools */}
           <div>
             <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Workspace</p>
             <nav className="flex flex-col gap-2">
@@ -171,7 +213,6 @@ export default function AdminDashboard() {
             </nav>
           </div>
 
-          {/* Core Pages */}
           <div>
             <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Core Pages</p>
             <nav className="flex flex-col gap-2">
@@ -181,7 +222,6 @@ export default function AdminDashboard() {
             </nav>
           </div>
 
-          {/* Dynamic Niche Pages */}
           <div>
             <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Active Niche Pages</p>
             <nav className="flex flex-col gap-2">
@@ -203,32 +243,12 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      {/* --- MAIN CONTENT ROUTING --- */}
-     {/* --- MAIN CONTENT ROUTING --- */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         
         {viewMode === "leads" && <LeadsView />}
+        {viewMode === "builder" && <NicheBuilderView isEditing={false} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
+        {viewMode === "nicheEdit" && <NicheBuilderView key={activeNicheId} isEditing={true} pageId={activeNicheId} initialData={nichePagesList[activeNicheId]} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
 
-        {viewMode === "builder" && (
-          <NicheBuilderView 
-            isEditing={false} 
-            refreshData={fetchAllLiveContent} 
-            setViewMode={setViewMode}
-          />
-        )}
-
-        {viewMode === "nicheEdit" && (
-          <NicheBuilderView 
-            key={activeNicheId} // Forces remount when switching pages
-            isEditing={true} 
-            pageId={activeNicheId} 
-            initialData={nichePagesList[activeNicheId]} 
-            refreshData={fetchAllLiveContent} 
-            setViewMode={setViewMode}
-          />
-        )}
-
-        {/* RESTORED CORE EDITING ENGINE - Header is now safely locked inside this block! */}
         {viewMode === "core" && (
           <>
             <header className="h-20 flex items-center justify-between px-8 bg-[#050505]/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-10 shrink-0">
@@ -254,7 +274,7 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="hero" title="Block 1: Hero Section" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Main H1 Headline</label><input type="text" value={content[activeTab].hero?.h1 || ""} onChange={(e) => handleNestedChange('hero', 'h1', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white font-bold" /></div>
-                              <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Subheadline</label><textarea rows="2" value={content[activeTab].hero?.sub || ""} onChange={(e) => handleNestedChange('hero', 'sub', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                              <RichTextArea label="Subheadline" value={content[activeTab].hero?.sub || ""} onChange={(e) => handleNestedChange('hero', 'sub', e.target.value)} rows={2} />
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Trust Bar (Separate with | )</label><input type="text" value={content[activeTab].hero?.trust || ""} onChange={(e) => handleNestedChange('hero', 'trust', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
                               <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-4 mt-4">
                                   <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Primary Button Text</label><input type="text" value={content[activeTab].hero?.btn1Text || ""} onChange={(e) => handleNestedChange('hero', 'btn1Text', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
@@ -269,8 +289,8 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="definition" title="Block 2: Definition (Snippet Target)" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].definition?.h2 || ""} onChange={(e) => handleNestedChange('definition', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Paragraph (40-60 words)</label><textarea rows="3" value={content[activeTab].definition?.para || ""} onChange={(e) => handleNestedChange('definition', 'para', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
-                              <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Bullet Points (One per line)</label><textarea rows="3" value={content[activeTab].definition?.bullets || ""} onChange={(e) => handleNestedChange('definition', 'bullets', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" placeholder="Point 1&#10;Point 2"/></div>
+                              <RichTextArea label="Paragraph (40-60 words)" value={content[activeTab].definition?.para || ""} onChange={(e) => handleNestedChange('definition', 'para', e.target.value)} />
+                              <RichTextArea label="Bullet Points (One per line)" value={content[activeTab].definition?.bullets || ""} onChange={(e) => handleNestedChange('definition', 'bullets', e.target.value)} placeholder="Point 1&#10;Point 2" />
                           </div>
                       </section>
 
@@ -278,7 +298,7 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="included" title="Block 3: What's Included" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].included?.h2 || ""} onChange={(e) => handleNestedChange('included', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Items (Format: Title: Description) - One per line</label><textarea rows="4" value={content[activeTab].included?.items || ""} onChange={(e) => handleNestedChange('included', 'items', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                              <RichTextArea label="Items (Format: Title: Description) - One per line" value={content[activeTab].included?.items || ""} onChange={(e) => handleNestedChange('included', 'items', e.target.value)} rows={4} />
                           </div>
                       </section>
 
@@ -286,7 +306,7 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="process" title="Block 4: Process" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].process?.h2 || ""} onChange={(e) => handleNestedChange('process', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Steps (Format: Step Title: Description) - One per line</label><textarea rows="4" value={content[activeTab].process?.steps || ""} onChange={(e) => handleNestedChange('process', 'steps', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                              <RichTextArea label="Steps (Format: Step Title: Description) - One per line" value={content[activeTab].process?.steps || ""} onChange={(e) => handleNestedChange('process', 'steps', e.target.value)} rows={4} />
                           </div>
                       </section>
 
@@ -295,7 +315,7 @@ export default function AdminDashboard() {
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].results?.h2 || ""} onChange={(e) => handleNestedChange('results', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Case Study (Format: Niche | Metric | Outcome)</label><input type="text" value={content[activeTab].results?.caseStudy || ""} onChange={(e) => handleNestedChange('results', 'caseStudy', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Testimonial Quote</label><textarea rows="2" value={content[activeTab].results?.quote || ""} onChange={(e) => handleNestedChange('results', 'quote', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                              <RichTextArea label="Testimonial Quote" value={content[activeTab].results?.quote || ""} onChange={(e) => handleNestedChange('results', 'quote', e.target.value)} rows={2} />
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Testimonial Author</label><input type="text" value={content[activeTab].results?.author || ""} onChange={(e) => handleNestedChange('results', 'author', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
                           </div>
                       </section>
@@ -314,7 +334,7 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="faq" title="Block 7: FAQ" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].faq?.h2 || ""} onChange={(e) => handleNestedChange('faq', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Questions & Answers (Format: Question?|Answer) - One per line</label><textarea rows="4" value={content[activeTab].faq?.qas || ""} onChange={(e) => handleNestedChange('faq', 'qas', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                              <RichTextArea label="Questions & Answers (Format: Question?|Answer) - One per line" value={content[activeTab].faq?.qas || ""} onChange={(e) => handleNestedChange('faq', 'qas', e.target.value)} rows={4} />
                           </div>
                       </section>
 
@@ -322,7 +342,7 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="cta" title="Block 8: Final CTA" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].cta?.h2 || ""} onChange={(e) => handleNestedChange('cta', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Description Text</label><textarea rows="2" value={content[activeTab].cta?.text || ""} onChange={(e) => handleNestedChange('cta', 'text', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none" /></div>
+                              <RichTextArea label="Description Text" value={content[activeTab].cta?.text || ""} onChange={(e) => handleNestedChange('cta', 'text', e.target.value)} rows={2} />
                               <div className="grid grid-cols-2 gap-4">
                                   <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Button Text</label><input type="text" value={content[activeTab].cta?.btnText || ""} onChange={(e) => handleNestedChange('cta', 'btnText', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
                                   <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Button Link URL</label><input type="text" value={content[activeTab].cta?.btnLink || ""} onChange={(e) => handleNestedChange('cta', 'btnLink', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-[#3b82f6]" /></div>
@@ -363,11 +383,8 @@ function LeadsView() {
         const querySnapshot = await getDocs(q);
         const leadsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setLeads(leadsData);
-      } catch (err) {
-        console.error("Error fetching leads:", err);
-      } finally {
-        setLoading(false);
-      }
+      } catch (err) { console.error("Error fetching leads:", err); } 
+      finally { setLoading(false); }
     };
     fetchLeads();
   }, []);
@@ -409,7 +426,7 @@ function LeadsView() {
 }
 
 // ==========================================
-// COMPONENT: NICHE PAGE BUILDER, EDITOR, & DELETER
+// COMPONENT: NICHE PAGE BUILDER
 // ==========================================
 function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setViewMode }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -418,10 +435,7 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
 
   const [formData, setFormData] = useState(initialData || {
     slug: '', metaTitle: '', metaDescription: '', service: '', niche: '', h1: '', subheadline: '', definition: '',
-    imageUrl: '', // Included Image URL field
-    deliverables: ['', '', '', '', '', ''],
-    steps: ['', '', '', ''],
-    whyNeeds: ['', '', ''],
+    imageUrl: '', deliverables: ['', '', '', '', '', ''], steps: ['', '', '', ''], whyNeeds: ['', '', ''],
     faqs: [ { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' } ],
     ctaText: ''
   });
@@ -442,46 +456,27 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
     e.preventDefault();
     setIsSubmitting(true);
     setStatus('Deploying to database...');
-
     try {
       const targetSlug = isEditing ? pageId : formData.slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       const pageRef = doc(db, 'niche_pages', targetSlug);
-      
-      await setDoc(pageRef, {
-        ...formData,
-        slug: targetSlug,
-        updatedAt: serverTimestamp(),
-      });
-
+      await setDoc(pageRef, { ...formData, slug: targetSlug, updatedAt: serverTimestamp() });
       setStatus(`Success: Niche Page ${isEditing ? 'updated' : 'generated'} and is now live!`);
       refreshData();
       window.scrollTo(0, 0);
-    } catch (error) {
-      console.error("Error saving page:", error);
-      setStatus('Error: Could not save page. Check database connection.');
-    } finally {
-      setIsSubmitting(false);
-    }
+    } catch (error) { setStatus('Error: Could not save page. Check database connection.'); } 
+    finally { setIsSubmitting(false); }
   };
 
-  // ADDED: Delete Functionality
   const handleDelete = async () => {
     const confirmDelete = window.confirm(`WARNING: Are you sure you want to permanently delete the /${pageId} landing page? This action cannot be undone.`);
     if (!confirmDelete) return;
-
     setIsDeleting(true);
     try {
-      const pageRef = doc(db, 'niche_pages', pageId);
-      await deleteDoc(pageRef);
-      
+      await deleteDoc(doc(db, 'niche_pages', pageId));
       alert(`Niche page /${pageId} deleted successfully.`);
       await refreshData();
-      setViewMode('core'); // Redirect back to core safely
-    } catch (error) {
-      console.error("Error deleting page:", error);
-      alert('Error: Could not delete page.');
-      setIsDeleting(false);
-    }
+      setViewMode('core'); 
+    } catch (error) { alert('Error: Could not delete page.'); setIsDeleting(false); }
   };
 
   return (
@@ -491,15 +486,8 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
           <h2 className={`font-nothing text-3xl uppercase tracking-widest ${isEditing ? 'text-purple-400' : 'text-green-400'}`}>
             {isEditing ? `Editing: /${pageId}` : 'Create New Niche Page'}
           </h2>
-          
-          {/* DELETION BUTTON */}
           {isEditing && (
-            <button 
-              type="button" 
-              onClick={handleDelete} 
-              disabled={isDeleting}
-              className="px-4 py-2 border border-red-500/50 text-red-500 text-xs font-bold uppercase tracking-widest rounded hover:bg-red-500/10 transition-colors disabled:opacity-50"
-            >
+            <button type="button" onClick={handleDelete} disabled={isDeleting} className="px-4 py-2 border border-red-500/50 text-red-500 text-xs font-bold uppercase tracking-widest rounded hover:bg-red-500/10 transition-colors disabled:opacity-50">
               {isDeleting ? 'Deleting...' : 'Delete Page'}
             </button>
           )}
@@ -507,14 +495,9 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
         
         <p className="text-gray-500 text-xs tracking-widest uppercase mb-8">Programmatic Landing Page Architecture</p>
         
-        {status && (
-          <div className={`mb-8 p-4 border text-xs tracking-widest uppercase font-bold ${status.includes('Success') ? 'border-green-500/50 bg-green-500/10 text-green-400' : 'border-red-500/50 bg-red-500/10 text-red-400'}`}>
-            {status}
-          </div>
-        )}
+        {status && <div className={`mb-8 p-4 border text-xs tracking-widest uppercase font-bold ${status.includes('Success') ? 'border-green-500/50 bg-green-500/10 text-green-400' : 'border-red-500/50 bg-red-500/10 text-red-400'}`}>{status}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-10">
-          
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">1. Core URL & Metadata</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -531,7 +514,7 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">2. Header & Definition Block</h3>
             <input name="h1" placeholder="H1: [Service] for [Niche] in the UK | Klarai" required value={formData.h1} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
             <input name="subheadline" placeholder="Subheadline (1 sentence, outcome-focused)" required value={formData.subheadline} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
-            <textarea name="definition" placeholder="Definition block (50 words, snippet-ready)" required value={formData.definition} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none h-24 text-white" />
+            <RichTextArea label="Definition Block" value={formData.definition} onChange={(e) => setFormData({...formData, definition: e.target.value})} rows={4} />
           </div>
 
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
@@ -553,7 +536,7 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">5. Why [Niche] Needs [Service]</h3>
             {formData.whyNeeds.map((item, i) => (
-              <textarea key={i} placeholder={`Paragraph 0${i + 1} (UK Context)`} required value={item} onChange={(e) => handleArrayChange(i, 'whyNeeds', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none h-20 text-white" />
+              <RichTextArea key={i} label={`Paragraph 0${i + 1}`} value={item} onChange={(e) => handleArrayChange(i, 'whyNeeds', e.target.value)} rows={3} />
             ))}
           </div>
 
@@ -562,14 +545,14 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
             {formData.faqs.map((faq, i) => (
               <div key={i} className="flex flex-col gap-2 p-4 border border-white/5 bg-[#111] rounded">
                 <input placeholder={`Q${i + 1}: Question...`} required value={faq.q} onChange={(e) => handleFaqChange(i, 'q', e.target.value)} className="w-full bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-blue-400" />
-                <textarea placeholder={`A${i + 1}: Answer (40-60 words)...`} required value={faq.a} onChange={(e) => handleFaqChange(i, 'a', e.target.value)} className="w-full bg-transparent pt-2 text-sm outline-none h-16 resize-none text-white" />
+                <RichTextArea value={faq.a} onChange={(e) => handleFaqChange(i, 'a', e.target.value)} rows={2} placeholder={`A${i + 1}: Answer...`} />
               </div>
             ))}
           </div>
 
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">7. Closing CTA</h3>
-            <textarea name="ctaText" placeholder="Get a Free Audit closing CTA paragraph..." required value={formData.ctaText} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none h-24 text-white" />
+            <RichTextArea label="Get a Free Audit CTA" value={formData.ctaText} onChange={(e) => setFormData({...formData, ctaText: e.target.value})} rows={3} />
           </div>
 
           <div className="flex gap-4">
@@ -577,7 +560,6 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
               {isSubmitting ? 'Transmitting...' : (isEditing ? 'Update Live Page' : 'Deploy Landing Page')}
             </button>
           </div>
-
         </form>
       </div>
     </div>
