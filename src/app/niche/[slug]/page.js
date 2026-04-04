@@ -190,7 +190,7 @@ export default async function NicheLandingPage({ params }) {
 
       </main>
 
-      <GlobalFooter />
+     
     </div>
   );
 }
