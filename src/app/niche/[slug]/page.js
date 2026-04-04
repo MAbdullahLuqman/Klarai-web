@@ -39,14 +39,37 @@ export default async function NicheLandingPage({ params }) {
   // Fallback empty object if data fails to load properly
   const page = docSnap.data() || {};
 
-  // SAFE PARSING: Fallback to empty strings to prevent the .replace() crash!
+  // SAFE PARSING: Fallback to empty strings to prevent the .replace() crash
   const safeDefinition = page.definition || '';
   const safeService = page.service || '';
   const formattedDefinition = safeDefinition.replace(safeService, '');
 
+  // FAQ SCHEMA GENERATION
+  const faqsList = page.faqs || [];
+  const faqSchema = faqsList.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqsList.map(faq => ({
+      "@type": "Question",
+      "name": faq?.q || '',
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq?.a || ''
+      }
+    }))
+  } : null;
+
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-blue-500/30">
       <GlobalHeader />
+
+      {/* Inject JSON-LD Schema for SEO */}
+      {faqSchema && (
+        <script 
+          type="application/ld+json" 
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} 
+        />
+      )}
 
       <main className="max-w-4xl mx-auto px-6 pt-32 pb-24 space-y-24">
         
@@ -85,7 +108,6 @@ export default async function NicheLandingPage({ params }) {
         </section>
 
         {/* BLOCK 4: What's Included */}
-        {/* We use (page.deliverables || []) so array mapping never crashes */}
         <section>
           <div className="flex items-center gap-4 mb-10">
             <div className="w-12 h-[1px] bg-blue-500"></div>
@@ -167,6 +189,8 @@ export default async function NicheLandingPage({ params }) {
         </section>
 
       </main>
+
+      <GlobalFooter />
     </div>
   );
 }
