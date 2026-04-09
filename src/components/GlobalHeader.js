@@ -2,116 +2,135 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function GlobalHeader() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const [isHidden, setIsHidden] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // THE FIX: If we are on the admin panel, do not render the public header at all
+  // --- SCROLL LISTENER EFFECT ---
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Hide the header when scrolling down, show when scrolling up
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsHidden(true); 
+        setIsMobileMenuOpen(false); // Close mobile menu if they start scrolling down
+      } else {
+        setIsHidden(false); 
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
+  // Hide entirely on Admin
   if (pathname && pathname.startsWith('/admin')) {
     return null;
   }
 
-  // Your future pages go here!
-  const navLinks = [
-    { name: 'Home', href: '/' },
-    
-    { name: 'Industries', href: '/industries' },
-    { name: 'Blog', href: '/blog' },
-  ];
+  // Prevent scrolling when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isMobileMenuOpen]);
 
   return (
-    <>
-      {/* GLASSMORPHISM HEADER 
-        fixed, high z-index, frosted glass background
-      */}
-      <header className="fixed top-0 left-0 w-full z-[100] bg-[#030303]/40 backdrop-blur-md border-b border-white/5 transition-all py-4 px-6 md:px-12">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          
-          {/* 1. LOGO */}
-          <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
-            <img 
-              src="/klarailogo.webp" 
-              alt="KLARAI" 
-              className="h-7 md:h-8 w-auto object-contain drop-shadow-lg cursor-pointer hover:opacity-80 transition-opacity" 
-            />
+    <div className={`fixed top-4 md:top-6 left-0 w-full z-50 flex flex-col items-center px-4 transition-transform duration-500 ease-in-out ${isHidden ? '-translate-y-[150%]' : 'translate-y-0'}`}>
+      
+      {/* --- MAIN HEADER PILL --- */}
+      <nav className="bg-white/90 border border-gray-200/80 shadow-[0_10px_40px_rgba(0,0,0,0.08)] backdrop-blur-xl rounded-full px-2 py-2 flex items-center justify-between w-full max-w-4xl relative z-50">
+        
+        {/* LOGO */}
+        <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 pl-4 group pr-4 md:pr-8">
+          <svg className="w-6 h-6 text-gray-900 group-hover:rotate-180 transition-transform duration-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"></path></svg>
+          <span className="text-xl font-black tracking-tighter text-gray-900">Klarai</span>
+        </Link>
+
+        {/* DESKTOP LINKS */}
+        <div className="hidden md:flex items-center space-x-6 font-mono text-[11px] font-bold tracking-[0.1em] uppercase text-gray-500">
+          <Link href="/services" className="hover:text-blue-600 transition-colors">Services</Link>
+          <Link href="/industries" className="hover:text-blue-600 transition-colors">Industries</Link>
+          <Link href="/blog" className="hover:text-blue-600 transition-colors">Blog</Link>
+        </div>
+
+        {/* DESKTOP CTA */}
+        <div className="hidden md:block pl-8">
+          <Link href="/free-audit" className="bg-gray-900 text-white hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/30 px-6 py-2.5 rounded-full text-[11px] font-mono font-bold tracking-widest uppercase transition-all block">
+            Get Started
           </Link>
+        </div>
 
-          {/* 2. DESKTOP NAVIGATION */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => {
-              const isActive = pathname === link.href;
-              return (
-                <Link 
-                  key={link.name} 
-                  href={link.href}
-                  className={`text-sm font-bold tracking-widest uppercase transition-colors ${
-                    isActive ? 'text-white' : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* 3. DESKTOP CTA - CONNECT WITH FOUNDER */}
-          <div className="hidden md:block">
-            <Link 
-              href="https://www.linkedin.com/in/abdullahluqman/" 
-              target="_blank"
-              className="relative inline-flex items-center justify-center px-6 py-2.5 text-sm font-bold text-white transition-all bg-white/5 border border-white/10 rounded-full hover:bg-white/10 hover:border-white/30 hover:scale-105"
-            >
-              Connect with Founder
-            </Link>
-          </div>
-
-          {/* 4. MOBILE MENU BUTTON */}
+        {/* MOBILE MENU TOGGLE */}
+        <div className="md:hidden pr-2 flex items-center">
           <button 
-            className="md:hidden text-white p-2"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="w-10 h-10 bg-gray-100 text-gray-900 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors focus:outline-none"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {isMobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
+            {isMobileMenuOpen ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            )}
           </button>
         </div>
-      </header>
 
-      {/* 5. MOBILE FULL-SCREEN MENU OVERLAY */}
-      <div 
-        className={`fixed inset-0 z-[90] bg-[#030303]/95 backdrop-blur-xl flex flex-col justify-center items-center transition-all duration-500 md:hidden ${
-          isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-      >
-        <nav className="flex flex-col items-center gap-8 text-center">
-          {navLinks.map((link) => (
-            <Link 
-              key={link.name} 
-              href={link.href}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-2xl font-black tracking-widest uppercase text-gray-300 hover:text-white transition-colors"
-            >
-              {link.name}
-            </Link>
-          ))}
-          
-          <div className="w-12 h-px bg-white/20 my-4"></div>
+      </nav>
 
-          <Link 
-            href="https://www.linkedin.com/in/abdullahluqman/" 
-            target="_blank"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="px-8 py-4 text-sm font-bold tracking-widest text-white uppercase bg-[#185FA5] rounded-full hover:bg-blue-600 transition-colors"
+      {/* --- MOBILE DROPDOWN MENU --- */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden absolute top-full mt-2 w-full max-w-4xl px-4 z-40"
           >
-            Connect with Founder
-          </Link>
-        </nav>
-      </div>
-    </>
+            <div className="bg-white/95 backdrop-blur-xl border border-gray-200/80 shadow-[0_20px_40px_rgba(0,0,0,0.1)] rounded-3xl p-6 flex flex-col gap-6">
+              
+              <div className="flex flex-col space-y-4">
+                <Link href="/services" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-black tracking-tighter text-gray-900 hover:text-blue-600 transition-colors border-b border-gray-100 pb-4">
+                  Services
+                </Link>
+                <Link href="/industries" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-black tracking-tighter text-gray-900 hover:text-blue-600 transition-colors border-b border-gray-100 pb-4">
+                  Industries
+                </Link>
+                <Link href="/blog" onClick={() => setIsMobileMenuOpen(false)} className="text-2xl font-black tracking-tighter text-gray-900 hover:text-blue-600 transition-colors border-b border-gray-100 pb-4">
+                  Blog
+                </Link>
+              </div>
+
+              <Link href="/free-audit" onClick={() => setIsMobileMenuOpen(false)} className="bg-[#ccff00] text-gray-900 text-center py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-md active:scale-95 transition-all">
+                Initiate Sequence
+              </Link>
+              
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Optional Overlay to darken the background when mobile menu is open */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="md:hidden fixed inset-0 h-screen w-screen bg-gray-900/20 backdrop-blur-sm z-30"
+          />
+        )}
+      </AnimatePresence>
+
+    </div>
   );
 }

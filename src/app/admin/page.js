@@ -428,28 +428,47 @@ function LeadsView() {
 // ==========================================
 // COMPONENT: NICHE PAGE BUILDER
 // ==========================================
+// ==========================================
+// COMPONENT: NICHE PAGE BUILDER
+// ==========================================
 function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setViewMode }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [status, setStatus] = useState('');
 
+  // ADDED diySeoPara and diySeoSteps to the default state
   const [formData, setFormData] = useState(initialData || {
-    slug: '', metaTitle: '', metaDescription: '', service: '', niche: '', h1: '', subheadline: '', definition: '',
-    imageUrl: '', deliverables: ['', '', '', '', '', ''], steps: ['', '', '', ''], whyNeeds: ['', '', ''],
+    slug: '', metaTitle: '', metaDescription: '', service: '', niche: '', h1: '', subheadline: '', 
+    tldr: '', definition: '', imageUrl: '', 
+    keywords: [ { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' } ], 
+    deliverables: ['', '', '', '', '', ''], steps: ['', '', '', ''], whyNeeds: ['', '', ''],
+    diySeoPara: '', diySeoSteps: ['', '', ''], // NEW DIY EEAT FIELDS
     faqs: [ { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' } ],
     ctaText: ''
   });
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  
   const handleArrayChange = (index, field, value) => {
-    const newArray = [...formData[field]];
+    // Safety fallback if the array doesn't exist on older pages
+    const currentArray = formData[field] || (field === 'diySeoSteps' ? ['', '', ''] : []);
+    const newArray = [...currentArray];
     newArray[index] = value;
     setFormData({ ...formData, [field]: newArray });
   };
+  
   const handleFaqChange = (index, key, value) => {
     const newFaqs = [...formData.faqs];
     newFaqs[index][key] = value;
     setFormData({ ...formData, faqs: newFaqs });
+  };
+
+  const handleKeywordChange = (index, key, value) => {
+    const currentKeywords = formData.keywords || [ { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' } ];
+    const newKeywords = [...currentKeywords];
+    if (!newKeywords[index]) newKeywords[index] = { kw: '', vol: '', kd: '' };
+    newKeywords[index][key] = value;
+    setFormData({ ...formData, keywords: newKeywords });
   };
 
   const handleSubmit = async (e) => {
@@ -479,6 +498,9 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
     } catch (error) { alert('Error: Could not delete page.'); setIsDeleting(false); }
   };
 
+  const safeKeywords = formData.keywords?.length >= 5 ? formData.keywords : [ { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' } ];
+  const safeDiySteps = formData.diySeoSteps?.length >= 3 ? formData.diySeoSteps : ['', '', ''];
+
   return (
     <div className="flex-1 overflow-y-auto p-8 h-full">
       <div className="max-w-4xl mx-auto pb-32">
@@ -492,8 +514,6 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
             </button>
           )}
         </div>
-        
-        <p className="text-gray-500 text-xs tracking-widest uppercase mb-8">Programmatic Landing Page Architecture</p>
         
         {status && <div className={`mb-8 p-4 border text-xs tracking-widest uppercase font-bold ${status.includes('Success') ? 'border-green-500/50 bg-green-500/10 text-green-400' : 'border-red-500/50 bg-red-500/10 text-red-400'}`}>{status}</div>}
 
@@ -513,12 +533,28 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">2. Header & Definition Block</h3>
             <input name="h1" placeholder="H1: [Service] for [Niche] in the UK | Klarai" required value={formData.h1} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
-            <input name="subheadline" placeholder="Subheadline (1 sentence, outcome-focused)" required value={formData.subheadline} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
-            <RichTextArea label="Definition Block" value={formData.definition} onChange={(e) => setFormData({...formData, definition: e.target.value})} rows={4} />
+            <RichTextArea label="Subheadline (1 sentence)" value={formData.subheadline} onChange={(e) => setFormData({...formData, subheadline: e.target.value})} rows={2} />
+            <RichTextArea label="Definition Block" value={formData.definition} onChange={(e) => setFormData({...formData, definition: e.target.value})} rows={3} />
           </div>
 
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">3. What's Included (6 Deliverables)</h3>
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">3. TL;DR Summary Box</h3>
+            <RichTextArea label="Executive Summary (Leave blank to hide)" value={formData.tldr || ''} onChange={(e) => setFormData({...formData, tldr: e.target.value})} rows={3} />
+          </div>
+
+          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">4. SEO Keyword Data Table</h3>
+            {safeKeywords.map((kw, i) => (
+              <div key={i} className="grid grid-cols-3 gap-4">
+                <input placeholder="Keyword" value={kw.kw} onChange={(e) => handleKeywordChange(i, 'kw', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
+                <input placeholder="Volume" value={kw.vol} onChange={(e) => handleKeywordChange(i, 'vol', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
+                <input placeholder="Difficulty" value={kw.kd} onChange={(e) => handleKeywordChange(i, 'kd', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">5. What's Included</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {formData.deliverables.map((item, i) => (
                 <input key={i} placeholder={`Deliverable 0${i + 1}`} required value={item} onChange={(e) => handleArrayChange(i, 'deliverables', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
@@ -527,21 +563,34 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
           </div>
 
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">4. How It Works (4 Steps)</h3>
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">6. How It Works</h3>
             {formData.steps.map((item, i) => (
               <input key={i} placeholder={`Step 0${i + 1}`} required value={item} onChange={(e) => handleArrayChange(i, 'steps', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
             ))}
           </div>
 
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">5. Why [Niche] Needs [Service]</h3>
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">7. Why [Niche] Needs [Service]</h3>
             {formData.whyNeeds.map((item, i) => (
               <RichTextArea key={i} label={`Paragraph 0${i + 1}`} value={item} onChange={(e) => handleArrayChange(i, 'whyNeeds', e.target.value)} rows={3} />
             ))}
           </div>
 
+          {/* NEW SECTION: DIY EEAT GUIDE */}
+          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg border-l-4 border-l-blue-500">
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">8. DIY / EEAT Guide (How to do it yourself)</h3>
+            <p className="text-xs text-gray-500 mb-2">Leave blank to use the programmatic fallback text.</p>
+            <RichTextArea label="Introductory Paragraph" value={formData.diySeoPara || ''} onChange={(e) => setFormData({...formData, diySeoPara: e.target.value})} rows={3} />
+            <div className="space-y-2 mt-4">
+              <label className="block text-xs text-gray-500 font-bold uppercase">List Options (Steps/Tips)</label>
+              {safeDiySteps.map((item, i) => (
+                <input key={i} placeholder={`DIY List Item 0${i + 1}`} value={item} onChange={(e) => handleArrayChange(i, 'diySeoSteps', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">6. FAQs (6 Q&As)</h3>
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">9. FAQs (6 Q&As)</h3>
             {formData.faqs.map((faq, i) => (
               <div key={i} className="flex flex-col gap-2 p-4 border border-white/5 bg-[#111] rounded">
                 <input placeholder={`Q${i + 1}: Question...`} required value={faq.q} onChange={(e) => handleFaqChange(i, 'q', e.target.value)} className="w-full bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-blue-400" />
@@ -551,7 +600,7 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
           </div>
 
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">7. Closing CTA</h3>
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">10. Closing CTA</h3>
             <RichTextArea label="Get a Free Audit CTA" value={formData.ctaText} onChange={(e) => setFormData({...formData, ctaText: e.target.value})} rows={3} />
           </div>
 
