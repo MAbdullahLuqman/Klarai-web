@@ -29,11 +29,10 @@ export default function LightBrutalistHome() {
 
         <motion.div style={{ y: yText1 }} className="relative z-10 max-w-[1400px] mx-auto w-full">
           <h1 className="text-[12vw] md:text-[8vw] leading-[0.85] font-black tracking-tighter uppercase text-gray-900">
-            Architecting <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-400">Dominance</span> <br/>
-            For Brands <br/>
-            Shaping <br/>
-            What's Next.
+            ADVANCED <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-400">AI Growth </span> <br/>
+            Engines<br/>
+           
           </h1>
           <p className="mt-12 text-xl md:text-2xl text-gray-500 font-medium max-w-2xl leading-relaxed">
             From emerging startups to billion-dollar enterprises. We build digital infrastructure that doesn't just compete—it overwrites the algorithm.
@@ -90,7 +89,7 @@ export default function LightBrutalistHome() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               
               <div className="bg-gray-50 rounded-[2rem] p-10 border-2 border-gray-100 hover:border-cyan-400 hover:shadow-[0_20px_40px_rgba(6,182,212,0.1)] transition-all group flex flex-col justify-between min-h-[400px]">
-                <div className="text-cyan-500 font-mono text-xs uppercase tracking-widest mb-6 font-bold">01 / Search</div>
+                <div className="text-cyan-500 font-mono text-xs uppercase tracking-widest mb-6 font-bold">Search</div>
                 <div>
                   <h3 className="text-3xl lg:text-4xl font-black uppercase tracking-tighter mb-4 text-gray-900">Algorithmic Dominance</h3>
                   <p className="text-gray-500 font-medium leading-relaxed">We mathematically map search intent to site architecture, ensuring your brand captures high-value traffic before competitors even realize it exists.</p>
@@ -98,7 +97,7 @@ export default function LightBrutalistHome() {
               </div>
 
               <div className="bg-gray-50 rounded-[2rem] p-10 border-2 border-gray-100 hover:border-[#ccff00] hover:shadow-[0_20px_40px_rgba(204,255,0,0.15)] transition-all group flex flex-col justify-between min-h-[400px] lg:translate-y-12">
-                <div className="text-lime-600 font-mono text-xs uppercase tracking-widest mb-6 font-bold">02 / Conversion</div>
+                <div className="text-lime-600 font-mono text-xs uppercase tracking-widest mb-6 font-bold">Conversion</div>
                 <div>
                   <h3 className="text-3xl lg:text-4xl font-black uppercase tracking-tighter mb-4 text-gray-900">Frictionless Flow</h3>
                   <p className="text-gray-500 font-medium leading-relaxed">Beautiful design is useless if it doesn't convert. We engineer user journeys that obliterate friction and turn passive traffic into predictable revenue.</p>
@@ -106,7 +105,7 @@ export default function LightBrutalistHome() {
               </div>
 
               <div className="bg-gray-50 rounded-[2rem] p-10 border-2 border-gray-100 hover:border-fuchsia-400 hover:shadow-[0_20px_40px_rgba(232,121,249,0.1)] transition-all group flex flex-col justify-between min-h-[400px]">
-                <div className="text-fuchsia-500 font-mono text-xs uppercase tracking-widest mb-6 font-bold">03 / Future</div>
+                <div className="text-fuchsia-500 font-mono text-xs uppercase tracking-widest mb-6 font-bold">Future</div>
                 <div>
                   <h3 className="text-3xl lg:text-4xl font-black uppercase tracking-tighter mb-4 text-gray-900">Answer Engines</h3>
                   <p className="text-gray-500 font-medium leading-relaxed">As search evolves into AI conversations, we optimize your brand's digital entity so models like ChatGPT recommend you as the undisputed authority.</p>

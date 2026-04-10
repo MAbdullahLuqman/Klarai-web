@@ -118,7 +118,7 @@ export default async function IndustriesHubPage() {
               
               <div className="relative z-10">
                 <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-6">Don't see your industry?</h2>
-                <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto font-medium">We build custom digital architecture for ambitious brands across all sectors. Let's map out your growth system.</p>
+               
                 <Link href="/free-audit" className="inline-block bg-white text-gray-900 px-12 py-5 rounded-2xl font-black text-lg hover:scale-105 shadow-[0_15px_30px_rgba(255,255,255,0.2)] transition-all active:scale-95 uppercase tracking-widest">
                   Request Custom Audit
                 </Link>
