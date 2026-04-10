@@ -41,10 +41,10 @@ export default async function IndustriesHubPage() {
               Sector Expertise
             </span>
             <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tighter leading-tight mb-6">
-              Industries We <span className="bg-gradient-to-r from-cyan-500 via-blue-600 to-fuchsia-500 bg-clip-text text-transparent">Dominate</span>.
+              Industries We <span className="bg-gradient-to-r from-cyan-500 via-blue-600 to-fuchsia-500 bg-clip-text text-transparent">Dominate</span>
             </h1>
             <p className="text-xl md:text-2xl mb-10 text-gray-500 font-medium max-w-3xl mx-auto">
-              Our digital architecture is custom-engineered for high-growth sectors. Select your industry below to see how we scale revenue.
+              Our digital architecture is custome ngineered for high growth sectors. Select your industry below to see how we scale revenues
             </p>
           </div>
         </section>
@@ -54,7 +54,7 @@ export default async function IndustriesHubPage() {
           {niches.length === 0 ? (
              <div className="text-center bg-white border-2 border-gray-100 p-12 rounded-3xl">
                 <p className="text-gray-500 font-medium text-lg">System Booting: No industry modules detected in the database yet.</p>
-                <p className="text-sm text-gray-400 mt-2">Create your first niche page in the Admin Portal to populate this hub.</p>
+                <p className="text-sm text-gray-400 mt-2">Create your first niche page in the Admin Portal to populate this hub</p>
              </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

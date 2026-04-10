@@ -68,10 +68,10 @@ export default function AboutPage() {
             <span className="inline-block py-1.5 px-4 mb-6 md:mb-8 rounded-full bg-blue-50 border border-blue-200 text-blue-600 text-[10px] md:text-xs font-black tracking-[0.2em] uppercase shadow-sm">
               The Architecture Firm
             </span>
-            <h1 className="text-6xl md:text-[8vw] leading-[0.9] md:leading-[0.85] font-black tracking-tighter uppercase text-gray-900 m-0">
+            <h1 className="text-5xl md:text-[8vw] leading-[0.9] md:leading-[0.85] font-black tracking-tighter uppercase text-gray-900 m-0">
               We Are Not <br/>
-              An Agency. <br/>
-              We Are <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-400">Architects</span>.
+              An Agency <br/>
+              We Are <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-400">Architects</span>
             </h1>
             
           </motion.div>
@@ -88,7 +88,7 @@ export default function AboutPage() {
               transition={{ duration: 0.6 }}
             >
               <h2 className="text-5xl md:text-[5vw] leading-[0.9] md:leading-[0.85] font-black tracking-tighter uppercase mb-4 md:mb-8 text-gray-900">
-                The Death <br/> Of Guesswork.
+                The Death <br/> Of Guesswork
               </h2>
             </motion.div>
             
@@ -100,8 +100,8 @@ export default function AboutPage() {
               className="space-y-6 md:space-y-8 text-lg md:text-2xl font-bold leading-relaxed text-gray-900"
             >
               <p>Klarai was founded out of deep frustration with the standard marketing agency model. A model built on rented templates, vanity metrics, and hollow promises.</p>
-              <p>We believe that in a world drowning in digital noise, <span className="bg-black text-[#ccff00] px-2 py-1 uppercase tracking-widest text-xs md:text-sm">precision is the ultimate competitive advantage</span>.</p>
-              <p>We don't run isolated campaigns. We engineer mathematical, data-driven ecosystems. We look at your code, your search entity, and your conversion pathways, and we architect them for absolute dominance.</p>
+              <p>We believe that in a world drowning in digital noise, <span className="bg-black text-[#ccff00] px-2 py-1 uppercase tracking-widest text-xs md:text-sm">precision is the ultimate competitive advantage</span></p>
+              <p>We don't run isolated campaigns. We engineer mathematical, data-driven ecosystems. We look at your code, your search entity, and your conversion pathways, and we architect them for absolute dominance</p>
             </motion.div>
           </div>
         </section>
@@ -115,21 +115,21 @@ export default function AboutPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-gray-50 rounded-[2rem] p-8 md:p-10 border-2 border-gray-100 hover:border-blue-500 transition-all group flex flex-col md:min-h-[350px]">
                   <div className="text-blue-600 font-mono text-[10px] md:text-xs uppercase tracking-widest mb-6 font-bold flex justify-between">
-                    <span>Directive .01</span><span className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-400">sys.integrity</span>
+                    <span>Directive 01</span><span className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-400">sys.integrity</span>
                   </div>
                   <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4 text-gray-900">Structural Integrity</h3>
                   <p className="text-gray-600 md:text-gray-500 text-sm md:text-base font-medium leading-relaxed">A beautiful frontend is worthless if the backend architecture is flawed. We prioritize technical perfection, speed, and clean code above all else.</p>
                 </div>
                 <div className="bg-gray-50 rounded-[2rem] p-8 md:p-10 border-2 border-gray-100 hover:border-fuchsia-500 transition-all group flex flex-col md:min-h-[350px] lg:translate-y-8">
                   <div className="text-fuchsia-500 font-mono text-[10px] md:text-xs uppercase tracking-widest mb-6 font-bold flex justify-between">
-                    <span>Directive .02</span><span className="opacity-0 group-hover:opacity-100 transition-opacity text-fuchsia-400">sys.data</span>
+                    <span>Directive 02</span><span className="opacity-0 group-hover:opacity-100 transition-opacity text-fuchsia-400">sys.data</span>
                   </div>
                   <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4 text-gray-900">Radical Transparency</h3>
-                  <p className="text-gray-600 md:text-gray-500 text-sm md:text-base font-medium leading-relaxed">No black boxes. No vanity metrics. Our clients have absolute visibility into every sprint, every line of code, and every dollar of ad spend.</p>
+                  <p className="text-gray-600 md:text-gray-500 text-sm md:text-base font-medium leading-relaxed">No black boxes. No vanity metrics. Our clients have absolute visibility into every sprint, every line of code, and every dollar of ad spend</p>
                 </div>
                 <div className="bg-gray-50 rounded-[2rem] p-8 md:p-10 border-2 border-gray-100 hover:border-cyan-500 transition-all group flex flex-col md:min-h-[350px] lg:translate-y-16">
                   <div className="text-cyan-500 font-mono text-[10px] md:text-xs uppercase tracking-widest mb-6 font-bold flex justify-between">
-                    <span>Directive .03</span><span className="opacity-0 group-hover:opacity-100 transition-opacity text-cyan-400">sys.scale</span>
+                    <span>Directive 03</span><span className="opacity-0 group-hover:opacity-100 transition-opacity text-cyan-400">sys.scale</span>
                   </div>
                   <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-4 text-gray-900">Calculated Scale</h3>
                   <p className="text-gray-600 md:text-gray-500 text-sm md:text-base font-medium leading-relaxed">We don't rely on viral hope. We rely on math. We build systems designed to predictably turn capital into exponential revenue growth.</p>
@@ -170,8 +170,8 @@ export default function AboutPage() {
                     ))}
                   </div>
                   <div className="pt-6 border-t-2 border-gray-100">
-                    <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs md:text-sm font-black uppercase tracking-widest text-gray-900 hover:text-blue-600 transition-colors">
-                      Initialize Link <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-10px md:text-sm font-black uppercase tracking-widest text-gray-900 hover:text-blue-600 transition-colors">
+                      Linkedin <svg className="w-6 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </a>
                   </div>
                 </motion.div>

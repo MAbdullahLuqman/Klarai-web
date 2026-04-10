@@ -98,10 +98,10 @@ export default function ServicesHubPage() {
               Core Architecture
             </span>
             <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tighter leading-tight mb-6">
-              Systems Engineered <br className="hidden md:block" /> for <span className="bg-gradient-to-r from-cyan-500 via-blue-600 to-fuchsia-500 bg-clip-text text-transparent">Scale</span>.
+              Systems Engineered <br className="hidden md:block" /> for <span className="bg-gradient-to-r from-cyan-500 via-blue-600 to-fuchsia-500 bg-clip-text text-transparent">Scale</span>
             </h1>
             <p className="text-xl md:text-2xl mb-10 text-gray-500 font-medium max-w-3xl mx-auto">
-              We don't sell random marketing tactics. We build robust, interconnected digital infrastructure designed to capture market share and drive predictable revenue.
+              We don't sell random marketing tactics. We build robust, interconnected digital infrastructure designed to capture market share and drive predictable revenue
             </p>
           </motion.div>
         </section>
@@ -144,10 +144,21 @@ export default function ServicesHubPage() {
                   </p>
 
                   <div className="mt-auto">
-                    <Link href={service.link} className="inline-flex items-center gap-3 text-gray-900 font-black uppercase tracking-widest text-sm hover:text-blue-600 group/btn transition-colors">
-                      Mount System
-                      <svg className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </Link>
+                   <div className="mt-auto">
+ <div className="mt-auto pt-6">
+  {/* Modern Brutalist Button Design */}
+ <div className="mt-auto pt-6">
+  {/* Modern Brutalist Button Design */}
+  <Link 
+    href={service.link} 
+    className="inline-flex items-center justify-center gap-3 bg-[black] text-[white] px-6 py-3 rounded-full font-black uppercase tracking-widest text-[11px] hover:bg-[#b3e600] shadow-[0_4px_15px_rgba(204,255,0,0.2)] "
+  >
+    Visit Page
+  
+  </Link>
+</div>
+</div>
+</div>
                   </div>
                 </div>
               </motion.div>
