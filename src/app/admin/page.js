@@ -3,6 +3,16 @@ import { useState, useEffect, useRef } from "react";
 import { db, auth } from "@/lib/firebase"; 
 import { doc, setDoc, getDoc, collection, getDocs, query, orderBy, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import Link from 'next/link';
+
+// --- SERVICE URL MAP FOR LLMS.TXT ---
+const SERVICE_URL_MAP = {
+  seo: '/seo-services',
+  aeo: '/aeo-services',
+  web: '/web-development',
+  ads: '/meta-ads',
+  smma: '/social-media-marketing'
+};
 
 // --- ORIGINAL BASE SCHEMA ---
 const generateBaseSchema = (serviceName, keyword) => ({
@@ -26,9 +36,6 @@ const INITIAL_DATA = {
   footer: { trademark: `© ${new Date().getFullYear()} KLARAI™ All Rights Reserved.`, privacyText: "Privacy Policy", termsText: "Terms & Conditions" }
 };
 
-// ==========================================
-// COMPONENT: RICH TEXT AREA (Handles Internal Linking)
-// ==========================================
 const RichTextArea = ({ label, value, onChange, rows = 3, placeholder = "" }) => {
   const inputRef = useRef(null);
 
@@ -46,11 +53,8 @@ const RichTextArea = ({ label, value, onChange, rows = 3, placeholder = "" }) =>
     const textToWrap = selectedText || window.prompt("Enter text to display:", "Click here");
     if (!textToWrap) return;
     
-    // Injects an anchor tag with your blue hover styling
     const linkHtml = `<a href="${url}" class="text-blue-400 hover:text-blue-300 underline transition-colors">${textToWrap}</a>`;
     const newValue = value.substring(0, start) + linkHtml + value.substring(end);
-    
-    // Fire the onChange event with the newly injected HTML
     onChange({ target: { value: newValue } });
   };
 
@@ -78,9 +82,6 @@ const RichTextArea = ({ label, value, onChange, rows = 3, placeholder = "" }) =>
   );
 };
 
-// ==========================================
-// MAIN ADMIN DASHBOARD
-// ==========================================
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -252,7 +253,25 @@ export default function AdminDashboard() {
         {viewMode === "core" && (
           <>
             <header className="h-20 flex items-center justify-between px-8 bg-[#050505]/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-10 shrink-0">
-              <div><h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-3">Editing: <span className="text-[#fcd34d] bg-[#fcd34d]/10 px-3 py-1 rounded-md text-sm border border-[#fcd34d]/20 uppercase">{activeTab}</span></h2></div>
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-3">Editing: <span className="text-[#fcd34d] bg-[#fcd34d]/10 px-3 py-1 rounded-md text-sm border border-[#fcd34d]/20 uppercase">{activeTab}</span></h2>
+                
+                <Link href="/llms.txt" target="_blank" className="text-[10px] bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded uppercase tracking-widest font-bold transition-colors">
+                  Global llms.txt
+                </Link>
+
+                {/* --- NEW BUTTON: Dynamically points to the active core service llms.txt --- */}
+                {activeTab !== 'footer' && (
+                  <Link 
+                    href={`${SERVICE_URL_MAP[activeTab]}/llms.txt`} 
+                    target="_blank" 
+                    className="bg-[#3b82f6] text-white px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-blue-500 transition-colors flex items-center gap-2 shadow-lg"
+                  >
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    Service llms.txt
+                  </Link>
+                )}
+              </div>
               <button onClick={handleSaveToFirebase} disabled={isSaving} className="bg-[#185FA5] hover:bg-[#144d85] text-white font-bold px-6 py-2.5 rounded-lg transition-all shadow-[0_0_15px_rgba(24,95,165,0.4)] disabled:opacity-50 flex items-center gap-2 text-sm">
                 {isSaving ? "Pushing to Live..." : "Save Core to Firebase"}
               </button>
@@ -426,50 +445,77 @@ function LeadsView() {
 }
 
 // ==========================================
-// COMPONENT: NICHE PAGE BUILDER
-// ==========================================
-// ==========================================
-// COMPONENT: NICHE PAGE BUILDER
+// COMPONENT: NICHE PAGE BUILDER (AEO/SEO STRICT)
 // ==========================================
 function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setViewMode }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [status, setStatus] = useState('');
 
-  // ADDED diySeoPara and diySeoSteps to the default state
-  const [formData, setFormData] = useState(initialData || {
-    slug: '', metaTitle: '', metaDescription: '', service: '', niche: '', h1: '', subheadline: '', 
-    tldr: '', definition: '', imageUrl: '', 
-    keywords: [ { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' } ], 
-    deliverables: ['', '', '', '', '', ''], steps: ['', '', '', ''], whyNeeds: ['', '', ''],
-    diySeoPara: '', diySeoSteps: ['', '', ''], // NEW DIY EEAT FIELDS
-    faqs: [ { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' }, { q: '', a: '' } ],
-    ctaText: ''
+  const parseArray = (arr, defaultObj, stringMapKey) => {
+    if (!Array.isArray(arr) || arr.length === 0) return [{ ...defaultObj }];
+    return arr.map(item => {
+       if (typeof item === 'string') return { ...defaultObj, [stringMapKey]: item };
+       if (typeof item === 'object' && item !== null) return { ...defaultObj, ...item };
+       return { ...defaultObj };
+    });
+  };
+
+  const [formData, setFormData] = useState(() => {
+    const base = initialData || {};
+    return {
+      slug: base.slug || '',
+      service: base.service || '',
+      niche: base.niche || '',
+      imageUrl: base.imageUrl || '',
+      metaTitle: base.metaTitle || '',
+      metaDescription: base.metaDescription || '',
+      h1: base.h1 || '',
+      subheadline: base.subheadline || '',
+      trustLine: base.trustLine || '',
+      tldr: base.tldr || '',
+      statCards: parseArray(base.statCards, { number: '', label: '', source: '' }, 'label'),
+      h2Sections: parseArray(base.h2Sections, { question: '', directAnswer: '', expansion: '' }, 'question'),
+      deliverables: parseArray(base.deliverables, { action: '', outcome: '' }, 'action'),
+      faqs: parseArray(base.faqs, { q: '', a: '' }, 'q'),
+      relatedLinks: parseArray(base.relatedLinks, { title: '', url: '' }, 'title'),
+      caseStudy: base.caseStudy || { location: '', before: '', after: '', time: '', kwBefore: '', kwAfter: '' },
+      process: Array.isArray(base.process) && base.process.length > 0 
+        ? base.process 
+        : ['Audit & Discovery', 'Strategic Blueprint', 'Execution & Deployment', 'Scaling & Growth'],
+      authorName: base.authorName || 'Abdullah Luqman',
+      authorRole: base.authorRole || 'Lead System Architect'
+    };
   });
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  
-  const handleArrayChange = (index, field, value) => {
-    // Safety fallback if the array doesn't exist on older pages
-    const currentArray = formData[field] || (field === 'diySeoSteps' ? ['', '', ''] : []);
-    const newArray = [...currentArray];
-    newArray[index] = value;
-    setFormData({ ...formData, [field]: newArray });
-  };
-  
-  const handleFaqChange = (index, key, value) => {
-    const newFaqs = [...formData.faqs];
-    newFaqs[index][key] = value;
-    setFormData({ ...formData, faqs: newFaqs });
+
+  const updateArray = (key, index, field, value) => {
+    const currentArray = formData[key] || [];
+    const newArr = [...currentArray];
+    let obj = newArr[index];
+    if (typeof obj !== 'object' || obj === null) {
+      obj = {};
+    } else {
+      obj = { ...obj };
+    }
+    obj[field] = value;
+    newArr[index] = obj;
+    setFormData({ ...formData, [key]: newArr });
   };
 
-  const handleKeywordChange = (index, key, value) => {
-    const currentKeywords = formData.keywords || [ { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' } ];
-    const newKeywords = [...currentKeywords];
-    if (!newKeywords[index]) newKeywords[index] = { kw: '', vol: '', kd: '' };
-    newKeywords[index][key] = value;
-    setFormData({ ...formData, keywords: newKeywords });
+  const addArrayItem = (key, emptyObj) => {
+    const currentArray = formData[key] || [];
+    setFormData({ ...formData, [key]: [...currentArray, emptyObj] });
   };
+
+  const updateProcess = (index, value) => {
+    const newProcess = formData.process ? [...formData.process] : ['', '', '', ''];
+    newProcess[index] = value;
+    setFormData({ ...formData, process: newProcess });
+  };
+
+  const handleCaseStudy = (e) => setFormData({ ...formData, caseStudy: { ...(formData.caseStudy || {}), [e.target.name]: e.target.value }});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -482,12 +528,12 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
       setStatus(`Success: Niche Page ${isEditing ? 'updated' : 'generated'} and is now live!`);
       refreshData();
       window.scrollTo(0, 0);
-    } catch (error) { setStatus('Error: Could not save page. Check database connection.'); } 
+    } catch (error) { setStatus(`Error: ${error.message}`); } 
     finally { setIsSubmitting(false); }
   };
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(`WARNING: Are you sure you want to permanently delete the /${pageId} landing page? This action cannot be undone.`);
+    const confirmDelete = window.confirm(`WARNING: Are you sure you want to permanently delete /${pageId}?`);
     if (!confirmDelete) return;
     setIsDeleting(true);
     try {
@@ -498,117 +544,163 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
     } catch (error) { alert('Error: Could not delete page.'); setIsDeleting(false); }
   };
 
-  const safeKeywords = formData.keywords?.length >= 5 ? formData.keywords : [ { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' }, { kw: '', vol: '', kd: '' } ];
-  const safeDiySteps = formData.diySeoSteps?.length >= 3 ? formData.diySeoSteps : ['', '', ''];
-
   return (
     <div className="flex-1 overflow-y-auto p-8 h-full">
       <div className="max-w-4xl mx-auto pb-32">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className={`font-nothing text-3xl uppercase tracking-widest ${isEditing ? 'text-purple-400' : 'text-green-400'}`}>
-            {isEditing ? `Editing: /${pageId}` : 'Create New Niche Page'}
+        <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+          <h2 className={`font-black text-2xl uppercase tracking-widest ${isEditing ? 'text-purple-400' : 'text-green-400'}`}>
+            {isEditing ? `Editing: /${pageId}` : 'Strict Niche Architecture Builder'}
           </h2>
-          {isEditing && (
-            <button type="button" onClick={handleDelete} disabled={isDeleting} className="px-4 py-2 border border-red-500/50 text-red-500 text-xs font-bold uppercase tracking-widest rounded hover:bg-red-500/10 transition-colors disabled:opacity-50">
-              {isDeleting ? 'Deleting...' : 'Delete Page'}
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            <Link 
+               href={`/niche/${formData.slug || pageId || 'draft'}/llms.txt`} 
+               target="_blank"
+               className="bg-[#3b82f6] text-white px-4 py-2 rounded text-xs font-bold hover:bg-blue-500 transition-colors flex items-center gap-2 shadow-lg"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+              View Live Niche llms.txt
+            </Link>
+            
+            {isEditing && (
+              <button type="button" onClick={handleDelete} disabled={isDeleting} className="px-4 py-2 border border-red-500/50 text-red-500 text-xs font-bold uppercase tracking-widest rounded hover:bg-red-500/10 transition-colors disabled:opacity-50">
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            )}
+          </div>
         </div>
         
-        {status && <div className={`mb-8 p-4 border text-xs tracking-widest uppercase font-bold ${status.includes('Success') ? 'border-green-500/50 bg-green-500/10 text-green-400' : 'border-red-500/50 bg-red-500/10 text-red-400'}`}>{status}</div>}
+        {status && <div className={`mb-8 p-4 border text-xs tracking-widest uppercase font-bold rounded ${status.includes('Success') ? 'border-green-500/50 bg-green-500/10 text-green-400' : 'border-red-500/50 bg-red-500/10 text-red-400'}`}>{status}</div>}
 
-        <form onSubmit={handleSubmit} className="space-y-10">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          
+          {/* BASICS */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">1. Core URL & Metadata</h3>
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">1. System Config & Hub Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <input name="slug" placeholder="URL Slug (e.g., seo-for-plumbers)" required disabled={isEditing} value={formData.slug} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white disabled:opacity-50" />
-              <input name="service" placeholder="Service (e.g., Advanced SEO)" required value={formData.service} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
-              <input name="niche" placeholder="Niche (e.g., Plumbers)" required value={formData.niche} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
+              <input name="slug" placeholder="URL Slug (e.g., seo-for-plumbers)" required disabled={isEditing} value={formData.slug || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white disabled:opacity-50 rounded" />
+              <input name="service" placeholder="Hub Service (e.g., Advanced SEO)" required value={formData.service || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              <input name="niche" placeholder="Hub Niche (e.g., Plumbers)" required value={formData.niche || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
             </div>
-            <input name="metaTitle" placeholder="Meta Title (Max 60 chars)" required value={formData.metaTitle} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
-            <textarea name="metaDescription" placeholder="Meta Description (Max 160 chars)" required value={formData.metaDescription} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none h-20 text-white" />
-            <input name="imageUrl" placeholder="Hero Image URL (e.g., /1.jpg or https://...)" required value={formData.imageUrl} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
+            <input name="imageUrl" placeholder="Hub Card Image URL (/1.jpg)" required value={formData.imageUrl || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
           </div>
 
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">2. Header & Definition Block</h3>
-            <input name="h1" placeholder="H1: [Service] for [Niche] in the UK | Klarai" required value={formData.h1} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
-            <RichTextArea label="Subheadline (1 sentence)" value={formData.subheadline} onChange={(e) => setFormData({...formData, subheadline: e.target.value})} rows={2} />
-            <RichTextArea label="Definition Block" value={formData.definition} onChange={(e) => setFormData({...formData, definition: e.target.value})} rows={3} />
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">2. Page Hero & Metadata</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <input name="metaTitle" placeholder="Meta Title" value={formData.metaTitle || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              <input name="metaDescription" placeholder="Meta Description" value={formData.metaDescription || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            </div>
+            <input name="h1" placeholder="H1 (Keyword + Outcome)" required value={formData.h1 || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
+            <input name="subheadline" placeholder="Subline (Proof + Timeframe)" value={formData.subheadline || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            <input name="trustLine" placeholder="Trust Line (e.g., No contracts · Results-focused)" value={formData.trustLine || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
           </div>
 
+          {/* TL;DR */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">3. TL;DR Summary Box</h3>
-            <RichTextArea label="Executive Summary (Leave blank to hide)" value={formData.tldr || ''} onChange={(e) => setFormData({...formData, tldr: e.target.value})} rows={3} />
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">3. TL;DR Block (50-60 words MAX)</h3>
+            <textarea name="tldr" placeholder="Direct, factual answer optimized for Featured Snippets/AEO..." value={formData.tldr || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white h-24 rounded" />
           </div>
 
+          {/* STATS */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">4. SEO Keyword Data Table</h3>
-            {safeKeywords.map((kw, i) => (
-              <div key={i} className="grid grid-cols-3 gap-4">
-                <input placeholder="Keyword" value={kw.kw} onChange={(e) => handleKeywordChange(i, 'kw', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
-                <input placeholder="Volume" value={kw.vol} onChange={(e) => handleKeywordChange(i, 'vol', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
-                <input placeholder="Difficulty" value={kw.kd} onChange={(e) => handleKeywordChange(i, 'kd', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">4. Stat Cards (Max 3)</h3>
+            {formData.statCards.map((stat, i) => (
+              <div key={i} className="flex gap-2">
+                <input placeholder="Number (e.g., 300%)" value={stat.number || ''} onChange={(e) => updateArray('statCards', i, 'number', e.target.value)} className="w-1/4 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-[#3b82f6] font-bold rounded" />
+                <input placeholder="Label (e.g., more leads)" value={stat.label || ''} onChange={(e) => updateArray('statCards', i, 'label', e.target.value)} className="w-1/2 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+                <input placeholder="Source" value={stat.source || ''} onChange={(e) => updateArray('statCards', i, 'source', e.target.value)} className="w-1/4 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-gray-400 rounded" />
               </div>
             ))}
+            {formData.statCards.length < 3 && <button type="button" onClick={() => addArrayItem('statCards', {number:'', label:'', source:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add Stat</button>}
           </div>
 
+          {/* H2 SECTIONS */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">5. What's Included</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {formData.deliverables.map((item, i) => (
-                <input key={i} placeholder={`Deliverable 0${i + 1}`} required value={item} onChange={(e) => handleArrayChange(i, 'deliverables', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">5. Question-Based H2s</h3>
+            {formData.h2Sections.map((sec, i) => (
+              <div key={i} className="space-y-3 p-4 bg-[#111] border border-white/5 rounded">
+                <input placeholder="H2 Question (e.g., How does Google rank plumbers?)" value={sec.question || ''} onChange={(e) => updateArray('h2Sections', i, 'question', e.target.value)} className="w-full bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
+                <textarea placeholder="Direct Answer (40-60 words)" value={sec.directAnswer || ''} onChange={(e) => updateArray('h2Sections', i, 'directAnswer', e.target.value)} className="w-full bg-blue-900/20 border border-blue-500/20 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+                <textarea placeholder="Expansion (100-150 words)" value={sec.expansion || ''} onChange={(e) => updateArray('h2Sections', i, 'expansion', e.target.value)} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-24" />
+              </div>
+            ))}
+            <button type="button" onClick={() => addArrayItem('h2Sections', {question:'', directAnswer:'', expansion:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add H2 Section</button>
+          </div>
+
+          {/* DELIVERABLES */}
+          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">6. Deliverables (Action → Outcome)</h3>
+            {formData.deliverables.map((del, i) => (
+              <div key={i} className="flex gap-2">
+                <input placeholder="Action (e.g., FAQ Schema)" value={del.action || ''} onChange={(e) => updateArray('deliverables', i, 'action', e.target.value)} className="flex-1 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+                <input placeholder="Outcome (e.g., appear in snippets)" value={del.outcome || ''} onChange={(e) => updateArray('deliverables', i, 'outcome', e.target.value)} className="flex-1 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              </div>
+            ))}
+            <button type="button" onClick={() => addArrayItem('deliverables', {action:'', outcome:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add Deliverable</button>
+          </div>
+
+          {/* CASE STUDY */}
+          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">7. Niche Case Study</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <input name="location" placeholder="Location/Type (e.g., UK Plumber)" value={formData.caseStudy?.location || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              <input name="time" placeholder="Timeframe (e.g., 4 months)" value={formData.caseStudy?.time || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              <input name="before" placeholder="Metric Before (e.g., 15 calls/mo)" value={formData.caseStudy?.before || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              <input name="after" placeholder="Metric After (e.g., 70 calls/mo)" value={formData.caseStudy?.after || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              <input name="kwBefore" placeholder="Page 1 KWs Before (e.g., 2)" value={formData.caseStudy?.kwBefore || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              <input name="kwAfter" placeholder="Page 1 KWs After (e.g., 19)" value={formData.caseStudy?.kwAfter || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            </div>
+          </div>
+
+          {/* PROCESS */}
+          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">8. Simple Process (4 Steps)</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {formData.process.map((step, i) => (
+                <input key={i} placeholder={`Step ${i+1}`} value={step || ''} onChange={(e) => updateProcess(i, e.target.value)} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
               ))}
             </div>
           </div>
 
+          {/* FAQS */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">6. How It Works</h3>
-            {formData.steps.map((item, i) => (
-              <input key={i} placeholder={`Step 0${i + 1}`} required value={item} onChange={(e) => handleArrayChange(i, 'steps', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
-            ))}
-          </div>
-
-          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">7. Why [Niche] Needs [Service]</h3>
-            {formData.whyNeeds.map((item, i) => (
-              <RichTextArea key={i} label={`Paragraph 0${i + 1}`} value={item} onChange={(e) => handleArrayChange(i, 'whyNeeds', e.target.value)} rows={3} />
-            ))}
-          </div>
-
-          {/* NEW SECTION: DIY EEAT GUIDE */}
-          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg border-l-4 border-l-blue-500">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">8. DIY / EEAT Guide (How to do it yourself)</h3>
-            <p className="text-xs text-gray-500 mb-2">Leave blank to use the programmatic fallback text.</p>
-            <RichTextArea label="Introductory Paragraph" value={formData.diySeoPara || ''} onChange={(e) => setFormData({...formData, diySeoPara: e.target.value})} rows={3} />
-            <div className="space-y-2 mt-4">
-              <label className="block text-xs text-gray-500 font-bold uppercase">List Options (Steps/Tips)</label>
-              {safeDiySteps.map((item, i) => (
-                <input key={i} placeholder={`DIY List Item 0${i + 1}`} value={item} onChange={(e) => handleArrayChange(i, 'diySeoSteps', e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white" />
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">9. FAQs (6 Q&As)</h3>
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">9. FAQ Section (Feeds JSON-LD)</h3>
             {formData.faqs.map((faq, i) => (
               <div key={i} className="flex flex-col gap-2 p-4 border border-white/5 bg-[#111] rounded">
-                <input placeholder={`Q${i + 1}: Question...`} required value={faq.q} onChange={(e) => handleFaqChange(i, 'q', e.target.value)} className="w-full bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-blue-400" />
-                <RichTextArea value={faq.a} onChange={(e) => handleFaqChange(i, 'a', e.target.value)} rows={2} placeholder={`A${i + 1}: Answer...`} />
+                <input placeholder="Question" value={faq.q || ''} onChange={(e) => updateArray('faqs', i, 'q', e.target.value)} className="w-full bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-white" />
+                <textarea placeholder="Answer (Include numbers, clear outcomes)" value={faq.a || ''} onChange={(e) => updateArray('faqs', i, 'a', e.target.value)} className="w-full bg-transparent p-2 text-sm focus:border-blue-500 outline-none text-gray-300 h-20" />
               </div>
             ))}
+            <button type="button" onClick={() => addArrayItem('faqs', {q:'', a:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add FAQ</button>
           </div>
 
+          {/* RELATED LINKS */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">10. Closing CTA</h3>
-            <RichTextArea label="Get a Free Audit CTA" value={formData.ctaText} onChange={(e) => setFormData({...formData, ctaText: e.target.value})} rows={3} />
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">10. Related Guides (Internal Linking)</h3>
+            {formData.relatedLinks.map((link, i) => (
+              <div key={i} className="flex gap-2">
+                <input placeholder="Link Title" value={link.title || ''} onChange={(e) => updateArray('relatedLinks', i, 'title', e.target.value)} className="flex-1 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+                <input placeholder="Absolute or Relative URL" value={link.url || ''} onChange={(e) => updateArray('relatedLinks', i, 'url', e.target.value)} className="flex-1 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-[#3b82f6] rounded" />
+              </div>
+            ))}
+            <button type="button" onClick={() => addArrayItem('relatedLinks', {title:'', url:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add Link</button>
           </div>
 
-          <div className="flex gap-4">
-            <button type="submit" disabled={isSubmitting || isDeleting} className={`flex-1 text-white font-bold py-5 uppercase tracking-[0.3em] transition-all hover:scale-[1.01] ${isEditing ? 'bg-purple-600 hover:bg-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.2)]' : 'bg-green-600 hover:bg-green-500 shadow-[0_0_20px_rgba(34,197,94,0.2)]'}`}>
-              {isSubmitting ? 'Transmitting...' : (isEditing ? 'Update Live Page' : 'Deploy Landing Page')}
-            </button>
+          {/* AUTHOR & SUBMIT */}
+          <div className="p-6 bg-[#111] rounded-lg border border-white/10 space-y-6">
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">11. Author Settings</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <input name="authorName" placeholder="Author Name" value={formData.authorName || ''} onChange={handleChange} className="p-3 border border-white/10 bg-black text-white rounded focus:border-blue-500 outline-none text-sm" />
+              <input name="authorRole" placeholder="Author Role" value={formData.authorRole || ''} onChange={handleChange} className="p-3 border border-white/10 bg-black text-white rounded focus:border-blue-500 outline-none text-sm" />
+            </div>
+            
+            <div className="flex items-center gap-4 border-t border-white/10 pt-6">
+              <button type="submit" disabled={isSubmitting || isDeleting} className={`px-10 py-4 rounded font-black uppercase tracking-widest text-sm transition-all shadow-lg w-full md:w-auto ${isEditing ? 'bg-purple-600 hover:bg-purple-500 text-white' : 'bg-green-600 hover:bg-green-500 text-white'}`}>
+                {isSubmitting ? 'Transmitting...' : (isEditing ? 'Update Live Architecture' : 'Deploy Architecture')}
+              </button>
+            </div>
           </div>
+
         </form>
       </div>
     </div>

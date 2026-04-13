@@ -14,7 +14,8 @@ const TEAM = [
     skills: ['System Architecture', 'SEO/AEO', 'Next.js', 'Growth Strategy'],
     linkedin: 'https://www.linkedin.com/in/abdullahluqman/',
     tagColor: 'text-blue-200 bg-blue-900 border-blue-800',
-    sysTag: 'sys.core'
+    sysTag: 'sys.core',
+    cardBg: 'bg-[#091A25]' // Deep Blue/Ink
   },
   {
     id: 'khubaib',
@@ -25,7 +26,8 @@ const TEAM = [
     skills: ['UI/UX Design', 'Figma', 'Tailwind CSS', 'Python'],
     linkedin: 'https://www.linkedin.com/in/khubaib-amjad-b669b327b/',
     tagColor: 'text-gray-300 bg-white/10 border-white/10',
-    sysTag: 'sys.interface'
+    sysTag: 'sys.interface',
+    cardBg: 'bg-[#091A25]' // Sleek Charcoal
   },
   {
     id: 'anas',
@@ -36,7 +38,8 @@ const TEAM = [
     skills: ['Python / Flask', 'OpenAI API', 'LangChain', 'Scikit-Learn'],
     linkedin: 'https://www.linkedin.com/in/muhammad-anas-nadeem-970300354/',
     tagColor: 'text-[#ADD8E6] bg-blue-950 border-blue-900',
-    sysTag: 'sys.intelligence'
+    sysTag: 'sys.intelligence',
+    cardBg: 'bg-[#091A25]' // Deep Teal/Slate
   }
 ];
 
@@ -73,14 +76,13 @@ export default function AboutPage() {
               We Are <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-blue-950">Architects</span>
             </h1>
             
-            {/* ADDED: High-Contrast CTA before dropping into the dark "Us" section */}
             <Link href="/free-audit" className="inline-flex items-center justify-center gap-3 bg-[#0A101D] text-white px-10 py-5 rounded-full font-black uppercase tracking-widest text-sm hover:bg-[#008dd8] shadow-[0_8px_20px_rgba(10,16,29,0.2)] hover:shadow-[0_8px_25px_rgba(0,141,216,0.4)] transition-all active:scale-95 group">
                 GET A FREE AUDIT
             </Link>
           </motion.div>
         </section>
 
-        {/* --- 2. THE TEAM (Dark Blue BG) --- */}
+        {/* --- 2. THE TEAM (Separated Cards with Distinct Backgrounds) --- */}
         <section className="py-24 md:py-32 px-6 bg-[#0A101D] border-t border-white/5 relative z-20 shadow-[0_-20px_50px_rgba(0,0,0,0.3)]">
           
           <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
@@ -91,55 +93,53 @@ export default function AboutPage() {
               <p className="text-lg md:text-xl text-gray-300 font-medium max-w-2xl mx-auto">When you partner with Klarai, you aren't handed off to a junior account manager. You work directly with the system architects who are physically writing the code and mapping your strategy.</p>
             </div>
 
-            <div className="bg-white/5 rounded-[2.5rem] md:rounded-[3rem] p-[1px] shadow-[0_20px_60px_rgba(0,0,0,0.4)] overflow-hidden border border-white/10">
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[1px] bg-white/10 rounded-[2.5rem] overflow-hidden">
-                {TEAM.map((member, idx) => (
-                  <motion.div 
-                    key={member.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{ duration: 0.5, delay: idx * 0.15 }}
-                    className="bg-[#0A101D] hover:bg-black/40 transition-colors duration-300 group flex flex-col p-8 md:p-10 text-left h-full"
-                  >
-                    <div className="flex justify-between items-start mb-6 md:mb-8">
-                      <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-900 border border-white/10 text-[#0A101D] rounded-full flex items-center justify-center shadow-inner overflow-hidden group-hover:scale-110 transition-transform duration-300">
-                        <img 
-                          src={member.image} 
-                          alt={`${member.name} - Klarai Lead Architect`} 
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      </div>
-                      <span className="opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity font-mono text-[10px] uppercase tracking-widest text-gray-500 font-bold bg-white/5 px-2.5 py-1 rounded-md border border-white/10 shadow-sm">{member.sysTag}</span>
+            {/* FIXED: Standard Grid with gaps to separate cards on Mobile & PC */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {TEAM.map((member, idx) => (
+                <motion.div 
+                  key={member.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: idx * 0.15 }}
+                  /* Applied the unique member.cardBg color and hover lift effects */
+                  className={`${member.cardBg} rounded-[2rem] border border-white/10 hover:border-white/20 transition-all duration-300 group flex flex-col p-8 md:p-10 text-left h-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:-translate-y-2`}
+                >
+                  <div className="flex justify-between items-start mb-6 md:mb-8">
+                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-900 border border-white/10 text-[#0A101D] rounded-full flex items-center justify-center shadow-inner overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                      <img 
+                        src={member.image} 
+                        alt={`${member.name} - Klarai Lead Architect`} 
+                        className="w-full h-full object-cover rounded-full"
+                      />
                     </div>
-                    
-                    <h3 className="text-2xl md:text-3xl font-black tracking-tight text-white mb-1 transition-colors duration-300 group-hover:text-blue-500">{member.name}</h3>
-                    <p className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-400 mb-4 md:mb-6">{member.role}</p>
-                    <p className="text-gray-300 md:text-gray-300/90 text-sm md:text-base font-medium leading-relaxed mb-6 md:mb-8 flex-1">{member.bio}</p>
-                    
-                    <div className="flex flex-wrap gap-2 mb-6 md:mb-8 mt-auto">
-                      {member.skills.map(skill => (
-                        <span key={skill} className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border ${member.tagColor}`}>{skill}</span>
-                      ))}
-                    </div>
-                    
-                    {/* FIXED: LinkedIn Button (Solid Official Color, No Arrow) */}
-                    <div className="pt-6 border-t-2 border-white/5">
-                      <a 
-                        href={member.linkedin} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="block w-full text-center bg-[#0A66C2] text-white px-6 py-3.5 rounded-full font-black uppercase tracking-widest text-[11px] md:text-xs hover:bg-[#004182] transition-colors shadow-md border border-white/10 active:scale-95"
-                      >
-                        LinkedIn
-                      </a>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
+                    <span className="opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity font-mono text-[10px] uppercase tracking-widest text-gray-400 font-bold bg-white/5 px-2.5 py-1 rounded-md border border-white/5 shadow-sm">{member.sysTag}</span>
+                  </div>
+                  
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tight text-white mb-1 transition-colors duration-300 group-hover:text-blue-400">{member.name}</h3>
+                  <p className="text-xs md:text-sm font-black uppercase tracking-widest text-gray-400 mb-4 md:mb-6">{member.role}</p>
+                  <p className="text-gray-300 md:text-gray-300/90 text-sm md:text-base font-medium leading-relaxed mb-6 md:mb-8 flex-1">{member.bio}</p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-6 md:mb-8 mt-auto">
+                    {member.skills.map(skill => (
+                      <span key={skill} className={`text-[9px] md:text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full border ${member.tagColor}`}>{skill}</span>
+                    ))}
+                  </div>
+                  
+                  <div className="pt-6 border-t border-white/10">
+                    <a 
+                      href={member.linkedin} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="block w-full text-center bg-[#0A66C2] text-white px-6 py-3.5 rounded-full font-black uppercase tracking-widest text-[11px] md:text-xs hover:bg-[#004182] transition-colors shadow-md border border-white/10 active:scale-95"
+                    >
+                      LinkedIn
+                    </a>
+                  </div>
+                </motion.div>
+              ))}
             </div>
+
           </div>
         </section>
 
@@ -225,7 +225,6 @@ export default function AboutPage() {
                 <h2 className="text-3xl md:text-6xl font-black tracking-tighter mb-4 md:mb-6">Ready to upgrade your infrastructure?</h2>
                 <p className="text-lg md:text-xl text-gray-300 mb-8 md:mb-10 max-w-2xl mx-auto font-medium">Get a completely free, deep-dive technical audit. We will map out exactly where your business is losing money and how to fix it.</p>
                 
-                {/* Unified White Button */}
                 <Link href="/free-audit" className="inline-flex items-center justify-center gap-2 bg-white text-[#0A101D] px-10 py-5 rounded-full font-black text-sm md:text-base hover:bg-gray-100 shadow-[0_15px_30px_rgba(255,255,255,0.1)] transition-all active:scale-95 uppercase tracking-widest w-full md:w-auto">
                   Initiate System Audit
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
