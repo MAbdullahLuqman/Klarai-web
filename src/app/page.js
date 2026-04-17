@@ -162,8 +162,9 @@ export default function RefinedPremiumHome() {
     <div ref={containerRef} className="bg-[#ffffff] text-gray-900 font-sans selection:bg-[#ccff00] selection:text-[#0A101D] min-h-screen overflow-x-hidden">
       <GlobalHeader />
       
-      {/* --- 1. FULLSCREEN HERO (Perfect Laptop Fit) --- */}
-      <section className="relative px-6 w-full h-[100dvh] min-h-[600px] max-h-[900px] flex flex-col justify-center items-center overflow-hidden bg-white">
+      {/* --- 1. FULLSCREEN HERO --- */}
+      {/* CRITICAL FIX: Added pt-[100px] md:pt-[140px] to push the flex-center down away from the header */}
+      <section className="relative px-6 pt-[100px] md:pt-[140px] w-full h-[100dvh] min-h-[600px] max-h-[900px] flex flex-col justify-center items-center overflow-hidden bg-white">
         
         {/* Soft ambient glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50vw] h-[50vw] md:w-[35vw] md:h-[35vw] bg-[#008dd8]/[0.04] blur-[100px] rounded-full pointer-events-none"></div>
@@ -327,7 +328,7 @@ export default function RefinedPremiumHome() {
       </section>
 
       {/* --- 4. DIGITAL FLAGSHIP FOOTER CTA --- */}
-      <section className="py-24 md:py-40 px-6 border-t border-gray-100 relative overflow-hidden bg-[#fafafa]">
+      <section className="py-24 md:py-40 px-6 border-t border-gray-200 relative overflow-hidden bg-[#fafafa]">
         <div className="max-w-[1000px] mx-auto text-center relative z-10 flex flex-col items-center">
           
           <h2 className="text-4xl md:text-5xl lg:text-[6rem] leading-[0.9] font-black tracking-tighter uppercase text-[#0A101D] mb-8 md:mb-10">
