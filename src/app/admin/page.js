@@ -36,47 +36,76 @@ const INITIAL_DATA = {
   footer: { trademark: `© ${new Date().getFullYear()} KLARAI™ All Rights Reserved.`, privacyText: "Privacy Policy", termsText: "Terms & Conditions" }
 };
 
-const RichTextArea = ({ label, value, onChange, rows = 3, placeholder = "" }) => {
+// ==========================================
+// UPGRADED RICH TEXT AREA (LINKS & IMAGES)
+// ==========================================
+const RichTextArea = ({ label, value, onChange, name, rows = 3, placeholder = "" }) => {
   const inputRef = useRef(null);
 
   const handleInsertLink = () => {
     const el = inputRef.current;
     if (!el) return;
-    
     const start = el.selectionStart;
     const end = el.selectionEnd;
     const selectedText = value.substring(start, end);
     
-    const url = window.prompt("Enter link URL (e.g., /seo-services):", "");
+    const url = window.prompt("Enter link URL (e.g., /seo-services or https://...):", "");
     if (!url) return;
     
     const textToWrap = selectedText || window.prompt("Enter text to display:", "Click here");
     if (!textToWrap) return;
     
-    const linkHtml = `<a href="${url}" class="text-blue-400 hover:text-blue-300 underline transition-colors">${textToWrap}</a>`;
+    const linkHtml = `<a href="${url}" class="text-[#008dd8] hover:underline font-bold transition-colors">${textToWrap}</a>`;
     const newValue = value.substring(0, start) + linkHtml + value.substring(end);
-    onChange({ target: { value: newValue } });
+    onChange({ target: { name: name || el.name, value: newValue } });
+  };
+
+  const handleInsertImage = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    
+    const url = window.prompt("Enter Image URL (e.g., /images/chart.jpg or https://...):", "");
+    if (!url) return;
+    
+    const alt = window.prompt("Enter Image Alt Text (Important for SEO):", "Klarai Architecture");
+    
+    // Injects a beautifully styled responsive image tag
+    const imgHtml = `\n\n<img src="${url}" alt="${alt}" class="w-full rounded-2xl my-8 border-2 border-gray-100 shadow-sm object-cover" />\n\n`;
+    const newValue = value.substring(0, start) + imgHtml + value.substring(end);
+    onChange({ target: { name: name || el.name, value: newValue } });
   };
 
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-2">
-        {label ? <label className="block text-xs text-gray-500 font-bold uppercase">{label}</label> : <div></div>}
-        <button 
-          type="button" 
-          onClick={handleInsertLink} 
-          className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-1 rounded hover:bg-blue-500/20 border border-blue-500/30 transition-colors flex items-center gap-1 font-bold tracking-widest uppercase"
-        >
-          🔗 Make Link
-        </button>
+        {label ? <label className="block text-[10px] text-gray-500 font-bold uppercase tracking-widest">{label}</label> : <div></div>}
+        <div className="flex gap-2">
+          <button 
+            type="button" 
+            onClick={handleInsertLink} 
+            className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-1 rounded hover:bg-blue-500/20 border border-blue-500/30 transition-colors flex items-center gap-1 font-bold uppercase"
+          >
+            🔗 Link
+          </button>
+          <button 
+            type="button" 
+            onClick={handleInsertImage} 
+            className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors flex items-center gap-1 font-bold uppercase"
+          >
+            🖼️ Image
+          </button>
+        </div>
       </div>
       <textarea 
+        name={name}
         ref={inputRef} 
         rows={rows} 
         value={value} 
         onChange={onChange} 
         placeholder={placeholder} 
-        className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white resize-none focus:border-blue-500 outline-none" 
+        className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-200 resize-y focus:border-blue-500 outline-none leading-relaxed" 
       />
     </div>
   );
@@ -97,7 +126,9 @@ export default function AdminDashboard() {
   const [isSaving, setIsSaving] = useState(false);
 
   const [nichePagesList, setNichePagesList] = useState({});
+  const [blogPagesList, setBlogPagesList] = useState({});
   const [activeNicheId, setActiveNicheId] = useState(null);
+  const [activeBlogId, setActiveBlogId] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -121,14 +152,21 @@ export default function AdminDashboard() {
         }
       }
       setContent(liveData);
-    } catch (error) { console.error("Error fetching core data:", error); } 
+    } catch (error) {} 
     
     try {
       const nicheQuery = await getDocs(collection(db, "niche_pages"));
       let fetchedNiches = {};
       nicheQuery.forEach(doc => { fetchedNiches[doc.id] = doc.data(); });
       setNichePagesList(fetchedNiches);
-    } catch (error) { console.error("Error fetching niche pages:", error); }
+    } catch (error) {}
+
+    try {
+      const blogQuery = await getDocs(collection(db, "blog_posts"));
+      let fetchedBlogs = {};
+      blogQuery.forEach(doc => { fetchedBlogs[doc.id] = doc.data(); });
+      setBlogPagesList(fetchedBlogs);
+    } catch (error) {}
 
     setIsDataLoading(false);
   };
@@ -209,8 +247,9 @@ export default function AdminDashboard() {
           <div>
             <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Workspace</p>
             <nav className="flex flex-col gap-2">
-              <button onClick={() => setViewMode("leads")} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${viewMode === "leads" ? "bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>Leads Tracker</button>
-              <button onClick={() => setViewMode("builder")} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${viewMode === "builder" ? "bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>+ New Niche Page</button>
+              <button onClick={() => setViewMode("leads")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "leads" ? "text-[#3b82f6]" : "text-gray-400 hover:text-white"}`}>Leads Tracker</button>
+              <button onClick={() => setViewMode("builder")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "builder" ? "text-[#10b981]" : "text-[#10b981]/70 hover:text-[#10b981]"}`}>+ New Niche Page</button>
+              <button onClick={() => setViewMode("blogBuilder")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "blogBuilder" ? "text-purple-400" : "text-purple-400/70 hover:text-purple-400"}`}>+ New Blog Post</button>
             </nav>
           </div>
 
@@ -218,8 +257,23 @@ export default function AdminDashboard() {
             <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Core Pages</p>
             <nav className="flex flex-col gap-2">
               {[ { id: "seo", name: "SEO Services" }, { id: "aeo", name: "AEO Services" }, { id: "web", name: "Web Development" }, { id: "ads", name: "Meta Ads" }, { id: "smma", name: "Social Media" }, { id: "footer", name: "Global Footer" } ].map((tab) => (
-                <button key={tab.id} onClick={() => { setViewMode("core"); setActiveTab(tab.id); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${viewMode === "core" && activeTab === tab.id ? "bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>{tab.name}</button>
+                <button key={tab.id} onClick={() => { setViewMode("core"); setActiveTab(tab.id); }} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "core" && activeTab === tab.id ? "bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]" : "text-gray-400 hover:text-white"}`}>{tab.name}</button>
               ))}
+            </nav>
+          </div>
+
+          <div>
+            <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Active Blog Posts</p>
+            <nav className="flex flex-col gap-2">
+              {Object.keys(blogPagesList).length === 0 ? (
+                <p className="px-4 text-xs text-gray-600 italic">No posts published yet.</p>
+              ) : (
+                Object.keys(blogPagesList).map((blogId) => (
+                  <button key={blogId} onClick={() => { setViewMode("blogEdit"); setActiveBlogId(blogId); }} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors truncate ${viewMode === "blogEdit" && activeBlogId === blogId ? "bg-purple-500/10 text-purple-400 border border-purple-500/30" : "text-gray-400 hover:text-white"}`}>
+                    /blog/{blogId}
+                  </button>
+                ))
+              )}
             </nav>
           </div>
 
@@ -230,8 +284,8 @@ export default function AdminDashboard() {
                 <p className="px-4 text-xs text-gray-600 italic">No custom pages built yet.</p>
               ) : (
                 Object.keys(nichePagesList).map((nicheId) => (
-                  <button key={nicheId} onClick={() => { setViewMode("nicheEdit"); setActiveNicheId(nicheId); }} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${viewMode === "nicheEdit" && activeNicheId === nicheId ? "bg-purple-500/10 text-purple-400 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.15)]" : "text-gray-400 hover:text-white hover:bg-white/5"}`}>
-                    /{nicheId}
+                  <button key={nicheId} onClick={() => { setViewMode("nicheEdit"); setActiveNicheId(nicheId); }} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors truncate ${viewMode === "nicheEdit" && activeNicheId === nicheId ? "bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/30" : "text-gray-400 hover:text-white"}`}>
+                    /niche/{nicheId}
                   </button>
                 ))
               )}
@@ -247,8 +301,12 @@ export default function AdminDashboard() {
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         
         {viewMode === "leads" && <LeadsView />}
+        
         {viewMode === "builder" && <NicheBuilderView isEditing={false} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
         {viewMode === "nicheEdit" && <NicheBuilderView key={activeNicheId} isEditing={true} pageId={activeNicheId} initialData={nichePagesList[activeNicheId]} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
+
+        {viewMode === "blogBuilder" && <BlogBuilderView isEditing={false} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
+        {viewMode === "blogEdit" && <BlogBuilderView key={activeBlogId} isEditing={true} pageId={activeBlogId} initialData={blogPagesList[activeBlogId]} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
 
         {viewMode === "core" && (
           <>
@@ -260,7 +318,6 @@ export default function AdminDashboard() {
                   Global llms.txt
                 </Link>
 
-                {/* --- NEW BUTTON: Dynamically points to the active core service llms.txt --- */}
                 {activeTab !== 'footer' && (
                   <Link 
                     href={`${SERVICE_URL_MAP[activeTab]}/llms.txt`} 
@@ -473,7 +530,7 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
       h1: base.h1 || '',
       subheadline: base.subheadline || '',
       trustLine: base.trustLine || '',
-      tldr: base.tldr || '',
+      tldr: base.tldr || '', // Now a string to use RichText
       statCards: parseArray(base.statCards, { number: '', label: '', source: '' }, 'label'),
       h2Sections: parseArray(base.h2Sections, { question: '', directAnswer: '', expansion: '' }, 'question'),
       deliverables: parseArray(base.deliverables, { action: '', outcome: '' }, 'action'),
@@ -533,12 +590,12 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
   };
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(`WARNING: Are you sure you want to permanently delete /${pageId}?`);
+    const confirmDelete = window.confirm(`WARNING: Are you sure you want to permanently delete /niche/${pageId}?`);
     if (!confirmDelete) return;
     setIsDeleting(true);
     try {
       await deleteDoc(doc(db, 'niche_pages', pageId));
-      alert(`Niche page /${pageId} deleted successfully.`);
+      alert(`Niche page /niche/${pageId} deleted successfully.`);
       await refreshData();
       setViewMode('core'); 
     } catch (error) { alert('Error: Could not delete page.'); setIsDeleting(false); }
@@ -548,8 +605,8 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
     <div className="flex-1 overflow-y-auto p-8 h-full">
       <div className="max-w-4xl mx-auto pb-32">
         <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-          <h2 className={`font-black text-2xl uppercase tracking-widest ${isEditing ? 'text-purple-400' : 'text-green-400'}`}>
-            {isEditing ? `Editing: /${pageId}` : 'Strict Niche Architecture Builder'}
+          <h2 className={`font-black text-2xl uppercase tracking-widest ${isEditing ? 'text-[#10b981]' : 'text-green-400'}`}>
+            {isEditing ? `Editing Niche: /${pageId}` : 'Strict Niche Architecture Builder'}
           </h2>
           <div className="flex items-center gap-3">
             <Link 
@@ -573,7 +630,6 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
 
         <form onSubmit={handleSubmit} className="space-y-8">
           
-          {/* BASICS */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">1. System Config & Hub Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -595,13 +651,17 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
             <input name="trustLine" placeholder="Trust Line (e.g., No contracts · Results-focused)" value={formData.trustLine || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
           </div>
 
-          {/* TL;DR */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">3. TL;DR Block (50-60 words MAX)</h3>
-            <textarea name="tldr" placeholder="Direct, factual answer optimized for Featured Snippets/AEO..." value={formData.tldr || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white h-24 rounded" />
+            <RichTextArea 
+              name="tldr" 
+              value={formData.tldr || ''} 
+              onChange={handleChange} 
+              placeholder="Direct, factual answer optimized for Featured Snippets/AEO..." 
+              rows={4} 
+            />
           </div>
 
-          {/* STATS */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">4. Stat Cards (Max 3)</h3>
             {formData.statCards.map((stat, i) => (
@@ -614,20 +674,30 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
             {formData.statCards.length < 3 && <button type="button" onClick={() => addArrayItem('statCards', {number:'', label:'', source:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add Stat</button>}
           </div>
 
-          {/* H2 SECTIONS */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">5. Question-Based H2s</h3>
             {formData.h2Sections.map((sec, i) => (
               <div key={i} className="space-y-3 p-4 bg-[#111] border border-white/5 rounded">
                 <input placeholder="H2 Question (e.g., How does Google rank plumbers?)" value={sec.question || ''} onChange={(e) => updateArray('h2Sections', i, 'question', e.target.value)} className="w-full bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
-                <textarea placeholder="Direct Answer (40-60 words)" value={sec.directAnswer || ''} onChange={(e) => updateArray('h2Sections', i, 'directAnswer', e.target.value)} className="w-full bg-blue-900/20 border border-blue-500/20 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-                <textarea placeholder="Expansion (100-150 words)" value={sec.expansion || ''} onChange={(e) => updateArray('h2Sections', i, 'expansion', e.target.value)} className="w-full bg-black/50 border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-24" />
+                
+                <RichTextArea 
+                  label="Direct Answer (40-60 words)" 
+                  value={sec.directAnswer || ''} 
+                  onChange={(e) => updateArray('h2Sections', i, 'directAnswer', e.target.value)} 
+                  rows={2} 
+                />
+                
+                <RichTextArea 
+                  label="Expansion (100-150 words)" 
+                  value={sec.expansion || ''} 
+                  onChange={(e) => updateArray('h2Sections', i, 'expansion', e.target.value)} 
+                  rows={4} 
+                />
               </div>
             ))}
             <button type="button" onClick={() => addArrayItem('h2Sections', {question:'', directAnswer:'', expansion:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add H2 Section</button>
           </div>
 
-          {/* DELIVERABLES */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">6. Deliverables (Action → Outcome)</h3>
             {formData.deliverables.map((del, i) => (
@@ -639,7 +709,6 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
             <button type="button" onClick={() => addArrayItem('deliverables', {action:'', outcome:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add Deliverable</button>
           </div>
 
-          {/* CASE STUDY */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">7. Niche Case Study</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -652,7 +721,6 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
             </div>
           </div>
 
-          {/* PROCESS */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">8. Simple Process (4 Steps)</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -662,19 +730,22 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
             </div>
           </div>
 
-          {/* FAQS */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">9. FAQ Section (Feeds JSON-LD)</h3>
             {formData.faqs.map((faq, i) => (
               <div key={i} className="flex flex-col gap-2 p-4 border border-white/5 bg-[#111] rounded">
                 <input placeholder="Question" value={faq.q || ''} onChange={(e) => updateArray('faqs', i, 'q', e.target.value)} className="w-full bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-white" />
-                <textarea placeholder="Answer (Include numbers, clear outcomes)" value={faq.a || ''} onChange={(e) => updateArray('faqs', i, 'a', e.target.value)} className="w-full bg-transparent p-2 text-sm focus:border-blue-500 outline-none text-gray-300 h-20" />
+                <RichTextArea 
+                  placeholder="Answer (Include numbers, clear outcomes)" 
+                  value={faq.a || ''} 
+                  onChange={(e) => updateArray('faqs', i, 'a', e.target.value)} 
+                  rows={3} 
+                />
               </div>
             ))}
             <button type="button" onClick={() => addArrayItem('faqs', {q:'', a:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add FAQ</button>
           </div>
 
-          {/* RELATED LINKS */}
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">10. Related Guides (Internal Linking)</h3>
             {formData.relatedLinks.map((link, i) => (
@@ -686,7 +757,6 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
             <button type="button" onClick={() => addArrayItem('relatedLinks', {title:'', url:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add Link</button>
           </div>
 
-          {/* AUTHOR & SUBMIT */}
           <div className="p-6 bg-[#111] rounded-lg border border-white/10 space-y-6">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">11. Author Settings</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -695,10 +765,282 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
             </div>
             
             <div className="flex items-center gap-4 border-t border-white/10 pt-6">
-              <button type="submit" disabled={isSubmitting || isDeleting} className={`px-10 py-4 rounded font-black uppercase tracking-widest text-sm transition-all shadow-lg w-full md:w-auto ${isEditing ? 'bg-purple-600 hover:bg-purple-500 text-white' : 'bg-green-600 hover:bg-green-500 text-white'}`}>
-                {isSubmitting ? 'Transmitting...' : (isEditing ? 'Update Live Architecture' : 'Deploy Architecture')}
+              <button type="submit" disabled={isSubmitting || isDeleting} className={`px-10 py-4 rounded font-black uppercase tracking-widest text-sm transition-all shadow-lg w-full md:w-auto ${isEditing ? 'bg-[#10b981] hover:bg-emerald-400 text-white' : 'bg-[#10b981] hover:bg-emerald-400 text-white'}`}>
+                {isSubmitting ? 'Transmitting...' : (isEditing ? 'Update Live Niche Architecture' : 'Deploy Niche Architecture')}
               </button>
             </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// COMPONENT: BLOG BUILDER (THE MASSIVE CMS)
+// ==========================================
+function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewMode }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const parseArray = (arr, defaultVal) => (!Array.isArray(arr) || arr.length === 0) ? [defaultVal] : arr;
+
+  const [formData, setFormData] = useState(() => {
+    const b = initialData || {};
+    return {
+      slug: b.slug || '',
+      seoMeta: b.seoMeta || { title: '', metaDescription: '', canonicalUrl: '' },
+      breadcrumbs: parseArray(b.breadcrumbs, { name: 'Home', url: '/' }),
+      hero: b.hero || { title: '', description: '', authorName: 'Abdullah Luqman', authorProfileUrl: '/about', publishDate: new Date().toISOString().split('T')[0], readTime: '5 Min' },
+      tldr: parseArray(b.tldr, ''),
+      quickAnswer: b.quickAnswer || '',
+      intro: parseArray(b.intro, ''),
+      sections: parseArray(b.sections, { id: 'section-1', heading: '', contentType: 'default', content: [''], list: [], subheadings: [] }),
+      toolBlock: b.toolBlock || { title: 'Free System Audit', description: 'Find out exactly where your digital architecture is failing.', ctaText: 'Start Audit', ctaLink: '/free-audit' },
+      faqs: parseArray(b.faqs, { question: '', answer: '' }),
+      authorInfo: b.authorInfo || { name: 'Abdullah Luqman', role: 'Lead Architect', bio: 'Architecting digital systems for absolute scale.', profileUrl: '/about' }
+    };
+  });
+
+  const handleChange = (e, objKey) => {
+    if(objKey) {
+       setFormData({...formData, [objKey]: {...formData[objKey], [e.target.name]: e.target.value}});
+    } else {
+       setFormData({...formData, [e.target.name]: e.target.value});
+    }
+  };
+
+  const updateSimpleArray = (key, index, value) => {
+    const newArr = [...formData[key]];
+    newArr[index] = value;
+    setFormData({...formData, [key]: newArr});
+  };
+  const addSimpleArrayItem = (key) => setFormData({...formData, [key]: [...formData[key], '']});
+
+  const updateComplexArray = (key, index, field, value) => {
+    const newArr = [...formData[key]];
+    newArr[index] = { ...newArr[index], [field]: value };
+    setFormData({...formData, [key]: newArr});
+  };
+  const addComplexArrayItem = (key, obj) => setFormData({...formData, [key]: [...formData[key], obj]});
+
+  const updateSectionArray = (secIndex, field, arrIndex, value) => {
+    const newSecs = [...formData.sections];
+    newSecs[secIndex][field][arrIndex] = value;
+    setFormData({...formData, sections: newSecs});
+  };
+
+  const addSubheading = (secIndex) => {
+    const newSecs = [...formData.sections];
+    if(!newSecs[secIndex].subheadings) newSecs[secIndex].subheadings = [];
+    newSecs[secIndex].subheadings.push({ title: '', content: [''] });
+    setFormData({...formData, sections: newSecs});
+  };
+
+  const updateSubheading = (secIndex, subIndex, field, value, contentIndex = -1) => {
+    const newSecs = [...formData.sections];
+    if (field === 'content') {
+      newSecs[secIndex].subheadings[subIndex].content[contentIndex] = value;
+    } else {
+      newSecs[secIndex].subheadings[subIndex][field] = value;
+    }
+    setFormData({...formData, sections: newSecs});
+  };
+
+  const addSubheadingContent = (secIndex, subIndex) => {
+     const newSecs = [...formData.sections];
+     newSecs[secIndex].subheadings[subIndex].content.push('');
+     setFormData({...formData, sections: newSecs});
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const targetSlug = isEditing ? pageId : formData.slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      await setDoc(doc(db, 'blog_posts', targetSlug), { ...formData, slug: targetSlug, updatedAt: serverTimestamp() });
+      alert('Success! Blog Post Published to Live Architecture.');
+      refreshData();
+      window.scrollTo(0, 0);
+    } catch (err) { alert('Error: ' + err.message); }
+    setIsSubmitting(false);
+  };
+
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm(`WARNING: Are you sure you want to permanently delete /blog/${pageId}?`);
+    if (!confirmDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'blog_posts', pageId));
+      alert(`Blog page /blog/${pageId} deleted successfully.`);
+      await refreshData();
+      setViewMode('core'); 
+    } catch (error) { alert('Error: Could not delete post.'); setIsDeleting(false); }
+  };
+
+  return (
+    <div className="flex-1 overflow-y-auto p-8 h-full">
+      <div className="max-w-4xl mx-auto pb-32">
+        <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+          <h2 className="font-black text-2xl uppercase tracking-widest text-purple-400">
+            {isEditing ? `Editing Blog: /${pageId}` : 'Strict Article Architecture'}
+          </h2>
+          {isEditing && (
+              <button type="button" onClick={handleDelete} disabled={isDeleting} className="px-4 py-2 border border-red-500/50 text-red-500 text-xs font-bold uppercase tracking-widest rounded hover:bg-red-500/10 transition-colors disabled:opacity-50">
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+          )}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          
+          <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">1. URL & Meta Architecture</h3>
+            <input name="slug" placeholder="URL Slug (e.g., local-seo-guide)" required disabled={isEditing} value={formData.slug} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded disabled:opacity-50" />
+            <input name="title" placeholder="Meta Title" value={formData.seoMeta.title} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            <textarea name="metaDescription" placeholder="Meta Description" value={formData.seoMeta.metaDescription} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-20" />
+          </div>
+
+          <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">2. Hero Data</h3>
+            <input name="title" placeholder="H1 Headline" required value={formData.hero.title} onChange={(e)=>handleChange(e, 'hero')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
+            <textarea name="description" placeholder="Hero Subtext / Hook" required value={formData.hero.description} onChange={(e)=>handleChange(e, 'hero')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-20" />
+            <div className="grid grid-cols-2 gap-4">
+               <input name="publishDate" type="date" value={formData.hero.publishDate} onChange={(e)=>handleChange(e, 'hero')} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+               <input name="readTime" placeholder="Read Time (e.g. 5 Min)" value={formData.hero.readTime} onChange={(e)=>handleChange(e, 'hero')} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            </div>
+          </div>
+
+          <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">3. AEO Snippet & TLDR</h3>
+            <div>
+              <RichTextArea 
+                label="AEO Quick Answer (40-60 words)" 
+                name="quickAnswer" 
+                value={formData.quickAnswer} 
+                onChange={handleChange} 
+                rows={4} 
+              />
+            </div>
+            <div className="pt-4 border-t border-white/10">
+              <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2">TL;DR Bullets</label>
+              {formData.tldr.map((pt, i) => (
+                <input key={i} value={pt} onChange={(e)=>updateSimpleArray('tldr', i, e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded mb-2" placeholder={`Bullet ${i+1}`} />
+              ))}
+              <button type="button" onClick={()=>addSimpleArrayItem('tldr')} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">+ Add Bullet</button>
+            </div>
+          </div>
+
+          <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">4. Introduction</h3>
+            {formData.intro.map((para, i) => (
+              <RichTextArea 
+                key={i} 
+                value={para} 
+                onChange={(e)=>updateSimpleArray('intro', i, e.target.value)} 
+                rows={3} 
+                placeholder={`Paragraph ${i+1}`} 
+              />
+            ))}
+            <button type="button" onClick={()=>addSimpleArrayItem('intro')} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">+ Add Paragraph</button>
+          </div>
+
+          <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-8">
+            <div className="flex justify-between items-center border-b border-white/10 pb-2">
+               <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">5. Core Content Sections (H2s)</h3>
+               <button type="button" onClick={()=>addComplexArrayItem('sections', { id: `sec-${formData.sections.length+1}`, heading: '', contentType: 'default', content: [''], list: [], subheadings: [] })} className="text-[10px] bg-white/10 px-2 py-1 rounded text-white uppercase tracking-widest font-bold hover:bg-white/20">+ Add H2 Section</button>
+            </div>
+            
+            {formData.sections.map((sec, i) => (
+              <div key={i} className="p-5 bg-[#111] border border-white/10 rounded-xl shadow-lg space-y-4">
+                <div className="flex gap-2">
+                  <input placeholder="ID (e.g. what-is-seo)" value={sec.id} onChange={(e)=>updateComplexArray('sections', i, 'id', e.target.value)} className="w-1/4 bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-gray-400" />
+                  <input placeholder="H2 Heading" value={sec.heading} onChange={(e)=>updateComplexArray('sections', i, 'heading', e.target.value)} className="w-3/4 bg-transparent border-b border-blue-500/50 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
+                </div>
+                
+                <select value={sec.contentType} onChange={(e)=>updateComplexArray('sections', i, 'contentType', e.target.value)} className="bg-black border border-white/10 focus:border-blue-500 outline-none text-white text-xs p-2 rounded">
+                  <option value="default">Default Article</option>
+                  <option value="howto">How-To (Numbered Steps)</option>
+                  <option value="definition">Definition Block</option>
+                </select>
+
+                <div className="space-y-4 border-l-2 border-white/10 pl-4">
+                  <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Paragraphs</label>
+                  {sec.content.map((para, pIdx) => (
+                    <RichTextArea 
+                      key={pIdx} 
+                      value={para} 
+                      onChange={(e)=>updateSectionArray(i, 'content', pIdx, e.target.value)} 
+                      rows={3} 
+                    />
+                  ))}
+                  <button type="button" onClick={()=> { const n=[...formData.sections]; n[i].content.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">+ Para</button>
+                </div>
+
+                <div className="space-y-2 border-l-2 border-white/10 pl-4 mt-4">
+                  <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">List Items</label>
+                  {sec.list.map((li, lIdx) => (
+                    <input key={lIdx} value={li} onChange={(e)=>updateSectionArray(i, 'list', lIdx, e.target.value)} className="w-full bg-black/50 border border-white/5 p-3 text-sm focus:border-blue-500 outline-none text-gray-300 rounded" />
+                  ))}
+                  <button type="button" onClick={()=> { const n=[...formData.sections]; n[i].list.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">+ List Item</button>
+                </div>
+
+                <div className="space-y-6 border-l-2 border-purple-500/30 pl-4 mt-8">
+                  <div className="flex justify-between items-center">
+                     <label className="text-[10px] uppercase tracking-widest text-purple-400 font-bold">H3 Subheadings</label>
+                     <button type="button" onClick={() => addSubheading(i)} className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-1 rounded font-bold uppercase tracking-widest">+ Add H3</button>
+                  </div>
+                  
+                  {sec.subheadings && sec.subheadings.map((sub, sIdx) => (
+                    <div key={sIdx} className="bg-black/50 p-4 border border-white/5 rounded space-y-4">
+                      <input placeholder="H3 Title" value={sub.title} onChange={(e) => updateSubheading(i, sIdx, 'title', e.target.value)} className="w-full bg-transparent border-b border-purple-500/50 p-2 text-sm focus:border-purple-500 outline-none text-white font-bold" />
+                      {sub.content.map((subPara, spIdx) => (
+                         <RichTextArea 
+                           key={spIdx} 
+                           value={subPara} 
+                           onChange={(e) => updateSubheading(i, sIdx, 'content', e.target.value, spIdx)} 
+                           rows={3} 
+                         />
+                      ))}
+                      <button type="button" onClick={() => addSubheadingContent(i, sIdx)} className="text-[10px] text-purple-500 font-bold uppercase tracking-widest">+ H3 Para</button>
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+            ))}
+          </div>
+
+          <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">6. Embedded Tool CTA</h3>
+            <input name="title" placeholder="Tool Title" value={formData.toolBlock.title} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
+            <input name="description" placeholder="Tool Description" value={formData.toolBlock.description} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            <div className="grid grid-cols-2 gap-4">
+              <input name="ctaText" placeholder="Button Text" value={formData.toolBlock.ctaText} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              <input name="ctaLink" placeholder="Button URL" value={formData.toolBlock.ctaLink} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-[#3b82f6] rounded" />
+            </div>
+          </div>
+
+          <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">7. FAQ Section (Generates JSON-LD)</h3>
+            {formData.faqs.map((faq, i) => (
+              <div key={i} className="flex flex-col gap-2 p-4 border border-white/5 bg-[#111] rounded">
+                <input placeholder="Question" value={faq.question} onChange={(e)=>updateComplexArray('faqs', i, 'question', e.target.value)} className="w-full bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
+                <RichTextArea 
+                  value={faq.answer} 
+                  onChange={(e)=>updateComplexArray('faqs', i, 'answer', e.target.value)} 
+                  rows={3} 
+                />
+              </div>
+            ))}
+            <button type="button" onClick={()=>addComplexArrayItem('faqs', {question: '', answer: ''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add FAQ</button>
+          </div>
+
+          <div className="p-6 bg-[#111] rounded-lg border border-white/10 space-y-6">
+              <button type="submit" disabled={isSubmitting || isDeleting} className="w-full bg-purple-600 hover:bg-purple-500 text-white px-10 py-4 rounded font-black uppercase tracking-widest text-sm shadow-lg transition-colors">
+                {isSubmitting ? 'Transmitting...' : (isEditing ? 'Update Live Blog Post' : 'Publish Blog Post')}
+              </button>
           </div>
 
         </form>
