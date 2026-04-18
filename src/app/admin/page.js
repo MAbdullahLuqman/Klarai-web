@@ -780,6 +780,9 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
 // ==========================================
 // COMPONENT: BLOG BUILDER (THE MASSIVE CMS)
 // ==========================================
+// ==========================================
+// COMPONENT: BLOG BUILDER (UPGRADED WITH REORDER & DELETE)
+// ==========================================
 function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewMode }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -790,6 +793,8 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
     const b = initialData || {};
     return {
       slug: b.slug || '',
+      serviceTag: b.serviceTag || 'general', // NEW: Service Tag
+      industryTag: b.industryTag || 'none',   // NEW: Industry Tag
       seoMeta: b.seoMeta || { title: '', metaDescription: '', canonicalUrl: '' },
       breadcrumbs: parseArray(b.breadcrumbs, { name: 'Home', url: '/' }),
       hero: b.hero || { title: '', description: '', authorName: 'Abdullah Luqman', authorProfileUrl: '/about', publishDate: new Date().toISOString().split('T')[0], readTime: '5 Min' },
@@ -804,11 +809,8 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
   });
 
   const handleChange = (e, objKey) => {
-    if(objKey) {
-       setFormData({...formData, [objKey]: {...formData[objKey], [e.target.name]: e.target.value}});
-    } else {
-       setFormData({...formData, [e.target.name]: e.target.value});
-    }
+    if(objKey) setFormData({...formData, [objKey]: {...formData[objKey], [e.target.name]: e.target.value}});
+    else setFormData({...formData, [e.target.name]: e.target.value});
   };
 
   const updateSimpleArray = (key, index, value) => {
@@ -817,6 +819,11 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
     setFormData({...formData, [key]: newArr});
   };
   const addSimpleArrayItem = (key) => setFormData({...formData, [key]: [...formData[key], '']});
+  const removeSimpleArrayItem = (key, index) => {
+    const newArr = [...formData[key]];
+    newArr.splice(index, 1);
+    setFormData({...formData, [key]: newArr});
+  };
 
   const updateComplexArray = (key, index, field, value) => {
     const newArr = [...formData[key]];
@@ -824,10 +831,32 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
     setFormData({...formData, [key]: newArr});
   };
   const addComplexArrayItem = (key, obj) => setFormData({...formData, [key]: [...formData[key], obj]});
+  const removeComplexArrayItem = (key, index) => {
+    const newArr = [...formData[key]];
+    newArr.splice(index, 1);
+    setFormData({...formData, [key]: newArr});
+  };
 
   const updateSectionArray = (secIndex, field, arrIndex, value) => {
     const newSecs = [...formData.sections];
     newSecs[secIndex][field][arrIndex] = value;
+    setFormData({...formData, sections: newSecs});
+  };
+  
+  const removeSectionArrayItem = (secIndex, field, arrIndex) => {
+    const newSecs = [...formData.sections];
+    newSecs[secIndex][field].splice(arrIndex, 1);
+    setFormData({...formData, sections: newSecs});
+  };
+
+  // NEW: Move Section Up or Down
+  const moveSection = (index, direction) => {
+    const newSecs = [...formData.sections];
+    if (direction === 'up' && index > 0) {
+      [newSecs[index - 1], newSecs[index]] = [newSecs[index], newSecs[index - 1]];
+    } else if (direction === 'down' && index < newSecs.length - 1) {
+      [newSecs[index + 1], newSecs[index]] = [newSecs[index], newSecs[index + 1]];
+    }
     setFormData({...formData, sections: newSecs});
   };
 
@@ -840,11 +869,8 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
 
   const updateSubheading = (secIndex, subIndex, field, value, contentIndex = -1) => {
     const newSecs = [...formData.sections];
-    if (field === 'content') {
-      newSecs[secIndex].subheadings[subIndex].content[contentIndex] = value;
-    } else {
-      newSecs[secIndex].subheadings[subIndex][field] = value;
-    }
+    if (field === 'content') newSecs[secIndex].subheadings[subIndex].content[contentIndex] = value;
+    else newSecs[secIndex].subheadings[subIndex][field] = value;
     setFormData({...formData, sections: newSecs});
   };
 
@@ -854,13 +880,19 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
      setFormData({...formData, sections: newSecs});
   };
 
+  const removeSubheadingContent = (secIndex, subIndex, contentIndex) => {
+    const newSecs = [...formData.sections];
+    newSecs[secIndex].subheadings[subIndex].content.splice(contentIndex, 1);
+    setFormData({...formData, sections: newSecs});
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       const targetSlug = isEditing ? pageId : formData.slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       await setDoc(doc(db, 'blog_posts', targetSlug), { ...formData, slug: targetSlug, updatedAt: serverTimestamp() });
-      alert('Success! Blog Post Published to Live Architecture.');
+      alert('Success! Blog Post Published.');
       refreshData();
       window.scrollTo(0, 0);
     } catch (err) { alert('Error: ' + err.message); }
@@ -868,15 +900,14 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
   };
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(`WARNING: Are you sure you want to permanently delete /blog/${pageId}?`);
-    if (!confirmDelete) return;
+    if (!window.confirm(`WARNING: Permanently delete /blog/${pageId}?`)) return;
     setIsDeleting(true);
     try {
       await deleteDoc(doc(db, 'blog_posts', pageId));
-      alert(`Blog page /blog/${pageId} deleted successfully.`);
+      alert(`Deleted successfully.`);
       await refreshData();
       setViewMode('core'); 
-    } catch (error) { alert('Error: Could not delete post.'); setIsDeleting(false); }
+    } catch (error) { alert('Error deleting.'); setIsDeleting(false); }
   };
 
   return (
@@ -887,8 +918,8 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
             {isEditing ? `Editing Blog: /${pageId}` : 'Strict Article Architecture'}
           </h2>
           {isEditing && (
-              <button type="button" onClick={handleDelete} disabled={isDeleting} className="px-4 py-2 border border-red-500/50 text-red-500 text-xs font-bold uppercase tracking-widest rounded hover:bg-red-500/10 transition-colors disabled:opacity-50">
-                {isDeleting ? 'Deleting...' : 'Delete'}
+              <button type="button" onClick={handleDelete} disabled={isDeleting} className="px-4 py-2 border border-red-500/50 text-red-500 text-xs font-bold uppercase tracking-widest rounded hover:bg-red-500/10">
+                {isDeleting ? 'Deleting...' : 'Delete Post'}
               </button>
           )}
         </div>
@@ -896,9 +927,35 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
         <form onSubmit={handleSubmit} className="space-y-8">
           
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
-            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">1. URL & Meta Architecture</h3>
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">1. URL & Categorization</h3>
             <input name="slug" placeholder="URL Slug (e.g., local-seo-guide)" required disabled={isEditing} value={formData.slug} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded disabled:opacity-50" />
-            <input name="title" placeholder="Meta Title" value={formData.seoMeta.title} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Core Service</label>
+                <select name="serviceTag" value={formData.serviceTag} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded">
+                  <option value="general">General Architecture</option>
+                  <option value="seo">Advanced SEO</option>
+                  <option value="aeo">AEO (Answer Engines)</option>
+                  <option value="web">Web Development</option>
+                  <option value="ads">Meta Ads</option>
+                  <option value="smma">Social Media</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Target Industry</label>
+                <select name="industryTag" value={formData.industryTag} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded">
+                  <option value="none">No Specific Industry (General)</option>
+                  <option value="dental">Dental & Healthcare</option>
+                  <option value="trades">Home Services & Trades</option>
+                  <option value="saas">SaaS & Tech</option>
+                  <option value="ecom">E-Commerce</option>
+                  <option value="b2b">B2B Enterprise</option>
+                </select>
+              </div>
+            </div>
+
+            <input name="title" placeholder="Meta Title" value={formData.seoMeta.title} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded mt-4" />
             <textarea name="metaDescription" placeholder="Meta Description" value={formData.seoMeta.metaDescription} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-20" />
           </div>
 
@@ -914,36 +971,30 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
 
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
             <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">3. AEO Snippet & TLDR</h3>
-            <div>
-              <RichTextArea 
-                label="AEO Quick Answer (40-60 words)" 
-                name="quickAnswer" 
-                value={formData.quickAnswer} 
-                onChange={handleChange} 
-                rows={4} 
-              />
-            </div>
+            <RichTextArea label="AEO Quick Answer (40-60 words)" name="quickAnswer" value={formData.quickAnswer} onChange={handleChange} rows={4} />
             <div className="pt-4 border-t border-white/10">
               <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2">TL;DR Bullets</label>
               {formData.tldr.map((pt, i) => (
-                <input key={i} value={pt} onChange={(e)=>updateSimpleArray('tldr', i, e.target.value)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded mb-2" placeholder={`Bullet ${i+1}`} />
+                <div key={i} className="flex gap-2 mb-2">
+                  <input value={pt} onChange={(e)=>updateSimpleArray('tldr', i, e.target.value)} className="flex-1 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" placeholder={`Bullet ${i+1}`} />
+                  <button type="button" onClick={()=>removeSimpleArrayItem('tldr', i)} className="bg-red-500/10 text-red-500 px-3 rounded hover:bg-red-500/20">✕</button>
+                </div>
               ))}
-              <button type="button" onClick={()=>addSimpleArrayItem('tldr')} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">+ Add Bullet</button>
+              <button type="button" onClick={()=>addSimpleArrayItem('tldr')} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold mt-2">+ Add Bullet</button>
             </div>
           </div>
 
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
             <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">4. Introduction</h3>
             {formData.intro.map((para, i) => (
-              <RichTextArea 
-                key={i} 
-                value={para} 
-                onChange={(e)=>updateSimpleArray('intro', i, e.target.value)} 
-                rows={3} 
-                placeholder={`Paragraph ${i+1}`} 
-              />
+              <div key={i} className="flex gap-2 items-start">
+                <div className="flex-1">
+                  <RichTextArea value={para} onChange={(e)=>updateSimpleArray('intro', i, e.target.value)} rows={3} placeholder={`Intro Paragraph ${i+1}`} />
+                </div>
+                <button type="button" onClick={()=>removeSimpleArrayItem('intro', i)} className="bg-red-500/10 text-red-500 h-[42px] px-3 mt-7 rounded hover:bg-red-500/20">✕</button>
+              </div>
             ))}
-            <button type="button" onClick={()=>addSimpleArrayItem('intro')} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">+ Add Paragraph</button>
+            <button type="button" onClick={()=>addSimpleArrayItem('intro')} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">+ Add Intro Paragraph</button>
           </div>
 
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-8">
@@ -953,10 +1004,18 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
             </div>
             
             {formData.sections.map((sec, i) => (
-              <div key={i} className="p-5 bg-[#111] border border-white/10 rounded-xl shadow-lg space-y-4">
-                <div className="flex gap-2">
-                  <input placeholder="ID (e.g. what-is-seo)" value={sec.id} onChange={(e)=>updateComplexArray('sections', i, 'id', e.target.value)} className="w-1/4 bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-gray-400" />
-                  <input placeholder="H2 Heading" value={sec.heading} onChange={(e)=>updateComplexArray('sections', i, 'heading', e.target.value)} className="w-3/4 bg-transparent border-b border-blue-500/50 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
+              <div key={i} className="p-5 bg-[#111] border border-white/10 rounded-xl shadow-lg space-y-4 relative">
+                
+                {/* Reorder and Delete Controls for Section */}
+                <div className="absolute top-4 right-4 flex gap-2">
+                   <button type="button" onClick={() => moveSection(i, 'up')} disabled={i === 0} className="text-gray-400 hover:text-white disabled:opacity-30">↑</button>
+                   <button type="button" onClick={() => moveSection(i, 'down')} disabled={i === formData.sections.length - 1} className="text-gray-400 hover:text-white disabled:opacity-30">↓</button>
+                   <button type="button" onClick={() => removeComplexArrayItem('sections', i)} className="text-red-500 ml-4 hover:text-red-400 font-bold text-xs uppercase">Delete Section</button>
+                </div>
+
+                <div className="flex gap-2 w-3/4">
+                  <input placeholder="ID (what-is-seo)" value={sec.id} onChange={(e)=>updateComplexArray('sections', i, 'id', e.target.value)} className="w-1/3 bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-gray-400" />
+                  <input placeholder="H2 Heading" value={sec.heading} onChange={(e)=>updateComplexArray('sections', i, 'heading', e.target.value)} className="w-2/3 bg-transparent border-b border-blue-500/50 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
                 </div>
                 
                 <select value={sec.contentType} onChange={(e)=>updateComplexArray('sections', i, 'contentType', e.target.value)} className="bg-black border border-white/10 focus:border-blue-500 outline-none text-white text-xs p-2 rounded">
@@ -965,27 +1024,33 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
                   <option value="definition">Definition Block</option>
                 </select>
 
+                {/* Paragraphs */}
                 <div className="space-y-4 border-l-2 border-white/10 pl-4">
                   <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Paragraphs</label>
                   {sec.content.map((para, pIdx) => (
-                    <RichTextArea 
-                      key={pIdx} 
-                      value={para} 
-                      onChange={(e)=>updateSectionArray(i, 'content', pIdx, e.target.value)} 
-                      rows={3} 
-                    />
+                    <div key={pIdx} className="flex gap-2 items-start">
+                      <div className="flex-1">
+                        <RichTextArea value={para} onChange={(e)=>updateSectionArray(i, 'content', pIdx, e.target.value)} rows={3} />
+                      </div>
+                      <button type="button" onClick={() => removeSectionArrayItem(i, 'content', pIdx)} className="bg-red-500/10 text-red-500 h-[42px] px-3 mt-7 rounded hover:bg-red-500/20">✕</button>
+                    </div>
                   ))}
-                  <button type="button" onClick={()=> { const n=[...formData.sections]; n[i].content.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">+ Para</button>
+                  <button type="button" onClick={()=> { const n=[...formData.sections]; n[i].content.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">+ Add Paragraph</button>
                 </div>
 
+                {/* List Items */}
                 <div className="space-y-2 border-l-2 border-white/10 pl-4 mt-4">
                   <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">List Items</label>
                   {sec.list.map((li, lIdx) => (
-                    <input key={lIdx} value={li} onChange={(e)=>updateSectionArray(i, 'list', lIdx, e.target.value)} className="w-full bg-black/50 border border-white/5 p-3 text-sm focus:border-blue-500 outline-none text-gray-300 rounded" />
+                    <div key={lIdx} className="flex gap-2">
+                       <input value={li} onChange={(e)=>updateSectionArray(i, 'list', lIdx, e.target.value)} className="flex-1 bg-black/50 border border-white/5 p-3 text-sm focus:border-blue-500 outline-none text-gray-300 rounded" />
+                       <button type="button" onClick={() => removeSectionArrayItem(i, 'list', lIdx)} className="bg-red-500/10 text-red-500 px-3 rounded hover:bg-red-500/20">✕</button>
+                    </div>
                   ))}
-                  <button type="button" onClick={()=> { const n=[...formData.sections]; n[i].list.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">+ List Item</button>
+                  <button type="button" onClick={()=> { const n=[...formData.sections]; n[i].list.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest mt-2">+ Add List Item</button>
                 </div>
 
+                {/* H3 Subheadings */}
                 <div className="space-y-6 border-l-2 border-purple-500/30 pl-4 mt-8">
                   <div className="flex justify-between items-center">
                      <label className="text-[10px] uppercase tracking-widest text-purple-400 font-bold">H3 Subheadings</label>
@@ -993,17 +1058,19 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
                   </div>
                   
                   {sec.subheadings && sec.subheadings.map((sub, sIdx) => (
-                    <div key={sIdx} className="bg-black/50 p-4 border border-white/5 rounded space-y-4">
-                      <input placeholder="H3 Title" value={sub.title} onChange={(e) => updateSubheading(i, sIdx, 'title', e.target.value)} className="w-full bg-transparent border-b border-purple-500/50 p-2 text-sm focus:border-purple-500 outline-none text-white font-bold" />
+                    <div key={sIdx} className="bg-black/50 p-4 border border-white/5 rounded space-y-4 relative">
+                      <button type="button" onClick={() => removeSectionArrayItem(i, 'subheadings', sIdx)} className="absolute top-4 right-4 text-red-500 hover:text-red-400 text-xs font-bold uppercase">✕ Remove H3</button>
+                      <input placeholder="H3 Title" value={sub.title} onChange={(e) => updateSubheading(i, sIdx, 'title', e.target.value)} className="w-3/4 bg-transparent border-b border-purple-500/50 p-2 text-sm focus:border-purple-500 outline-none text-white font-bold" />
+                      
                       {sub.content.map((subPara, spIdx) => (
-                         <RichTextArea 
-                           key={spIdx} 
-                           value={subPara} 
-                           onChange={(e) => updateSubheading(i, sIdx, 'content', e.target.value, spIdx)} 
-                           rows={3} 
-                         />
+                         <div key={spIdx} className="flex gap-2 items-start">
+                           <div className="flex-1">
+                             <RichTextArea value={subPara} onChange={(e) => updateSubheading(i, sIdx, 'content', e.target.value, spIdx)} rows={3} />
+                           </div>
+                           <button type="button" onClick={() => removeSubheadingContent(i, sIdx, spIdx)} className="bg-red-500/10 text-red-500 h-[42px] px-3 mt-7 rounded hover:bg-red-500/20">✕</button>
+                         </div>
                       ))}
-                      <button type="button" onClick={() => addSubheadingContent(i, sIdx)} className="text-[10px] text-purple-500 font-bold uppercase tracking-widest">+ H3 Para</button>
+                      <button type="button" onClick={() => addSubheadingContent(i, sIdx)} className="text-[10px] text-purple-500 font-bold uppercase tracking-widest">+ Add H3 Paragraph</button>
                     </div>
                   ))}
                 </div>
@@ -1023,15 +1090,12 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
           </div>
 
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
-            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">7. FAQ Section (Generates JSON-LD)</h3>
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">7. FAQ Section</h3>
             {formData.faqs.map((faq, i) => (
-              <div key={i} className="flex flex-col gap-2 p-4 border border-white/5 bg-[#111] rounded">
-                <input placeholder="Question" value={faq.question} onChange={(e)=>updateComplexArray('faqs', i, 'question', e.target.value)} className="w-full bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
-                <RichTextArea 
-                  value={faq.answer} 
-                  onChange={(e)=>updateComplexArray('faqs', i, 'answer', e.target.value)} 
-                  rows={3} 
-                />
+              <div key={i} className="flex flex-col gap-2 p-4 border border-white/5 bg-[#111] rounded relative">
+                <button type="button" onClick={() => removeComplexArrayItem('faqs', i)} className="absolute top-4 right-4 text-red-500 hover:text-red-400 text-xs font-bold uppercase">✕</button>
+                <input placeholder="Question" value={faq.question} onChange={(e)=>updateComplexArray('faqs', i, 'question', e.target.value)} className="w-3/4 bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
+                <RichTextArea value={faq.answer} onChange={(e)=>updateComplexArray('faqs', i, 'answer', e.target.value)} rows={3} />
               </div>
             ))}
             <button type="button" onClick={()=>addComplexArrayItem('faqs', {question: '', answer: ''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add FAQ</button>

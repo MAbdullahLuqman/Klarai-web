@@ -5,7 +5,6 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import GlobalHeader from '@/components/GlobalHeader';
 
-// 1. METADATA GENERATOR
 export async function generateMetadata({ params }) {
   const resolvedParams = await params;
   const { slug } = resolvedParams;
@@ -27,9 +26,17 @@ export default async function BlogPostPage({ params }) {
   if (!docSnap.exists()) notFound(); 
   const post = docSnap.data();
 
-  // --- 2. DYNAMIC SCHEMA GENERATION ---
-  
-  // A. Article Schema
+  // Create tags array for display
+  const tags = [];
+  if (post.serviceTag && post.serviceTag !== 'general') {
+     const formattedService = post.serviceTag.toUpperCase();
+     tags.push(formattedService);
+  }
+  if (post.industryTag && post.industryTag !== 'none') {
+     const formattedIndustry = post.industryTag.charAt(0).toUpperCase() + post.industryTag.slice(1);
+     tags.push(formattedIndustry);
+  }
+
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -40,19 +47,6 @@ export default async function BlogPostPage({ params }) {
     "dateModified": post.hero?.updatedDate || post.hero?.publishDate,
   };
 
-  // B. Breadcrumb Schema
-  const breadcrumbSchema = post.breadcrumbs?.length > 0 ? {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": post.breadcrumbs.map((bc, i) => ({
-      "@type": "ListItem",
-      "position": i + 1,
-      "name": bc.name,
-      "item": `https://klarai.com${bc.url}`
-    }))
-  } : null;
-
-  // C. FAQ Schema
   const faqSchema = post.faqs?.length > 0 ? {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -63,201 +57,161 @@ export default async function BlogPostPage({ params }) {
     }))
   } : null;
 
-  // D. Conditional Schema (HowTo / DefinedTerm)
-  let conditionalSchemas = [];
-  post.sections?.forEach(sec => {
-    if (sec.contentType === 'howto') {
-      conditionalSchemas.push({
-        "@context": "https://schema.org",
-        "@type": "HowTo",
-        "name": sec.heading,
-        "step": sec.list?.map((step, i) => ({
-          "@type": "HowToStep",
-          "url": `#${sec.id}`,
-          "name": `Step ${i + 1}`,
-          "itemListElement": [{ "@type": "HowToDirection", "text": step }]
-        })) || []
-      });
-    }
-  });
-
   return (
-    <div className="bg-[#fafafa] text-gray-900 font-sans selection:bg-blue-200 selection:text-[#0A101D] min-h-screen relative">
+    <div className="bg-[#fafafa] text-gray-900 font-sans selection:bg-[#ccff00] selection:text-[#0A101D] min-h-screen relative">
       <GlobalHeader />
       
-      {/* INJECT ALL SCHEMAS */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
-      {breadcrumbSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />}
       {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
-      {conditionalSchemas.map((schema, i) => (
-        <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
-      ))}
 
-      {/* PROGRESS BAR (CSS Only Sticky implementation) */}
+      {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-1.5 bg-gray-200 z-50">
         <div className="h-full bg-[#008dd8]" style={{ width: 'var(--scroll-width, 0%)' }} id="progress-bar"></div>
       </div>
       <script dangerouslySetInnerHTML={{__html: `window.addEventListener('scroll', () => { document.getElementById('progress-bar').style.setProperty('--scroll-width', (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100 + '%'); });`}} />
 
-      {/* MAIN LAYOUT GRID */}
-      <main className="pt-[140px] pb-24 max-w-7xl mx-auto px-6 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start relative">
+      <main className="pt-[140px] pb-24 max-w-[1000px] mx-auto px-6 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start relative">
         
-        {/* LEFT COLUMN: THE CONTENT (Locked to 800px max for readability) */}
-        <article className="flex-1 w-full max-w-[800px] space-y-12 md:space-y-16 mx-auto lg:mx-0">
+        <article className="flex-1 w-full space-y-12 md:space-y-16">
           
-          {/* 1. Breadcrumbs */}
-          {post.breadcrumbs && (
-            <nav className="flex gap-2 text-xs font-bold uppercase tracking-widest text-gray-400 overflow-x-auto pb-2">
-              {post.breadcrumbs.map((bc, i) => (
-                <span key={i} className="flex items-center gap-2 whitespace-nowrap">
-                  <Link href={bc.url} className="hover:text-[#008dd8] transition-colors">{bc.name}</Link>
-                  {i < post.breadcrumbs.length - 1 && <span>/</span>}
-                </span>
-              ))}
-            </nav>
-          )}
-
-          {/* 2. Hero Section */}
           <header className="space-y-6 border-b border-gray-200 pb-10">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-[#0A101D] leading-[1.1]">{post.hero?.title}</h1>
-            <p className="text-lg md:text-xl text-gray-600 font-medium leading-relaxed">{post.hero?.description}</p>
+            {tags.length > 0 && (
+              <div className="flex gap-2 mb-4">
+                {tags.map((tag, i) => (
+                  <span key={i} className="bg-gray-100 border border-gray-200 text-gray-500 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <h1 className="text-4xl md:text-5xl lg:text-[4rem] font-black tracking-tighter text-[#0A101D] leading-[1.05]">{post.hero?.title}</h1>
+            <p className="text-lg md:text-xl text-gray-600 font-medium leading-relaxed max-w-3xl">{post.hero?.description}</p>
+            
             <div className="flex flex-wrap gap-4 items-center text-xs font-mono uppercase tracking-widest text-gray-500 font-bold pt-4">
               <span className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-gray-800 rounded-full flex items-center justify-center text-white">{post.authorInfo?.name?.charAt(0)}</div>
-                <Link href={post.authorInfo?.profileUrl || '#'} className="hover:text-[#008dd8]">{post.authorInfo?.name}</Link>
+                <div className="w-8 h-8 bg-[#0A101D] rounded-full flex items-center justify-center text-white shadow-sm">{post.authorInfo?.name?.charAt(0)}</div>
+                <Link href={post.authorInfo?.profileUrl || '#'} className="hover:text-[#008dd8] text-[#0A101D]">{post.authorInfo?.name}</Link>
               </span>
               <span>•</span>
               <span>{post.hero?.publishDate}</span>
               <span>•</span>
-              <span>{post.hero?.readTime} Read</span>
+              <span className="text-[#008dd8]">{post.hero?.readTime}</span>
             </div>
           </header>
 
-          {/* 3. TLDR Block */}
-          {post.tldr && post.tldr.length > 0 && (
-            <section className="bg-gray-50 border-2 border-gray-200 p-6 md:p-8 rounded-2xl">
-              <h2 className="text-sm font-black uppercase tracking-widest text-[#008dd8] mb-4">TL;DR Summary</h2>
+          {post.tldr && post.tldr.length > 0 && post.tldr[0] !== "" && (
+            <section className="bg-white border border-gray-200 p-8 rounded-3xl shadow-sm">
+              <h2 className="text-xs font-black uppercase tracking-widest text-[#008dd8] mb-5">TL;DR Summary</h2>
               <ul className="space-y-3">
                 {post.tldr.map((point, i) => (
                   <li key={i} className="flex items-start gap-3 text-gray-800 font-medium">
-                    <span className="text-[#0A101D] font-black mt-0.5">→</span> {point}
+                    <span className="text-[#0A101D] font-black mt-0.5">→</span> 
+                    {/* CRITICAL HTML RENDER */}
+                    <span dangerouslySetInnerHTML={{ __html: point }} />
                   </li>
                 ))}
               </ul>
             </section>
           )}
 
-          {/* 4. Quick Answer (AEO Snippet) */}
           {post.quickAnswer && (
-            <section className="bg-[#0A101D] text-white p-6 md:p-8 rounded-2xl shadow-xl border-l-4 border-[#008dd8]">
-              {/* <h2 className="text-xs font-mono uppercase tracking-widest text-gray-400 mb-3"></h2> */}
-              <p className="text-lg font-bold leading-relaxed">{post.quickAnswer}</p>
+            <section className="bg-[#0A101D] text-white p-8 md:p-10 rounded-[2rem] shadow-xl border-l-[6px] border-[#ccff00] relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-[#008dd8]/20 blur-[50px] rounded-full pointer-events-none"></div>
+              <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-400 mb-4 relative z-10">AEO Snippet Target</h2>
+              {/* CRITICAL HTML RENDER */}
+              <div className="text-xl font-medium leading-relaxed relative z-10" dangerouslySetInnerHTML={{ __html: post.quickAnswer }} />
             </section>
           )}
 
-          {/* 5. Intro */}
-          {post.intro && post.intro.length > 0 && (
-            <section className="space-y-5 text-gray-700 text-[17px] leading-relaxed font-medium">
-              {post.intro.map((para, i) => <p key={i}>{para}</p>)}
+          {post.intro && post.intro.length > 0 && post.intro[0] !== "" && (
+            <section className="space-y-6 text-gray-700 text-lg leading-relaxed font-medium">
+              {/* CRITICAL HTML RENDER */}
+              {post.intro.map((para, i) => <div key={i} dangerouslySetInnerHTML={{ __html: para }} />)}
             </section>
           )}
 
-          {/* 6. Dynamic Content Sections */}
           {post.sections && post.sections.map((sec, i) => (
-            <section key={i} id={sec.id} className="space-y-6 pt-6 scroll-mt-32">
-              <h2 className="text-3xl font-black tracking-tight text-[#0A101D]">{sec.heading}</h2>
+            <section key={i} id={sec.id} className="space-y-6 pt-8 scroll-mt-32">
+              <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-[#0A101D]">{sec.heading}</h2>
               
-              {/* Content Type specific rendering */}
-              {sec.contentType === 'definition' && (
-                <div className="bg-blue-50 p-5 rounded-xl border border-blue-100 text-blue-900 font-bold mb-6">
-                  {sec.content[0]}
-                </div>
+              {sec.contentType === 'definition' && sec.content[0] && (
+                <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 text-blue-900 font-bold mb-6 text-lg" dangerouslySetInnerHTML={{ __html: sec.content[0] }} />
               )}
 
-              {sec.content?.map((para, idx) => (
-                <p key={idx} className="text-gray-700 text-[17px] leading-relaxed font-medium">{para}</p>
-              ))}
+              {/* CRITICAL HTML RENDER */}
+              {sec.content?.map((para, idx) => {
+                if (sec.contentType === 'definition' && idx === 0) return null;
+                if (!para) return null;
+                return <div key={idx} className="text-gray-700 text-lg leading-relaxed font-medium" dangerouslySetInnerHTML={{ __html: para }} />;
+              })}
 
-              {sec.list && sec.list.length > 0 && (
-                <ul className={`space-y-3 pl-2 ${sec.contentType === 'howto' ? 'list-decimal ml-5 font-bold text-gray-900' : ''}`}>
+              {sec.list && sec.list.length > 0 && sec.list[0] !== "" && (
+                <ul className={`space-y-4 pl-2 pt-4 ${sec.contentType === 'howto' ? 'list-decimal ml-6 font-bold text-[#0A101D] text-lg' : ''}`}>
                   {sec.list.map((item, idx) => (
-                    <li key={idx} className={`text-[17px] leading-relaxed ${sec.contentType === 'howto' ? 'mb-4' : 'flex items-start gap-3'}`}>
-                      {sec.contentType !== 'howto' && <span className="text-[#008dd8] font-black mt-0.5">✓</span>}
-                      <span className={sec.contentType !== 'howto' ? "text-gray-700 font-medium" : "block mt-1 font-medium text-gray-600"}>{item}</span>
+                    <li key={idx} className={`leading-relaxed ${sec.contentType === 'howto' ? 'pl-2' : 'flex items-start gap-3'}`}>
+                      {sec.contentType !== 'howto' && <span className="text-[#008dd8] font-black mt-1">✓</span>}
+                      {/* CRITICAL HTML RENDER */}
+                      <span className={sec.contentType !== 'howto' ? "text-gray-700 font-medium text-lg" : "block mt-1 font-medium text-gray-600 text-lg"} dangerouslySetInnerHTML={{ __html: item }} />
                     </li>
                   ))}
                 </ul>
               )}
 
-              {/* Subheadings H3 */}
               {sec.subheadings?.map((sub, idx) => (
-                <div key={idx} className="pt-6 space-y-4">
-                  <h3 className="text-xl font-black text-[#0A101D]">{sub.title}</h3>
-                  {sub.content?.map((para, pIdx) => <p key={pIdx} className="text-gray-700 text-[17px] leading-relaxed font-medium">{para}</p>)}
+                <div key={idx} className="pt-8 space-y-5">
+                  <h3 className="text-2xl font-black tracking-tight text-[#0A101D]">{sub.title}</h3>
+                  {/* CRITICAL HTML RENDER */}
+                  {sub.content?.map((para, pIdx) => para && <div key={pIdx} className="text-gray-700 text-lg leading-relaxed font-medium" dangerouslySetInnerHTML={{ __html: para }} />)}
                 </div>
               ))}
             </section>
           ))}
 
-          {/* 7. The Tool Block (Klarai Big Advantage) */}
           {post.toolBlock && post.toolBlock.title && (
-            <section className="bg-gradient-to-r from-[#0A101D] to-[#1a2b4c] text-white p-8 md:p-10 rounded-3xl shadow-2xl text-center">
-              <h2 className="text-2xl font-black mb-3">{post.toolBlock.title}</h2>
-              <p className="text-gray-300 font-medium mb-8 max-w-md mx-auto">{post.toolBlock.description}</p>
-              <Link href={post.toolBlock.ctaLink} className="inline-block bg-white text-[#0A101D] px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95 shadow-xl">
+            <section className="bg-gray-50 border-2 border-gray-100 p-10 rounded-[2.5rem] text-center mt-12">
+              <h2 className="text-2xl font-black tracking-tighter text-[#0A101D] mb-3">{post.toolBlock.title}</h2>
+              <p className="text-gray-500 font-medium mb-8 max-w-md mx-auto">{post.toolBlock.description}</p>
+              <Link href={post.toolBlock.ctaLink} className="inline-block bg-[#0A101D] text-white px-10 py-4 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-[#008dd8] transition-all active:scale-95 shadow-md">
                 {post.toolBlock.ctaText}
               </Link>
             </section>
           )}
 
-          {/* 8. FAQs */}
-          {post.faqs && post.faqs.length > 0 && (
-            <section className="pt-10 border-t border-gray-200 space-y-6">
-              <h2 className="text-3xl font-black tracking-tight text-[#0A101D]">Frequently Asked Questions</h2>
+          {post.faqs && post.faqs.length > 0 && post.faqs[0].question && (
+            <section className="pt-16 border-t border-gray-200 space-y-6">
+              <h2 className="text-3xl font-black tracking-tighter text-[#0A101D]">Frequently Asked Questions</h2>
               <div className="space-y-4">
                 {post.faqs.map((faq, i) => (
-                  <details key={i} className="group border-2 border-gray-100 bg-white rounded-2xl [&_summary::-webkit-details-marker]:hidden cursor-pointer">
-                    <summary className="flex items-center justify-between p-6 font-black text-lg text-gray-900">
+                  <details key={i} className="group border border-gray-200 bg-white rounded-2xl [&_summary::-webkit-details-marker]:hidden cursor-pointer shadow-sm hover:border-[#008dd8]/30 transition-colors">
+                    <summary className="flex items-center justify-between p-6 font-bold text-lg text-gray-900">
                       {faq.question}
                       <span className="transition group-open:rotate-180 text-[#008dd8]">
-                        <svg fill="none" height="24" shapeRendering="geometricPrecision" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                        <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
                       </span>
                     </summary>
-                    <p className="px-6 pb-6 text-gray-600 font-medium leading-relaxed mt-[-10px]">{faq.answer}</p>
+                    {/* CRITICAL HTML RENDER */}
+                    <div className="px-6 pb-6 text-gray-600 font-medium leading-relaxed mt-[-10px]" dangerouslySetInnerHTML={{ __html: faq.answer }} />
                   </details>
                 ))}
               </div>
             </section>
           )}
 
-          {/* 9. Author Section (E-E-A-T) */}
-          {post.authorInfo && post.authorInfo.name && (
-            <section className="mt-16 pt-10 border-t border-gray-200 flex flex-col sm:flex-row gap-6 items-center sm:items-start text-center sm:text-left bg-gray-50 p-8 rounded-3xl">
-              <div className="w-24 h-24 bg-[#0A101D] text-white rounded-full flex items-center justify-center font-black text-3xl shrink-0 shadow-lg">
-                {post.authorInfo.name.charAt(0)}
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-gray-900 mb-1">{post.authorInfo.name}</h3>
-                <p className="text-xs font-bold uppercase tracking-widest text-[#008dd8] mb-4">{post.authorInfo.role}</p>
-                <p className="text-gray-600 font-medium leading-relaxed mb-4 text-sm">{post.authorInfo.bio}</p>
-                <Link href={post.authorInfo.profileUrl} className="text-xs font-bold uppercase tracking-widest border-b-2 border-gray-300 hover:border-[#0A101D] transition-colors pb-1">View Full Profile</Link>
-              </div>
-            </section>
-          )}
         </article>
 
-        {/* RIGHT COLUMN: STICKY TABLE OF CONTENTS (Desktop Only) */}
-        <aside className="hidden lg:block w-[300px] shrink-0 sticky top-32 h-fit max-h-[80vh] overflow-y-auto no-scrollbar">
-          <div className="bg-white border-2 border-gray-100 rounded-2xl p-6 shadow-sm">
-            <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-5 border-b border-gray-100 pb-3">Table of Contents</h3>
-            <ul className="space-y-3 text-sm font-bold">
-              {post.sections?.map((sec, i) => (
+        {/* Table of Contents Sticky Sidebar */}
+        <aside className="hidden lg:block w-[300px] shrink-0 sticky top-32 h-fit max-h-[80vh] overflow-y-auto no-scrollbar pt-6">
+          <div className="border-l-2 border-gray-100 pl-6">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6">Architecture Index</h3>
+            <ul className="space-y-4 text-sm font-bold">
+              {post.sections?.map((sec, i) => sec.heading && (
                 <li key={i}>
-                  <a href={`#${sec.id}`} className="text-gray-600 hover:text-[#008dd8] transition-colors block">{sec.heading}</a>
+                  <a href={`#${sec.id}`} className="text-gray-500 hover:text-[#008dd8] transition-colors block">{sec.heading}</a>
                   {sec.subheadings?.length > 0 && (
-                    <ul className="pl-4 mt-2 space-y-2 border-l-2 border-gray-100 ml-2">
-                      {sec.subheadings.map((sub, idx) => (
-                        <li key={idx}><a href={`#${sec.id}`} className="text-gray-400 hover:text-[#0A101D] font-medium text-[13px]">{sub.title}</a></li>
+                    <ul className="pl-4 mt-3 space-y-3 border-l-2 border-gray-100 ml-2">
+                      {sec.subheadings.map((sub, idx) => sub.title && (
+                        <li key={idx}><a href={`#${sec.id}`} className="text-gray-400 hover:text-[#0A101D] font-medium text-[12px]">{sub.title}</a></li>
                       ))}
                     </ul>
                   )}
@@ -265,20 +219,14 @@ export default async function BlogPostPage({ params }) {
               ))}
             </ul>
             
-            <div className="mt-8 pt-6 border-t border-gray-100">
-               <Link href="/free-audit" className="block w-full text-center bg-[#0A101D] text-white py-3 rounded-lg font-black uppercase tracking-widest text-[10px] hover:bg-[#008dd8] transition-colors">
-                 Get Free System Audit
+            <div className="mt-10 pt-8 border-t border-gray-100">
+               <Link href="/free-audit" className="flex items-center justify-center gap-2 w-full bg-[#ccff00] text-[#0A101D] py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-[#b3e600] transition-all shadow-md">
+                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                 Initiate Sequence
                </Link>
             </div>
           </div>
         </aside>
-
-        {/* MOBILE STICKY CTA */}
-        <div className="lg:hidden fixed bottom-6 left-6 right-6 z-40">
-          <Link href="/free-audit" className="block w-full text-center bg-[#008dd8] text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs shadow-2xl">
-            Get Free System Audit
-          </Link>
-        </div>
 
       </main>
     </div>
