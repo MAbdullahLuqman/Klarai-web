@@ -18,7 +18,7 @@ export async function generateMetadata({ params }) {
   };
 }
 
-
+// 
 // ==========================================
 // RENDERER: PURE DARK MODE SAAS COMPARISON CARDS
 // ==========================================
