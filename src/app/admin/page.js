@@ -783,6 +783,15 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
 // ==========================================
 // COMPONENT: BLOG BUILDER (UPGRADED WITH REORDER & DELETE)
 // ==========================================
+// ==========================================
+// COMPONENT: BLOG BUILDER (FULL VERSION WITH COMPARISONS)
+// ==========================================
+// ==========================================
+// COMPONENT: BLOG BUILDER (UPGRADED: CARDS & H3 LISTS)
+// ==========================================
+// ==========================================
+// COMPONENT: BLOG BUILDER (CRASH-PROOF & FULLY UPGRADED)
+// ==========================================
 function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewMode }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -793,15 +802,17 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
     const b = initialData || {};
     return {
       slug: b.slug || '',
-      serviceTag: b.serviceTag || 'general', // NEW: Service Tag
-      industryTag: b.industryTag || 'none',   // NEW: Industry Tag
+      serviceTag: b.serviceTag || 'general', 
+      industryTag: b.industryTag || 'none',   
       seoMeta: b.seoMeta || { title: '', metaDescription: '', canonicalUrl: '' },
       breadcrumbs: parseArray(b.breadcrumbs, { name: 'Home', url: '/' }),
       hero: b.hero || { title: '', description: '', authorName: 'Abdullah Luqman', authorProfileUrl: '/about', publishDate: new Date().toISOString().split('T')[0], readTime: '5 Min' },
       tldr: parseArray(b.tldr, ''),
       quickAnswer: b.quickAnswer || '',
       intro: parseArray(b.intro, ''),
-      sections: parseArray(b.sections, { id: 'section-1', heading: '', contentType: 'default', content: [''], list: [], subheadings: [] }),
+      sections: parseArray(b.sections, { 
+        id: 'section-1', heading: '', contentType: 'default', content: [''], list: [], subheadings: [], comparison: null 
+      }),
       toolBlock: b.toolBlock || { title: 'Free System Audit', description: 'Find out exactly where your digital architecture is failing.', ctaText: 'Start Audit', ctaLink: '/free-audit' },
       faqs: parseArray(b.faqs, { question: '', answer: '' }),
       authorInfo: b.authorInfo || { name: 'Abdullah Luqman', role: 'Lead Architect', bio: 'Architecting digital systems for absolute scale.', profileUrl: '/about' }
@@ -814,44 +825,46 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
   };
 
   const updateSimpleArray = (key, index, value) => {
-    const newArr = [...formData[key]];
+    const newArr = [...(formData[key] || [])];
     newArr[index] = value;
     setFormData({...formData, [key]: newArr});
   };
-  const addSimpleArrayItem = (key) => setFormData({...formData, [key]: [...formData[key], '']});
+  const addSimpleArrayItem = (key) => setFormData({...formData, [key]: [...(formData[key] || []), '']});
   const removeSimpleArrayItem = (key, index) => {
-    const newArr = [...formData[key]];
+    const newArr = [...(formData[key] || [])];
     newArr.splice(index, 1);
     setFormData({...formData, [key]: newArr});
   };
 
   const updateComplexArray = (key, index, field, value) => {
-    const newArr = [...formData[key]];
+    const newArr = [...(formData[key] || [])];
     newArr[index] = { ...newArr[index], [field]: value };
     setFormData({...formData, [key]: newArr});
   };
-  const addComplexArrayItem = (key, obj) => setFormData({...formData, [key]: [...formData[key], obj]});
+  const addComplexArrayItem = (key, obj) => setFormData({...formData, [key]: [...(formData[key] || []), obj]});
   const removeComplexArrayItem = (key, index) => {
-    const newArr = [...formData[key]];
+    const newArr = [...(formData[key] || [])];
     newArr.splice(index, 1);
     setFormData({...formData, [key]: newArr});
   };
 
   const updateSectionArray = (secIndex, field, arrIndex, value) => {
-    const newSecs = [...formData.sections];
+    const newSecs = [...(formData.sections || [])];
+    if (!newSecs[secIndex][field]) newSecs[secIndex][field] = [];
     newSecs[secIndex][field][arrIndex] = value;
     setFormData({...formData, sections: newSecs});
   };
   
   const removeSectionArrayItem = (secIndex, field, arrIndex) => {
-    const newSecs = [...formData.sections];
-    newSecs[secIndex][field].splice(arrIndex, 1);
-    setFormData({...formData, sections: newSecs});
+    const newSecs = [...(formData.sections || [])];
+    if (newSecs[secIndex][field]) {
+      newSecs[secIndex][field].splice(arrIndex, 1);
+      setFormData({...formData, sections: newSecs});
+    }
   };
 
-  // NEW: Move Section Up or Down
   const moveSection = (index, direction) => {
-    const newSecs = [...formData.sections];
+    const newSecs = [...(formData.sections || [])];
     if (direction === 'up' && index > 0) {
       [newSecs[index - 1], newSecs[index]] = [newSecs[index], newSecs[index - 1]];
     } else if (direction === 'down' && index < newSecs.length - 1) {
@@ -861,30 +874,163 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
   };
 
   const addSubheading = (secIndex) => {
-    const newSecs = [...formData.sections];
+    const newSecs = [...(formData.sections || [])];
     if(!newSecs[secIndex].subheadings) newSecs[secIndex].subheadings = [];
-    newSecs[secIndex].subheadings.push({ title: '', content: [''] });
+    newSecs[secIndex].subheadings.push({ title: '', content: [''], list: [], comparison: null });
     setFormData({...formData, sections: newSecs});
   };
 
   const updateSubheading = (secIndex, subIndex, field, value, contentIndex = -1) => {
-    const newSecs = [...formData.sections];
-    if (field === 'content') newSecs[secIndex].subheadings[subIndex].content[contentIndex] = value;
-    else newSecs[secIndex].subheadings[subIndex][field] = value;
+    const newSecs = [...(formData.sections || [])];
+    if (!newSecs[secIndex].subheadings[subIndex]) return;
+    
+    if (field === 'content') {
+      if (!newSecs[secIndex].subheadings[subIndex].content) newSecs[secIndex].subheadings[subIndex].content = [];
+      newSecs[secIndex].subheadings[subIndex].content[contentIndex] = value;
+    }
+    else if (field === 'list') {
+      if (!newSecs[secIndex].subheadings[subIndex].list) newSecs[secIndex].subheadings[subIndex].list = [];
+      newSecs[secIndex].subheadings[subIndex].list[contentIndex] = value;
+    }
+    else {
+      newSecs[secIndex].subheadings[subIndex][field] = value;
+    }
     setFormData({...formData, sections: newSecs});
   };
 
   const addSubheadingContent = (secIndex, subIndex) => {
-     const newSecs = [...formData.sections];
+     const newSecs = [...(formData.sections || [])];
+     if (!newSecs[secIndex].subheadings[subIndex].content) newSecs[secIndex].subheadings[subIndex].content = [];
      newSecs[secIndex].subheadings[subIndex].content.push('');
      setFormData({...formData, sections: newSecs});
   };
 
   const removeSubheadingContent = (secIndex, subIndex, contentIndex) => {
-    const newSecs = [...formData.sections];
-    newSecs[secIndex].subheadings[subIndex].content.splice(contentIndex, 1);
+    const newSecs = [...(formData.sections || [])];
+    if (newSecs[secIndex].subheadings[subIndex].content) {
+      newSecs[secIndex].subheadings[subIndex].content.splice(contentIndex, 1);
+      setFormData({...formData, sections: newSecs});
+    }
+  };
+
+  const addSubheadingList = (secIndex, subIndex) => {
+     const newSecs = [...(formData.sections || [])];
+     if(!newSecs[secIndex].subheadings[subIndex].list) newSecs[secIndex].subheadings[subIndex].list = [];
+     newSecs[secIndex].subheadings[subIndex].list.push('');
+     setFormData({...formData, sections: newSecs});
+  };
+
+  const removeSubheadingList = (secIndex, subIndex, listIndex) => {
+    const newSecs = [...(formData.sections || [])];
+    if (newSecs[secIndex].subheadings[subIndex].list) {
+      newSecs[secIndex].subheadings[subIndex].list.splice(listIndex, 1);
+      setFormData({...formData, sections: newSecs});
+    }
+  };
+
+  // --- SAAS CARD COMPARISON LOGIC ---
+  const toggleComparison = (secIndex, subIndex = -1) => {
+    const newSecs = [...(formData.sections || [])];
+    
+    const defaultCard = {
+      badge: '', icon: 'SE', title: 'SEO', subtitle: 'Search Engine Optimisation',
+      metrics: [ { label: 'GOAL', value: 'Bring organic traffic to your website' } ]
+    };
+
+    const targetSub = subIndex === -1 ? newSecs[secIndex] : newSecs[secIndex].subheadings[subIndex];
+    
+    if (targetSub.comparison) {
+       targetSub.comparison = null;
+    } else {
+       targetSub.comparison = { cards: [ { ...defaultCard } ] };
+    }
     setFormData({...formData, sections: newSecs});
   };
+
+  const addComparisonCard = (secIndex, subIndex) => {
+    const newSecs = [...(formData.sections || [])];
+    const target = subIndex === -1 ? newSecs[secIndex].comparison : newSecs[secIndex].subheadings[subIndex].comparison;
+    if (!target.cards) target.cards = [];
+    target.cards.push({ badge: '', icon: 'X', title: 'New Item', subtitle: 'Subtitle', metrics: [{label: 'GOAL', value: ''}] });
+    setFormData({...formData, sections: newSecs});
+  };
+
+  const removeComparisonCard = (secIndex, subIndex, cIdx) => {
+    const newSecs = [...(formData.sections || [])];
+    const target = subIndex === -1 ? newSecs[secIndex].comparison : newSecs[secIndex].subheadings[subIndex].comparison;
+    if (target.cards) target.cards.splice(cIdx, 1);
+    setFormData({...formData, sections: newSecs});
+  };
+
+  const updateCardField = (secIndex, subIndex, cIdx, field, value) => {
+    const newSecs = [...(formData.sections || [])];
+    const target = subIndex === -1 ? newSecs[secIndex].comparison : newSecs[secIndex].subheadings[subIndex].comparison;
+    if (target.cards && target.cards[cIdx]) target.cards[cIdx][field] = value;
+    setFormData({...formData, sections: newSecs});
+  };
+
+  const addCardMetric = (secIndex, subIndex, cIdx) => {
+    const newSecs = [...(formData.sections || [])];
+    const target = subIndex === -1 ? newSecs[secIndex].comparison : newSecs[secIndex].subheadings[subIndex].comparison;
+    if(!target.cards[cIdx].metrics) target.cards[cIdx].metrics = [];
+    target.cards[cIdx].metrics.push({ label: 'NEW', value: '' });
+    setFormData({...formData, sections: newSecs});
+  };
+
+  const updateCardMetric = (secIndex, subIndex, cIdx, mIdx, field, value) => {
+    const newSecs = [...(formData.sections || [])];
+    const target = subIndex === -1 ? newSecs[secIndex].comparison : newSecs[secIndex].subheadings[subIndex].comparison;
+    if (target.cards[cIdx].metrics && target.cards[cIdx].metrics[mIdx]) {
+      target.cards[cIdx].metrics[mIdx][field] = value;
+    }
+    setFormData({...formData, sections: newSecs});
+  };
+
+  const removeCardMetric = (secIndex, subIndex, cIdx, mIdx) => {
+    const newSecs = [...(formData.sections || [])];
+    const target = subIndex === -1 ? newSecs[secIndex].comparison : newSecs[secIndex].subheadings[subIndex].comparison;
+    if (target.cards[cIdx].metrics) target.cards[cIdx].metrics.splice(mIdx, 1);
+    setFormData({...formData, sections: newSecs});
+  };
+
+  const ComparisonEditor = ({ comp, secIndex, subIndex }) => (
+    <div className="mt-6 p-5 bg-[#141414] border border-blue-500/30 rounded-xl space-y-6 relative shadow-lg">
+      <div className="flex justify-between items-center border-b border-white/10 pb-3">
+        <h4 className="text-[10px] font-black uppercase tracking-widest text-[#008dd8]">SaaS Comparison Cards</h4>
+        <div className="flex gap-4">
+           <button type="button" onClick={() => addComparisonCard(secIndex, subIndex)} className="text-blue-400 hover:text-blue-300 text-[10px] font-bold uppercase tracking-widest">+ Add Card</button>
+           <button type="button" onClick={() => toggleComparison(secIndex, subIndex)} className="text-red-500 hover:text-red-400 text-[10px] font-bold uppercase tracking-widest">✕ Remove All</button>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+         {(comp.cards || []).map((card, cIdx) => (
+            <div key={cIdx} className="bg-[#0a0a0a] border border-white/10 p-4 rounded-xl space-y-3 relative">
+               <button type="button" onClick={() => removeComparisonCard(secIndex, subIndex, cIdx)} className="absolute top-3 right-3 text-red-500 hover:text-red-400 font-black">✕</button>
+               <input placeholder="Badge (e.g. Most Urgent)" value={card.badge || ''} onChange={(e) => updateCardField(secIndex, subIndex, cIdx, 'badge', e.target.value)} className="w-full bg-blue-900/20 text-blue-300 placeholder-blue-500/50 border border-blue-500/30 p-2 text-[10px] uppercase font-bold outline-none rounded" />
+               <div className="flex gap-2">
+                 <input placeholder="Icon" value={card.icon || ''} onChange={(e) => updateCardField(secIndex, subIndex, cIdx, 'icon', e.target.value)} className="w-12 bg-[#111] border border-white/10 p-2 text-center text-xs outline-none text-white font-bold rounded" maxLength="2" />
+                 <div className="flex-1 space-y-1">
+                    <input placeholder="Title (e.g. SEO)" value={card.title || ''} onChange={(e) => updateCardField(secIndex, subIndex, cIdx, 'title', e.target.value)} className="w-full bg-transparent border-b border-white/10 px-2 py-1 text-sm outline-none text-white font-black" />
+                    <input placeholder="Subtitle" value={card.subtitle || ''} onChange={(e) => updateCardField(secIndex, subIndex, cIdx, 'subtitle', e.target.value)} className="w-full bg-transparent border-b border-white/10 px-2 py-1 text-xs outline-none text-gray-400" />
+                 </div>
+               </div>
+               <div className="pt-2 space-y-2">
+                  <label className="text-[9px] uppercase tracking-widest text-gray-600 font-bold block">Metrics</label>
+                  {(card.metrics || []).map((metric, mIdx) => (
+                    <div key={mIdx} className="flex flex-col gap-1 bg-[#1a1a1a] p-2 rounded border border-white/5 relative">
+                       <button type="button" onClick={() => removeCardMetric(secIndex, subIndex, cIdx, mIdx)} className="absolute top-1 right-1 text-red-500 hover:text-red-400 text-[10px]">✕</button>
+                       <input placeholder="Label (e.g. GOAL)" value={metric.label || ''} onChange={(e) => updateCardMetric(secIndex, subIndex, cIdx, mIdx, 'label', e.target.value)} className="w-full bg-transparent text-[10px] uppercase text-gray-500 font-bold outline-none" />
+                       <textarea placeholder="Value..." value={metric.value || ''} onChange={(e) => updateCardMetric(secIndex, subIndex, cIdx, mIdx, 'value', e.target.value)} rows={2} className="w-full bg-black/50 p-1.5 text-xs text-white outline-none rounded border border-white/5" />
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => addCardMetric(secIndex, subIndex, cIdx)} className="text-[10px] text-gray-400 hover:text-white uppercase tracking-widest font-bold mt-1 w-full text-left">+ Add Metric</button>
+               </div>
+            </div>
+         ))}
+      </div>
+    </div>
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -912,7 +1058,7 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
 
   return (
     <div className="flex-1 overflow-y-auto p-8 h-full">
-      <div className="max-w-4xl mx-auto pb-32">
+      <div className="max-w-[1200px] mx-auto pb-32">
         <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
           <h2 className="font-black text-2xl uppercase tracking-widest text-purple-400">
             {isEditing ? `Editing Blog: /${pageId}` : 'Strict Article Architecture'}
@@ -929,11 +1075,10 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
             <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">1. URL & Categorization</h3>
             <input name="slug" placeholder="URL Slug (e.g., local-seo-guide)" required disabled={isEditing} value={formData.slug} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded disabled:opacity-50" />
-            
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Core Service</label>
-                <select name="serviceTag" value={formData.serviceTag} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded">
+                <select name="serviceTag" value={formData.serviceTag || 'general'} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded">
                   <option value="general">General Architecture</option>
                   <option value="seo">Advanced SEO</option>
                   <option value="aeo">AEO (Answer Engines)</option>
@@ -944,7 +1089,7 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
               </div>
               <div>
                 <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Target Industry</label>
-                <select name="industryTag" value={formData.industryTag} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded">
+                <select name="industryTag" value={formData.industryTag || 'none'} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded">
                   <option value="none">No Specific Industry (General)</option>
                   <option value="dental">Dental & Healthcare</option>
                   <option value="trades">Home Services & Trades</option>
@@ -954,27 +1099,26 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
                 </select>
               </div>
             </div>
-
-            <input name="title" placeholder="Meta Title" value={formData.seoMeta.title} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded mt-4" />
-            <textarea name="metaDescription" placeholder="Meta Description" value={formData.seoMeta.metaDescription} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-20" />
+            <input name="title" placeholder="Meta Title" value={formData.seoMeta?.title || ''} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded mt-4" />
+            <textarea name="metaDescription" placeholder="Meta Description" value={formData.seoMeta?.metaDescription || ''} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-20" />
           </div>
 
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
             <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">2. Hero Data</h3>
-            <input name="title" placeholder="H1 Headline" required value={formData.hero.title} onChange={(e)=>handleChange(e, 'hero')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
-            <textarea name="description" placeholder="Hero Subtext / Hook" required value={formData.hero.description} onChange={(e)=>handleChange(e, 'hero')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-20" />
+            <input name="title" placeholder="H1 Headline" required value={formData.hero?.title || ''} onChange={(e)=>handleChange(e, 'hero')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
+            <textarea name="description" placeholder="Hero Subtext / Hook" required value={formData.hero?.description || ''} onChange={(e)=>handleChange(e, 'hero')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-20" />
             <div className="grid grid-cols-2 gap-4">
-               <input name="publishDate" type="date" value={formData.hero.publishDate} onChange={(e)=>handleChange(e, 'hero')} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-               <input name="readTime" placeholder="Read Time (e.g. 5 Min)" value={formData.hero.readTime} onChange={(e)=>handleChange(e, 'hero')} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+               <input name="publishDate" type="date" value={formData.hero?.publishDate || ''} onChange={(e)=>handleChange(e, 'hero')} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+               <input name="readTime" placeholder="Read Time (e.g. 5 Min)" value={formData.hero?.readTime || ''} onChange={(e)=>handleChange(e, 'hero')} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
             </div>
           </div>
 
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
             <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">3. AEO Snippet & TLDR</h3>
-            <RichTextArea label="AEO Quick Answer (40-60 words)" name="quickAnswer" value={formData.quickAnswer} onChange={handleChange} rows={4} />
+            <RichTextArea label="AEO Quick Answer (40-60 words)" name="quickAnswer" value={formData.quickAnswer || ''} onChange={handleChange} rows={4} />
             <div className="pt-4 border-t border-white/10">
               <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2">TL;DR Bullets</label>
-              {formData.tldr.map((pt, i) => (
+              {(formData.tldr || []).map((pt, i) => (
                 <div key={i} className="flex gap-2 mb-2">
                   <input value={pt} onChange={(e)=>updateSimpleArray('tldr', i, e.target.value)} className="flex-1 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" placeholder={`Bullet ${i+1}`} />
                   <button type="button" onClick={()=>removeSimpleArrayItem('tldr', i)} className="bg-red-500/10 text-red-500 px-3 rounded hover:bg-red-500/20">✕</button>
@@ -986,7 +1130,7 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
 
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
             <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">4. Introduction</h3>
-            {formData.intro.map((para, i) => (
+            {(formData.intro || []).map((para, i) => (
               <div key={i} className="flex gap-2 items-start">
                 <div className="flex-1">
                   <RichTextArea value={para} onChange={(e)=>updateSimpleArray('intro', i, e.target.value)} rows={3} placeholder={`Intro Paragraph ${i+1}`} />
@@ -1000,34 +1144,32 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-8">
             <div className="flex justify-between items-center border-b border-white/10 pb-2">
                <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">5. Core Content Sections (H2s)</h3>
-               <button type="button" onClick={()=>addComplexArrayItem('sections', { id: `sec-${formData.sections.length+1}`, heading: '', contentType: 'default', content: [''], list: [], subheadings: [] })} className="text-[10px] bg-white/10 px-2 py-1 rounded text-white uppercase tracking-widest font-bold hover:bg-white/20">+ Add H2 Section</button>
+               <button type="button" onClick={()=>addComplexArrayItem('sections', { id: `sec-${(formData.sections||[]).length+1}`, heading: '', contentType: 'default', content: [''], list: [], subheadings: [], comparison: null })} className="text-[10px] bg-white/10 px-2 py-1 rounded text-white uppercase tracking-widest font-bold hover:bg-white/20">+ Add H2 Section</button>
             </div>
             
-            {formData.sections.map((sec, i) => (
+            {(formData.sections || []).map((sec, i) => (
               <div key={i} className="p-5 bg-[#111] border border-white/10 rounded-xl shadow-lg space-y-4 relative">
                 
-                {/* Reorder and Delete Controls for Section */}
                 <div className="absolute top-4 right-4 flex gap-2">
                    <button type="button" onClick={() => moveSection(i, 'up')} disabled={i === 0} className="text-gray-400 hover:text-white disabled:opacity-30">↑</button>
-                   <button type="button" onClick={() => moveSection(i, 'down')} disabled={i === formData.sections.length - 1} className="text-gray-400 hover:text-white disabled:opacity-30">↓</button>
+                   <button type="button" onClick={() => moveSection(i, 'down')} disabled={i === (formData.sections||[]).length - 1} className="text-gray-400 hover:text-white disabled:opacity-30">↓</button>
                    <button type="button" onClick={() => removeComplexArrayItem('sections', i)} className="text-red-500 ml-4 hover:text-red-400 font-bold text-xs uppercase">Delete Section</button>
                 </div>
 
                 <div className="flex gap-2 w-3/4">
-                  <input placeholder="ID (what-is-seo)" value={sec.id} onChange={(e)=>updateComplexArray('sections', i, 'id', e.target.value)} className="w-1/3 bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-gray-400" />
-                  <input placeholder="H2 Heading" value={sec.heading} onChange={(e)=>updateComplexArray('sections', i, 'heading', e.target.value)} className="w-2/3 bg-transparent border-b border-blue-500/50 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
+                  <input placeholder="ID (what-is-seo)" value={sec.id || ''} onChange={(e)=>updateComplexArray('sections', i, 'id', e.target.value)} className="w-1/3 bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-gray-400" />
+                  <input placeholder="H2 Heading" value={sec.heading || ''} onChange={(e)=>updateComplexArray('sections', i, 'heading', e.target.value)} className="w-2/3 bg-transparent border-b border-blue-500/50 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
                 </div>
                 
-                <select value={sec.contentType} onChange={(e)=>updateComplexArray('sections', i, 'contentType', e.target.value)} className="bg-black border border-white/10 focus:border-blue-500 outline-none text-white text-xs p-2 rounded">
+                <select value={sec.contentType || 'default'} onChange={(e)=>updateComplexArray('sections', i, 'contentType', e.target.value)} className="bg-black border border-white/10 focus:border-blue-500 outline-none text-white text-xs p-2 rounded">
                   <option value="default">Default Article</option>
                   <option value="howto">How-To (Numbered Steps)</option>
                   <option value="definition">Definition Block</option>
                 </select>
 
-                {/* Paragraphs */}
                 <div className="space-y-4 border-l-2 border-white/10 pl-4">
                   <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Paragraphs</label>
-                  {sec.content.map((para, pIdx) => (
+                  {(sec.content || []).map((para, pIdx) => (
                     <div key={pIdx} className="flex gap-2 items-start">
                       <div className="flex-1">
                         <RichTextArea value={para} onChange={(e)=>updateSectionArray(i, 'content', pIdx, e.target.value)} rows={3} />
@@ -1035,34 +1177,40 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
                       <button type="button" onClick={() => removeSectionArrayItem(i, 'content', pIdx)} className="bg-red-500/10 text-red-500 h-[42px] px-3 mt-7 rounded hover:bg-red-500/20">✕</button>
                     </div>
                   ))}
-                  <button type="button" onClick={()=> { const n=[...formData.sections]; n[i].content.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">+ Add Paragraph</button>
+                  <button type="button" onClick={()=> { const n=[...(formData.sections||[])]; if(!n[i].content) n[i].content=[]; n[i].content.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">+ Add Paragraph</button>
                 </div>
 
-                {/* List Items */}
                 <div className="space-y-2 border-l-2 border-white/10 pl-4 mt-4">
                   <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">List Items</label>
-                  {sec.list.map((li, lIdx) => (
+                  {(sec.list || []).map((li, lIdx) => (
                     <div key={lIdx} className="flex gap-2">
                        <input value={li} onChange={(e)=>updateSectionArray(i, 'list', lIdx, e.target.value)} className="flex-1 bg-black/50 border border-white/5 p-3 text-sm focus:border-blue-500 outline-none text-gray-300 rounded" />
                        <button type="button" onClick={() => removeSectionArrayItem(i, 'list', lIdx)} className="bg-red-500/10 text-red-500 px-3 rounded hover:bg-red-500/20">✕</button>
                     </div>
                   ))}
-                  <button type="button" onClick={()=> { const n=[...formData.sections]; n[i].list.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest mt-2">+ Add List Item</button>
+                  <button type="button" onClick={()=> { const n=[...(formData.sections||[])]; if(!n[i].list) n[i].list=[]; n[i].list.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest mt-2">+ Add List Item</button>
                 </div>
 
-                {/* H3 Subheadings */}
+                {!sec.comparison ? (
+                   <button type="button" onClick={() => toggleComparison(i)} className="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded font-bold uppercase tracking-widest mt-4 hover:bg-blue-500/20 transition-colors block border border-blue-500/20">
+                     + Add SaaS Comparison Cards Here
+                   </button>
+                ) : (
+                   <ComparisonEditor comp={sec.comparison} secIndex={i} subIndex={-1} />
+                )}
+
                 <div className="space-y-6 border-l-2 border-purple-500/30 pl-4 mt-8">
                   <div className="flex justify-between items-center">
                      <label className="text-[10px] uppercase tracking-widest text-purple-400 font-bold">H3 Subheadings</label>
                      <button type="button" onClick={() => addSubheading(i)} className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-1 rounded font-bold uppercase tracking-widest">+ Add H3</button>
                   </div>
                   
-                  {sec.subheadings && sec.subheadings.map((sub, sIdx) => (
+                  {(sec.subheadings || []).map((sub, sIdx) => (
                     <div key={sIdx} className="bg-black/50 p-4 border border-white/5 rounded space-y-4 relative">
                       <button type="button" onClick={() => removeSectionArrayItem(i, 'subheadings', sIdx)} className="absolute top-4 right-4 text-red-500 hover:text-red-400 text-xs font-bold uppercase">✕ Remove H3</button>
-                      <input placeholder="H3 Title" value={sub.title} onChange={(e) => updateSubheading(i, sIdx, 'title', e.target.value)} className="w-3/4 bg-transparent border-b border-purple-500/50 p-2 text-sm focus:border-purple-500 outline-none text-white font-bold" />
+                      <input placeholder="H3 Title" value={sub.title || ''} onChange={(e) => updateSubheading(i, sIdx, 'title', e.target.value)} className="w-3/4 bg-transparent border-b border-purple-500/50 p-2 text-sm focus:border-purple-500 outline-none text-white font-bold" />
                       
-                      {sub.content.map((subPara, spIdx) => (
+                      {(sub.content || []).map((subPara, spIdx) => (
                          <div key={spIdx} className="flex gap-2 items-start">
                            <div className="flex-1">
                              <RichTextArea value={subPara} onChange={(e) => updateSubheading(i, sIdx, 'content', e.target.value, spIdx)} rows={3} />
@@ -1071,6 +1219,24 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
                          </div>
                       ))}
                       <button type="button" onClick={() => addSubheadingContent(i, sIdx)} className="text-[10px] text-purple-500 font-bold uppercase tracking-widest">+ Add H3 Paragraph</button>
+
+                      <div className="pt-2 border-t border-white/5 mt-2">
+                        {(sub.list || []).map((subLi, slIdx) => (
+                          <div key={slIdx} className="flex gap-2 mb-2">
+                             <input value={subLi} onChange={(e)=>updateSubheading(i, sIdx, 'list', e.target.value, slIdx)} className="flex-1 bg-black/50 border border-white/5 p-2 text-sm focus:border-purple-500 outline-none text-gray-300 rounded" placeholder="List item..." />
+                             <button type="button" onClick={() => removeSubheadingList(i, sIdx, slIdx)} className="bg-red-500/10 text-red-500 px-3 rounded hover:bg-red-500/20">✕</button>
+                          </div>
+                        ))}
+                        <button type="button" onClick={() => addSubheadingList(i, sIdx)} className="text-[10px] text-purple-500 font-bold uppercase tracking-widest mt-1">+ Add H3 List Item</button>
+                      </div>
+
+                      {!sub.comparison ? (
+                        <button type="button" onClick={() => toggleComparison(i, sIdx)} className="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded font-bold uppercase tracking-widest mt-4 hover:bg-blue-500/20 transition-colors block border border-blue-500/20">
+                          + Add SaaS Comparison Cards Under H3
+                        </button>
+                      ) : (
+                        <ComparisonEditor comp={sub.comparison} secIndex={i} subIndex={sIdx} />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1081,21 +1247,21 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
 
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
             <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">6. Embedded Tool CTA</h3>
-            <input name="title" placeholder="Tool Title" value={formData.toolBlock.title} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
-            <input name="description" placeholder="Tool Description" value={formData.toolBlock.description} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            <input name="title" placeholder="Tool Title" value={formData.toolBlock?.title || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
+            <input name="description" placeholder="Tool Description" value={formData.toolBlock?.description || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
             <div className="grid grid-cols-2 gap-4">
-              <input name="ctaText" placeholder="Button Text" value={formData.toolBlock.ctaText} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-              <input name="ctaLink" placeholder="Button URL" value={formData.toolBlock.ctaLink} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-[#3b82f6] rounded" />
+              <input name="ctaText" placeholder="Button Text" value={formData.toolBlock?.ctaText || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              <input name="ctaLink" placeholder="Button URL" value={formData.toolBlock?.ctaLink || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-[#3b82f6] rounded" />
             </div>
           </div>
 
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
             <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">7. FAQ Section</h3>
-            {formData.faqs.map((faq, i) => (
+            {(formData.faqs || []).map((faq, i) => (
               <div key={i} className="flex flex-col gap-2 p-4 border border-white/5 bg-[#111] rounded relative">
                 <button type="button" onClick={() => removeComplexArrayItem('faqs', i)} className="absolute top-4 right-4 text-red-500 hover:text-red-400 text-xs font-bold uppercase">✕</button>
-                <input placeholder="Question" value={faq.question} onChange={(e)=>updateComplexArray('faqs', i, 'question', e.target.value)} className="w-3/4 bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
-                <RichTextArea value={faq.answer} onChange={(e)=>updateComplexArray('faqs', i, 'answer', e.target.value)} rows={3} />
+                <input placeholder="Question" value={faq.question || ''} onChange={(e)=>updateComplexArray('faqs', i, 'question', e.target.value)} className="w-3/4 bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
+                <RichTextArea value={faq.answer || ''} onChange={(e)=>updateComplexArray('faqs', i, 'answer', e.target.value)} rows={3} />
               </div>
             ))}
             <button type="button" onClick={()=>addComplexArrayItem('faqs', {question: '', answer: ''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add FAQ</button>
