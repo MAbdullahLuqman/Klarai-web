@@ -101,7 +101,7 @@ export default async function IndustriesHubPage() {
                       <div className="mt-8 pt-6 border-t-2 border-gray-100 flex justify-start">
                          <span className="inline-flex items-center justify-center gap-2 bg-[#0A101D] text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-[11px] group-hover:bg-[#008dd8] transition-all">
                            Explore Sector
-                           <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                          
                          </span>
                       </div>
                     </div>
@@ -124,7 +124,7 @@ export default async function IndustriesHubPage() {
                 {/* <p className="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl font-medium w-full"></p> */}
                 <Link href="/free-audit" className="inline-flex items-center justify-center gap-2 bg-white text-[#0A101D] px-10 py-5 rounded-full font-black text-sm md:text-base hover:bg-gray-100 shadow-[0_15px_30px_rgba(255,255,255,0.1)] transition-all active:scale-95 uppercase tracking-widest">
                   Request Custom Audit
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="square" strokeLinejoin="miter" strokeWidth="3" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                 
                 </Link>
               </div>
            </div>

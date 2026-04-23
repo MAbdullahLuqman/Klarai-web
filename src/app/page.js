@@ -213,17 +213,14 @@ export default function RefinedPremiumHome() {
             <TiltCard>
               <Link href="/free-audit" className="flex items-center gap-2.5 bg-[#ccff00] text-[#0A101D] px-8 py-3.5 rounded-full font-black uppercase tracking-widest text-[11px] md:text-xs shadow-[0_10px_30px_rgba(204,255,0,0.25)] hover:bg-[#b3e600] transition-all active:scale-95 border border-[#b3e600]/30">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                Initiate Sequence
+                Get a free audit
               </Link>
             </TiltCard>
           </motion.div>
         </motion.div>
 
         {/* Scroll Indicator */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5, duration: 1 }} className="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 text-gray-300">
-          <span className="text-[9px] uppercase tracking-[0.3em] font-black">Scroll</span>
-          <motion.div animate={{ y: [0, 6, 0] }} transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }} className="w-[2px] h-8 bg-gradient-to-b from-gray-200 to-transparent rounded-full" />
-        </motion.div>
+       
       </section>
 
       {/* --- 2. HELPING YOU RISE ABOVE (Services Grid) --- */}
@@ -338,7 +335,7 @@ export default function RefinedPremiumHome() {
           <TiltCard>
             <Link href="/free-audit" className="flex items-center gap-2.5 bg-[#ccff00] text-[#050505] px-10 py-4 rounded-full font-black uppercase tracking-widest text-[11px] md:text-xs hover:bg-[#b3e600] shadow-[0_15px_30px_rgba(204,255,0,0.25)] transition-all active:scale-95 border border-[#b3e600]/30">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-              Initiate Sequence
+              Get a Free Audit
             </Link>
           </TiltCard>
 
