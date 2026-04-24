@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import GlobalHeader from '@/components/GlobalHeader';
 
 // The steps the terminal will cycle through (Claude-style checklist)
@@ -57,16 +57,32 @@ export default function SeoAuditorPage() {
     }, 3000); // Moves down the checklist every 3 seconds
 
     try {
-      // 2. YOUR FASTAPI CALL GOES HERE!
-      // Example: await fetch('https://your-railway-url.com/audit', { method: 'POST', body: JSON.stringify({ url: targetUrl }) })
-      await new Promise(resolve => setTimeout(resolve, 24000)); // Simulating 24s wait
+      // 🚀 LIVE RAILWAY FASTAPI CONNECTION
+      const response = await fetch('https://klarai-seo-audit-tool-production.up.railway.app/audit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: targetUrl })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      // Capture the final SEO JSON data sent back from FastAPI/Gemini
+      const auditData = await response.json();
+      
+      // Logs the data to your browser console so you can see it working!
+      console.log("FastAPI Analysis Complete:", auditData);
 
       setProgress(100);
-      setPhaseIndex(auditPhases.length); // Mark all as complete
+      setPhaseIndex(auditPhases.length); // Mark all steps as complete
       setAuditComplete(true);
+      
     } catch (error) {
       console.error("Audit Failed:", error);
-      alert("System overload. Please try again.");
+      alert("System overload or connection failed. Please try again.");
     } finally {
       clearInterval(progressInterval);
       clearInterval(phaseInterval);
@@ -104,7 +120,6 @@ export default function SeoAuditorPage() {
                   
                   <div className="flex-1 w-full flex items-center px-4 py-3 md:py-2">
                     <svg className="w-6 h-6 text-gray-400 mr-3 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    {/* Changed type="url" to type="text" so browser doesn't block "xyz.com" */}
                     <input 
                       type="text" 
                       placeholder="example.com" 
@@ -194,7 +209,7 @@ export default function SeoAuditorPage() {
                
                <div className="bg-white p-10 rounded-[2rem] border border-gray-200 shadow-xl text-center">
                   <h3 className="text-xl font-bold mb-4">Your Data Will Inject Here</h3>
-                  <p className="text-gray-500 mb-8">When FastAPI returns the final payload, map it into this container.</p>
+                  <p className="text-gray-500 mb-8">Open your browser console to see the JSON payload returned from FastAPI.</p>
                   <button onClick={() => setAuditComplete(false)} className="text-[#008dd8] font-bold text-sm uppercase tracking-widest hover:underline">
                     Run Another Audit
                   </button>
