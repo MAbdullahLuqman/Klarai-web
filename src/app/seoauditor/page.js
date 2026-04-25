@@ -17,7 +17,10 @@ const auditPhases = [
   "Feeding entity data to Generative AI scoring engine",
   "Compiling final KlarAI intelligence report"
 ];
-
+export const metadata = {
+  title: 'Free AI SEO Audit Tool — Instant Results in 30 Seconds | Klarai',
+  description: 'Run a free AI-powered SEO audit on any UK website. Powered by Gemini, Klarai SEO auditor delivers instant results in 30 seconds covering technical, on-page, local, and AI visibility..',
+};
 export default function SeoAuditorPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#fafafa] flex items-center justify-center font-bold text-gray-500 tracking-widest uppercase text-xs">Loading Core...</div>}>

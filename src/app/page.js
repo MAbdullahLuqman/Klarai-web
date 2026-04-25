@@ -143,7 +143,7 @@ export default function RefinedPremiumHome() {
       {/* ============================================================
           SECTION 1: KLAR AI — BRAND HERO (Theme: MINIMAL DARK)
           ============================================================ */}
-      <section className="w-full min-h-[90vh] flex flex-col justify-center items-center relative overflow-hidden bg-[#111111] pt-32 pb-20 md:py-32 px-6">
+      <section className="w-full min-h-[100vh] flex flex-col justify-center items-center relative overflow-hidden bg-[#111111] pt-32 pb-20 md:py-32 px-6">
         
         <motion.div
           variants={containerVariants}
@@ -240,7 +240,7 @@ Neither is trust.
       {/* ============================================================
           SECTION 3: SERVICES GRID (Theme: DARK)
           ============================================================ */}
-      <section className="w-full flex items-center justify-center py-24 md:py-32 px-6 relative z-10 bg-[#0A101D]">
+      <section className="w-full flex items-center justify-center py-24 md:py-32 px-6 relative z-10 bg-[#111111]">
         <div className="max-w-[1200px] w-full mx-auto">
           <div className="grid lg:grid-cols-[1fr_1.5fr] gap-10 lg:gap-20 items-center">
 
