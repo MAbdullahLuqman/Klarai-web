@@ -17,10 +17,7 @@ const auditPhases = [
   "Feeding entity data to Generative AI scoring engine",
   "Compiling final KlarAI intelligence report"
 ];
-export const metadata = {
-  title: 'Free AI SEO Audit Tool — Instant Results in 30 Seconds | Klarai',
-  description: 'Run a free AI-powered SEO audit on any UK website. Powered by Gemini, Klarai SEO auditor delivers instant results in 30 seconds covering technical, on-page, local, and AI visibility..',
-};
+
 export default function SeoAuditorPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#fafafa] flex items-center justify-center font-bold text-gray-500 tracking-widest uppercase text-xs">Loading Core...</div>}>
@@ -642,7 +639,7 @@ function AuditorCore() {
           {/* SECTION 5: AI & GEO (LIGHT) */}
           <section className="w-full bg-[#fafafa] py-16 sm:py-24 px-6">
             <div className="max-w-[800px] mx-auto">
-              <h2 className="text-2xl sm:text-3xl font-black text-[#0A101D] mb-6 text-center">What is an AI SEO audit and why does it matter in 2025?</h2>
+              <h2 className="text-2xl sm:text-3xl font-black text-[#0A101D] mb-6 text-center">What is an AI SEO audit and why does it matter in 2026?</h2>
               
               <div className="space-y-4 text-xs sm:text-sm text-gray-600 font-medium leading-relaxed mb-10">
                 <p>A standard SEO audit checks whether your website follows technical best practices. An AI SEO audit goes further by assessing whether your content is structured in a way that AI-powered systems can read, understand, and cite.</p>
