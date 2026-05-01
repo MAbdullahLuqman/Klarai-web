@@ -1,4 +1,5 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import { NextResponse } from 'next/server';
 
 export async function POST(req) {
@@ -6,7 +7,7 @@ export async function POST(req) {
     const body = await req.json();
     const { url, auditResult } = body;
 
-    // 1. Extract the data safely (mirroring AuditorClient.js structure)
+    // 1. Extract the data safely
     const aiData = auditResult?.ai_analysis || {};
     const perfData = auditResult?.performance_data || {};
     const summary = aiData.audit_summary || {};
@@ -15,7 +16,6 @@ export async function POST(req) {
     const localOps = aiData.local_uk_opportunities || [];
 
     // 2. Build the HTML template
-    // We use Tailwind CDN to style the PDF exactly like your frontend dashboard
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -120,11 +120,13 @@ export async function POST(req) {
       </html>
     `;
 
-    // 3. Launch Headless Browser
-    // args are required to prevent crashes in serverless/cloud environments
-    const browser = await puppeteer.launch({ 
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+    // 3. Launch Vercel-Friendly Headless Browser
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
     });
     
     const page = await browser.newPage();
@@ -136,7 +138,7 @@ export async function POST(req) {
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true, 
-      margin: { top: '0', right: '0', bottom: '0', left: '0' } // CSS @page handles the real margins
+      margin: { top: '0', right: '0', bottom: '0', left: '0' }
     });
 
     await browser.close();
