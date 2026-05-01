@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import GlobalHeader from '@/components/GlobalHeader';
 
+// FIREBASE IMPORTS FOR LEAD CAPTURE
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 const auditPhases = [
   "Initializing secure connection to target server",
   "Bypassing cache & scraping DOM architecture",
@@ -35,11 +39,14 @@ function AuditorCore() {
   const [progress, setProgress] = useState(0);
   const [auditComplete, setAuditComplete] = useState(false);
   const [auditResult, setAuditResult] = useState(null); 
-  const [showRawJson, setShowRawJson] = useState(false);
   const [hasTriggeredAuto, setHasTriggeredAuto] = useState(false);
-  
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const reportRef = useRef(null);
+
+  // LEAD CAPTURE STATE
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   const formatUrl = (inputUrl) => {
     let formatted = inputUrl.trim();
@@ -57,9 +64,7 @@ function AuditorCore() {
     setProgress(0);
     setPhaseIndex(0);
     setAuditResult(null); 
-    setShowRawJson(false);
 
-    // Scroll to top when analysis starts
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const progressInterval = setInterval(() => {
@@ -81,6 +86,16 @@ function AuditorCore() {
 
       const auditData = await response.json();
       setAuditResult(auditData);
+
+      // SILENTLY SAVE SCAN TO FIREBASE
+      try {
+        await addDoc(collection(db, 'scans'), {
+          website: formattedUrl,
+          scannedAt: serverTimestamp()
+        });
+      } catch (dbError) {
+        console.error("Failed to log scan to DB:", dbError);
+      }
 
       setProgress(100);
       setPhaseIndex(auditPhases.length);
@@ -109,10 +124,9 @@ function AuditorCore() {
     }
   }, [autoStart, defaultUrl, hasTriggeredAuto]);
 
-  // Server-Side PDF Download Engine
+  // PDF DOWNLOAD ENGINE
   const downloadPDF = async () => {
     setIsGeneratingPdf(true);
-
     try {
       const response = await fetch('/api/generate-pdf', {
         method: 'POST',
@@ -122,20 +136,16 @@ function AuditorCore() {
 
       if (!response.ok) throw new Error('Failed to generate PDF on server');
 
-      // Convert the response buffer into a downloadable blob
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
-      
       const safeUrlName = formatUrl(url).replace(/^https?:\/\//, '').replace(/[^a-z0-9]/gi, '_');
       link.download = `KlarAI_SEO_Audit_${safeUrlName}.pdf`;
-      
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(downloadUrl);
-
     } catch (error) {
       console.error("PDF Download Error:", error);
       alert("Failed to download PDF. Please try again.");
@@ -144,26 +154,30 @@ function AuditorCore() {
     }
   };
 
-  const renderDynamicValue = (value) => {
-    if (Array.isArray(value)) {
-      if (value.length === 0) return <span className="text-gray-400 italic text-xs">Empty</span>;
-      return (
-        <ul className="list-disc pl-4 space-y-1">
-          {value.map((v, i) => (
-            <li key={i} className="text-gray-700 text-xs sm:text-sm font-medium">
-              {typeof v === 'object' ? JSON.stringify(v) : String(v)}
-            </li>
-          ))}
-        </ul>
-      );
+  // HANDLE EMAIL POPUP SUBMISSION (SAVE LEAD ONLY)
+  const handleEmailSubmit = async (e) => {
+    e.preventDefault();
+    if (!userEmail) return;
+    
+    setIsSubmittingLead(true);
+    try {
+      // 1. Save Lead to Firebase Admin Panel
+      await addDoc(collection(db, 'leads'), {
+        email: userEmail,
+        website: formatUrl(url),
+        capturedAt: serverTimestamp()
+      });
+      
+      // 2. Close modal & instantly download to their device
+      setShowEmailModal(false);
+      downloadPDF(); 
+      
+    } catch (error) {
+      console.error("Error saving lead:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmittingLead(false);
     }
-    if (typeof value === 'object' && value !== null) {
-      return <pre className="text-[10px] bg-white border border-gray-100 p-2 rounded-lg overflow-x-auto text-gray-700">{JSON.stringify(value, null, 2)}</pre>;
-    }
-    if (value === null || value === '' || value === undefined) {
-      return <span className="text-gray-400 italic text-xs">N/A</span>;
-    }
-    return <span className="text-gray-800 text-xs sm:text-sm font-medium whitespace-pre-wrap">{String(value)}</span>;
   };
 
   const rawScraped = auditResult?.scraped_data || {};
@@ -173,9 +187,6 @@ function AuditorCore() {
   const summary = aiData.audit_summary || {};
   const headings = scrapedData.headings || {};
   const content = scrapedData.content || {};
-  const media = scrapedData.media_and_links || {};
-  const metrics = perfData.metrics || {};
-  const h1Content = Array.isArray(headings.h1_content) ? headings.h1_content : [];
   const criticalFixes = aiData.critical_fixes_checklist || [];
   const localOps = aiData.local_uk_opportunities || [];
   const geoGaps = aiData.geo_ai_overview_gaps || [];
@@ -185,9 +196,7 @@ function AuditorCore() {
     <div className="bg-[#fafafa] text-gray-900 font-sans selection:bg-[#008dd8] selection:text-white min-h-screen flex flex-col">
       <GlobalHeader />
 
-      {/* ============================================================
-          SECTION 1: THE TOOL HERO (DARK)
-          ============================================================ */}
+      {/* TOOL HERO */}
       <section className="w-full flex flex-col items-center pt-32 pb-16 px-4 sm:px-6 relative overflow-hidden bg-[#0A101D]">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] md:w-[40vw] md:h-[40vw] bg-[#008dd8]/[0.05] blur-[100px] rounded-full pointer-events-none"></div>
 
@@ -225,11 +234,6 @@ function AuditorCore() {
                   </button>
                 </div>
               </form>
-              <div className="flex justify-center gap-4 mt-4 text-[9px] font-bold uppercase tracking-widest text-gray-500">
-                <span>No signup</span>
-                <span>•</span>
-                <span>No credit card</span>
-              </div>
             </motion.div>
           )}
 
@@ -270,9 +274,7 @@ function AuditorCore() {
         </div>
       </section>
 
-      {/* ============================================================
-          RESULTS DASHBOARD (Only shows when audit is complete)
-          ============================================================ */}
+      {/* RESULTS DASHBOARD */}
       {auditComplete && auditResult && (
         <section className="w-full bg-[#fafafa] py-12 px-4 sm:px-6">
           <div ref={reportRef} className="w-full max-w-[1000px] mx-auto animate-fade-in relative z-10 space-y-5 pb-10">
@@ -291,12 +293,11 @@ function AuditorCore() {
                  </div>
                  
                  <div className="flex flex-col items-start md:items-end gap-2 mt-2 md:mt-0">
-                    <div className="text-left md:text-right">
-                      <p className="text-gray-500 text-[8px] font-mono uppercase tracking-widest">Generated</p>
-                      <p className="text-white font-mono text-xs">{new Date().toLocaleDateString()}</p>
-                    </div>
-                    
-                    <button onClick={downloadPDF} disabled={isGeneratingPdf} className="bg-[#008dd8] text-white px-3 py-1.5 rounded flex items-center justify-center gap-1.5 text-[8px] font-black uppercase tracking-widest hover:bg-[#0077b6] transition-all shadow-md active:scale-95 disabled:opacity-50">
+                    <button 
+                      onClick={() => setShowEmailModal(true)} 
+                      disabled={isGeneratingPdf} 
+                      className="bg-[#008dd8] text-white px-3 py-1.5 rounded flex items-center justify-center gap-1.5 text-[8px] font-black uppercase tracking-widest hover:bg-[#0077b6] transition-all shadow-md active:scale-95 disabled:opacity-50"
+                    >
                       {isGeneratingPdf ? 'Generating PDF...' : (
                         <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>Download PDF</>
                       )}
@@ -305,7 +306,7 @@ function AuditorCore() {
                </div>
              </div>
 
-             {/* HIGH LEVEL SCORES & VERDICT */}
+             {/* SCORES & VERDICT */}
              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-1 grid grid-cols-2 md:grid-cols-1 gap-3">
                   <div className="bg-white p-4 rounded-[1rem] border border-gray-200 shadow-sm flex flex-col justify-center">
@@ -329,22 +330,6 @@ function AuditorCore() {
                     <p className="text-xs text-gray-700 font-medium italic leading-relaxed bg-blue-50/50 p-3 rounded-lg border border-blue-50/50">
                       "{summary?.verdict || "Analysis completed. Review the metrics below."}"
                     </p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-red-50 p-3 rounded-lg border border-red-100 flex items-center gap-3">
-                      <span className="text-red-600 font-black text-xl leading-none">{summary?.critical_issues_count || 0}</span>
-                      <div>
-                        <span className="block text-red-800 text-[8px] font-black uppercase tracking-widest">Immediate</span>
-                        <span className="block text-red-600 font-bold text-[10px]">Critical Issues</span>
-                      </div>
-                    </div>
-                    <div className="bg-green-50 p-3 rounded-lg border border-green-100 flex items-center gap-3">
-                      <span className="text-green-600 font-black text-xl leading-none">{summary?.quick_wins_count || 0}</span>
-                      <div>
-                        <span className="block text-green-800 text-[8px] font-black uppercase tracking-widest">Low Effort</span>
-                        <span className="block text-green-600 font-bold text-[10px]">Quick Wins</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
              </div>
@@ -500,10 +485,7 @@ function AuditorCore() {
         </section>
       )}
 
-      {/* ============================================================
-          EDUCational LANDING PAGE CONTENT (Only shows before scan)
-          Theme Alternation: Light -> Dark -> Light -> Dark
-          ============================================================ */}
+      {/* EDUCATIONAL LANDING PAGE CONTENT */}
       {!isAnalyzing && !auditComplete && (
         <>
           {/* SECTION 1: INTRO (LIGHT) */}
@@ -728,6 +710,50 @@ function AuditorCore() {
             </button>
           </section>
         </>
+      )}
+
+      {/* EMAIL CAPTURE MODAL */}
+      {showEmailModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative"
+          >
+            <button 
+              onClick={() => setShowEmailModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <div className="text-center mb-6">
+              <span className="text-3xl mb-2 block">📄</span>
+              <h3 className="text-xl font-black text-[#0A101D] mb-2">Get your full audit report</h3>
+              <p className="text-sm text-gray-500 font-medium">Enter your email below to instantly download your comprehensive KlarAI SEO report.</p>
+            </div>
+
+            <form onSubmit={handleEmailSubmit} className="space-y-4">
+              <div>
+                <input 
+                  type="email" 
+                  required
+                  placeholder="name@company.com" 
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 px-4 py-3 rounded-xl font-medium focus:outline-none focus:border-[#008dd8] focus:ring-1 focus:ring-[#008dd8]"
+                />
+              </div>
+              <button 
+                type="submit" 
+                disabled={isSubmittingLead}
+                className="w-full bg-[#008dd8] text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#0077b6] transition-all disabled:opacity-50"
+              >
+                {isSubmittingLead ? 'Unlocking...' : 'Unlock & Download PDF'}
+              </button>
+            </form>
+          </motion.div>
+        </div>
       )}
 
     </div>

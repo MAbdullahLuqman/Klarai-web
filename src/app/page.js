@@ -184,7 +184,7 @@ Neither is trust.
 
       {/* ============================================================
           SECTION 2: THE SCANNER (Theme: LIGHT)
-          ============================================================ */}
+          ======================z====================================== */}
       <section className="w-full flex flex-col justify-center items-center relative overflow-hidden bg-[#fafafa] py-24 md:py-32 px-6">
 
         <div className="relative z-10 w-full max-w-[800px] mx-auto text-center">

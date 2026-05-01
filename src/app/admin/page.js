@@ -446,56 +446,204 @@ export default function AdminDashboard() {
 }
 
 // ==========================================
-// COMPONENT: LEADS DASHBOARD
+// COMPONENT: LEADS & SCANS DASHBOARD
+// ==========================================
+// ==========================================
+// COMPONENT: LEADS & SCANS DASHBOARD
+// ==========================================
+// ==========================================
+// COMPONENT: LEADS & SCANS DASHBOARD
 // ==========================================
 function LeadsView() {
+  const [activeTab, setActiveTab] = useState('leads');
   const [leads, setLeads] = useState([]);
+  const [scans, setScans] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLeads = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const q = query(collection(db, 'leads'), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const leadsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // 1. Fetch Leads WITHOUT orderBy (to avoid Firebase Index errors)
+        const leadsSnapshot = await getDocs(collection(db, 'leads'));
+        let leadsData = leadsSnapshot.docs.map(doc => {
+          const data = doc.data();
+          // Safely grab the timestamp whether it's called capturedAt or createdAt
+          const timeData = data.capturedAt || data.createdAt;
+          return {
+            id: doc.id,
+            ...data,
+            // Keep the raw timestamp for sorting later
+            rawTime: timeData ? timeData.toMillis() : 0,
+            date: timeData ? timeData.toDate().toLocaleString() : 'Unknown Date'
+          };
+        });
+
+        // Sort leads in JavaScript (Newest first)
+        leadsData.sort((a, b) => b.rawTime - a.rawTime);
         setLeads(leadsData);
-      } catch (err) { console.error("Error fetching leads:", err); } 
-      finally { setLoading(false); }
+
+        // 2. Fetch Scans WITHOUT orderBy
+        const scansSnapshot = await getDocs(collection(db, 'scans'));
+        let scansData = scansSnapshot.docs.map(doc => {
+          const data = doc.data();
+          const timeData = data.scannedAt;
+          return {
+            id: doc.id,
+            ...data,
+            rawTime: timeData ? timeData.toMillis() : 0,
+            date: timeData ? timeData.toDate().toLocaleString() : 'Unknown Date'
+          };
+        });
+
+        // Sort scans in JavaScript (Newest first)
+        scansData.sort((a, b) => b.rawTime - a.rawTime);
+        setScans(scansData);
+
+      } catch (err) { 
+        console.error("Error fetching data:", err); 
+        alert("Failed to load data. Check console for details.");
+      } finally { 
+        setLoading(false); 
+      }
     };
-    fetchLeads();
+    fetchData();
   }, []);
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 h-full">
-      <div className="max-w-4xl mx-auto space-y-6 pb-20">
-        <h2 className="font-nothing text-3xl uppercase tracking-widest text-white">Incoming Audit Requests</h2>
-        {loading ? (
-          <div className="text-blue-500 animate-pulse tracking-widest uppercase text-sm">Fetching Secure Data...</div>
-        ) : (
-          <div className="grid gap-4">
-            {leads.length === 0 ? (
-              <p className="text-gray-500 uppercase tracking-widest text-xs">No active leads in the database.</p>
+    <div className="flex-1 overflow-y-auto p-8 h-full bg-[#030303]">
+      <div className="max-w-6xl mx-auto space-y-8 pb-20">
+        
+        <h2 className="text-3xl font-black uppercase tracking-widest text-white">Lead Generation & Analytics</h2>
+        
+        {/* Metric Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-[#0a0a0a] p-6 rounded-2xl border border-white/10 shadow-lg flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mb-1">Total Leads Captured</p>
+              <p className="text-4xl font-black text-white">{leads.length}</p>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-xl">📧</div>
+          </div>
+          
+          <div className="bg-[#0a0a0a] p-6 rounded-2xl border border-white/10 shadow-lg flex items-center justify-between">
+            <div>
+              <p className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mb-1">Total Free Scans Run</p>
+              <p className="text-4xl font-black text-[#3b82f6]">{scans.length}</p>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-[#3b82f6]/10 flex items-center justify-center text-[#3b82f6] text-xl">🔍</div>
+          </div>
+        </div>
+
+        {/* Data Table Section */}
+        <div className="bg-[#0a0a0a] rounded-2xl border border-white/10 shadow-lg overflow-hidden">
+          
+          {/* Tabs */}
+          <div className="flex border-b border-white/10 bg-[#111]">
+            <button 
+              onClick={() => setActiveTab('leads')}
+              className={`flex-1 py-4 text-sm font-black uppercase tracking-wider transition-colors ${activeTab === 'leads' ? 'bg-[#0a0a0a] text-emerald-400 border-b-2 border-emerald-400' : 'text-gray-500 hover:bg-white/5 hover:text-white'}`}
+            >
+              Captured Leads
+            </button>
+            <button 
+              onClick={() => setActiveTab('scans')}
+              className={`flex-1 py-4 text-sm font-black uppercase tracking-wider transition-colors ${activeTab === 'scans' ? 'bg-[#0a0a0a] text-[#3b82f6] border-b-2 border-[#3b82f6]' : 'text-gray-500 hover:bg-white/5 hover:text-white'}`}
+            >
+              All Scans (Analytics)
+            </button>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto min-h-[400px]">
+            {loading ? (
+              <div className="p-10 text-center text-[#3b82f6] text-sm uppercase tracking-widest font-bold animate-pulse">Loading secure records...</div>
             ) : (
-              leads.map((lead) => (
-                <div key={lead.id} className="bg-[#0a0a0a] border border-white/10 p-6 rounded-lg flex flex-col md:flex-row gap-6 items-start md:items-center justify-between hover:border-blue-500/50 transition-colors">
-                  <div className="space-y-1">
-                    <p className="font-bold text-white uppercase tracking-widest text-sm">{lead.name || 'Anonymous'}</p>
-                    <p className="text-gray-400 text-xs tracking-wider">{lead.email} | {lead.phone}</p>
-                    {lead.website && <p className="text-blue-400 text-xs tracking-wider">{lead.website}</p>}
-                  </div>
-                  <div className="text-left md:text-right space-y-1">
-                    <span className="inline-block px-3 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[10px] uppercase tracking-widest rounded-full">
-                      Goal: {lead.goal}
-                    </span>
-                    <p className="text-gray-600 text-[10px] uppercase tracking-widest">
-                      {lead.createdAt?.toDate().toLocaleDateString() || 'Just now'}
-                    </p>
-                  </div>
-                </div>
-              ))
+              <table className="w-full text-left border-collapse whitespace-nowrap">
+                <thead>
+                  <tr className="bg-[#111] border-b border-white/10">
+                    <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Date & Time</th>
+                    
+                    {activeTab === 'leads' && (
+                      <>
+                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Prospect Name</th>
+                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Contact Details</th>
+                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Source / Goal</th>
+                      </>
+                    )}
+                    
+                    <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Target Website</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  
+                  {activeTab === 'leads' && leads.length === 0 && (
+                    <tr><td colSpan="5" className="py-12 text-center text-gray-500 text-xs tracking-widest uppercase">No leads captured yet.</td></tr>
+                  )}
+                  {activeTab === 'scans' && scans.length === 0 && (
+                    <tr><td colSpan="2" className="py-12 text-center text-gray-500 text-xs tracking-widest uppercase">No scans run yet.</td></tr>
+                  )}
+
+                  {activeTab === 'leads' && leads.map((lead) => (
+                    <tr key={lead.id} className="hover:bg-white/5 transition-colors group">
+                      <td className="py-4 px-6 text-xs text-gray-500 font-mono group-hover:text-gray-400">
+                        {lead.date}
+                      </td>
+                      
+                      {/* Name Column */}
+                      <td className="py-4 px-6 text-sm font-bold text-white">
+                        {lead.name ? lead.name : <span className="text-gray-500 italic font-medium">Anonymous</span>}
+                      </td>
+                      
+                      {/* Contact Info Column (Email + Phone) */}
+                      <td className="py-4 px-6">
+                        <div className="text-sm font-medium text-emerald-400">{lead.email}</div>
+                        {lead.phone && <div className="text-xs text-gray-500 mt-1 tracking-wider">📞 {lead.phone}</div>}
+                      </td>
+                      
+                      {/* Source/Goal Column (Manual Lead vs PDF Download) */}
+                      <td className="py-4 px-6">
+                        {lead.goal ? (
+                          <span className="inline-block px-3 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[9px] uppercase tracking-widest rounded-full font-bold">
+                            Goal: {lead.goal}
+                          </span>
+                        ) : (
+                          <span className="inline-block px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] uppercase tracking-widest rounded-full font-bold">
+                            PDF Download
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-4 px-6 text-sm font-medium text-gray-300">
+                        {lead.website ? (
+                          <a href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#3b82f6] hover:underline transition-colors">
+                            {lead.website}
+                          </a>
+                        ) : (
+                          <span className="text-gray-600 italic">N/A</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* Scans Table Body */}
+                  {activeTab === 'scans' && scans.map((scan) => (
+                    <tr key={scan.id} className="hover:bg-white/5 transition-colors group">
+                      <td className="py-4 px-6 text-xs text-gray-500 font-mono group-hover:text-gray-400">{scan.date}</td>
+                      <td className="py-4 px-6 text-sm font-bold text-white">
+                        <a href={scan.website?.startsWith('http') ? scan.website : `https://${scan.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#3b82f6] hover:underline transition-colors">
+                          {scan.website}
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+
+                </tbody>
+              </table>
             )}
           </div>
-        )}
+        </div>
+
       </div>
     </div>
   );
@@ -779,18 +927,6 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
 
 // ==========================================
 // COMPONENT: BLOG BUILDER (THE MASSIVE CMS)
-// ==========================================
-// ==========================================
-// COMPONENT: BLOG BUILDER (UPGRADED WITH REORDER & DELETE)
-// ==========================================
-// ==========================================
-// COMPONENT: BLOG BUILDER (FULL VERSION WITH COMPARISONS)
-// ==========================================
-// ==========================================
-// COMPONENT: BLOG BUILDER (UPGRADED: CARDS & H3 LISTS)
-// ==========================================
-// ==========================================
-// COMPONENT: BLOG BUILDER (CRASH-PROOF & FULLY UPGRADED)
 // ==========================================
 function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewMode }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
