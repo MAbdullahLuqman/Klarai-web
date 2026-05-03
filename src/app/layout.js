@@ -2,7 +2,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 import { AdminModeProvider } from '@/context/AdminModeContext';
-import AdminToggle from '@/components/AdminToggle';
+// Removed the redundant AdminToggle import
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,7 +19,7 @@ export default function RootLayout({ children }) {
           
           {children}
           
-          <AdminToggle />
+          {/* Removed the <AdminToggle /> component from here */}
           
         </AdminModeProvider>
       </body>
