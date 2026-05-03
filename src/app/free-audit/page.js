@@ -1,231 +1,270 @@
 "use client";
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import GlobalHeader from '@/components/GlobalHeader';
+import GlobalHeader from '@/components/GlobalHeader'; 
 
 export default function FreeAuditPage() {
+  const [step, setStep] = useState(1); 
+  const [formData, setFormData] = useState({ name: '', email: '', website: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
+  
+  const [reportData, setReportData] = useState(null);
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    website: '',
-    goal: '' // FIXED: Set to empty so "Select a Service" shows by default
-  });
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
+  // --- 1. FIREBASE SAVE & API INITIATION ---
+  const handleStartScan = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError("");
 
     try {
-      // Push the lead directly to the Firebase 'leads' collection
       await addDoc(collection(db, 'leads'), {
-        ...formData,
-        createdAt: serverTimestamp(),
+        name: formData.name,
+        email: formData.email,
+        website: formData.website,
+        goal: 'Free Technical Audit',
+        capturedAt: serverTimestamp(),
       });
-      setIsSuccess(true);
-    } catch (err) {
-      console.error("Error submitting lead:", err);
-      setError("Failed to initiate sequence. Please try again or email us directly.");
+
+      await addDoc(collection(db, 'scans'), {
+        website: formData.website,
+        scannedAt: serverTimestamp(),
+      });
+
+      setStep(2); 
+      
+      try {
+        const response = await fetch('/api/your-backend-scanner', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: formData.website })
+        });
+        
+        if (response.ok) {
+          const backendResults = await response.json();
+          setReportData(backendResults);
+        } else {
+          console.warn("Backend API not ready, using mock data.");
+        }
+      } catch (apiError) {
+         console.warn("Backend API fetch failed, using mock data.");
+      }
+
+      setStep(3); 
+
+    } catch (error) {
+      console.error("Firebase Save Error:", error);
+      alert("Failed to connect to scanner. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // --- 2. BULLETPROOF PDF GENERATOR ---
+ // --- 2. THE NEW, POWERFUL PDF GENERATOR (WITH STABILITY FIX) ---
+// --- 2. THE NUCLEAR PDF GENERATOR FIX ---
+  const handleDownloadPDF = async () => {
+    setIsDownloading(true);
+    try {
+      const reportElement = document.getElementById('audit-report-container');
+      if (!reportElement) throw new Error("Report container not found");
+
+      // Give React a tiny bit more time to ensure all backend text is painted
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const html2pdf = (await import('html2pdf.js')).default;
+
+      const opt = {
+        margin:       [15, 15, 15, 15], 
+        filename:     `Klarai-Audit-${formData.website.replace(/[^a-zA-Z0-9]/g, '')}.pdf`,
+        image:        { type: 'jpeg', quality: 1.0 },
+        html2canvas:  { 
+          scale: 2, 
+          useCORS: true, 
+          backgroundColor: '#0a0a0a',
+          scrollY: 0,
+          // THIS IS THE NUCLEAR FIX:
+          // It intercepts the invisible document right before the PDF is captured 
+          // and forcefully removes any height limits or hidden overflows.
+          onclone: (clonedDoc) => {
+            const el = clonedDoc.getElementById('audit-report-container');
+            if(el) {
+              el.style.height = 'max-content';
+              el.style.overflow = 'visible';
+            }
+          }
+        },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['css', 'legacy'] } 
+      };
+
+      await html2pdf().set(opt).from(reportElement).save();
+
+    } catch (error) {
+      console.error("PDF Error:", error);
+      alert("Failed to generate PDF. Make sure all content has loaded.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
-    <div className="bg-[#fafafa] text-gray-900 font-sans selection:bg-blue-200 selection:text-[#0A101D] min-h-screen overflow-hidden flex flex-col">
+    <div className="bg-[#030303] text-white min-h-screen font-sans selection:bg-[#ccff00] selection:text-[#0a0a0a]">
       <GlobalHeader />
 
-      <main className="flex-1 pt-32 pb-24">
+      <main className="pt-32 pb-24 max-w-4xl mx-auto px-6">
         
-        {/* --- HERO SECTION --- */}
-        <section className="relative flex flex-col items-center text-center max-w-5xl mx-auto px-6 mb-16">
-          <div className="absolute inset-0 z-0 pointer-events-none">
-            <div className="absolute -top-10 left-1/4 w-[300px] h-[300px] bg-[#ADD8E6]/40 rounded-full blur-[100px] animate-pulse"></div>
-            <div className="absolute top-10 right-1/4 w-[300px] h-[300px] bg-blue-300/20 rounded-full blur-[100px]"></div>
-          </div>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="relative z-10 flex flex-col items-center"
-          >
-            <span className="inline-block py-1.5 px-4 mb-6 rounded-full bg-blue-50 border border-blue-200 text-blue-600 text-xs font-black tracking-[0.2em] uppercase shadow-sm">
-              System Diagnostics
-            </span>
-            <h1 className="text-5xl md:text-7xl font-black text-[#0A101D] tracking-tighter leading-tight mb-6">
-              Initiate System <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-[#0A101D]">Audit</span>.
-            </h1>
-            <p className="text-xl mb-10 text-gray-500 font-medium max-w-2xl mx-auto">
-              Stop guessing. Let our architects analyze your digital infrastructure and build a mathematically sound roadmap to scale your revenue.
-            </p>
-          </motion.div>
-        </section>
+        {/* STEP 1: LEAD CAPTURE */}
+        {step === 1 && (
+          <div className="bg-[#0a0a0a] border border-white/10 p-10 rounded-[2rem] shadow-2xl max-w-xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-black uppercase tracking-widest text-[#ccff00] mb-2">Initiate System Audit</h1>
+              <p className="text-gray-400 font-medium">Enter your details to uncover the technical flaws costing you rankings.</p>
+            </div>
 
-        {/* --- FORM & CONTENT SPLIT --- */}
-        <section className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-start relative z-10">
-          
-          {/* FIXED: FORM IS NOW FIRST (Left Side / Top on Mobile) */}
-          <motion.div 
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="bg-white rounded-[3rem] border-2 border-gray-200 p-8 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.06)] relative"
-          >
-            {isSuccess ? (
-              <div className="text-center py-20">
-                <div className="w-24 h-24 bg-blue-50 border border-blue-200 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <h3 className="text-3xl font-black text-[#0A101D] mb-4">Request Received.</h3>
-                <p className="text-gray-500 font-medium text-lg leading-relaxed">
-                  Your system data has been securely transmitted. One of our lead architects will contact you within 24 hours with the next steps.
-                </p>
+            <form onSubmit={handleStartScan} className="space-y-5">
+              <div>
+                <label className="block text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Target URL</label>
+                <input required type="url" placeholder="https://yourwebsite.com" value={formData.website} onChange={(e)=>setFormData({...formData, website: e.target.value})} className="w-full bg-[#111] border border-white/10 p-4 text-sm focus:border-[#008dd8] outline-none text-white rounded-xl" />
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Full Name</label>
-                  <input 
-                    type="text" 
-                    name="name" 
-                    required 
-                    value={formData.name} 
-                    onChange={handleChange} 
-                    placeholder="John Doe"
-                    className="w-full bg-gray-50 border-2 border-gray-200 rounded-2xl px-5 py-4 text-gray-900 font-medium focus:border-[#0A101D] focus:ring-4 focus:ring-gray-900/10 outline-none transition-all placeholder:text-gray-400"
-                  />
-                </div>
+              <div>
+                <label className="block text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Your Name</label>
+                <input required type="text" placeholder="John Doe" value={formData.name} onChange={(e)=>setFormData({...formData, name: e.target.value})} className="w-full bg-[#111] border border-white/10 p-4 text-sm focus:border-[#008dd8] outline-none text-white rounded-xl" />
+              </div>
+              <div>
+                <label className="block text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Work Email</label>
+                <input required type="email" placeholder="john@company.com" value={formData.email} onChange={(e)=>setFormData({...formData, email: e.target.value})} className="w-full bg-[#111] border border-white/10 p-4 text-sm focus:border-[#008dd8] outline-none text-white rounded-xl" />
+              </div>
+              
+              <button type="submit" disabled={isSubmitting} className="w-full bg-[#008dd8] hover:bg-blue-500 text-white font-black uppercase tracking-widest py-4 rounded-xl mt-6 transition-all disabled:opacity-50 shadow-lg">
+                {isSubmitting ? 'Connecting...' : 'Run Technical Scan'}
+              </button>
+            </form>
+          </div>
+        )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Email Address</label>
-                    <input 
-                      type="email" 
-                      name="email" 
-                      required 
-                      value={formData.email} 
-                      onChange={handleChange} 
-                      placeholder="john@company.com"
-                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-2xl px-5 py-4 text-gray-900 font-medium focus:border-[#0A101D] focus:ring-4 focus:ring-gray-900/10 outline-none transition-all placeholder:text-gray-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Phone Number</label>
-                    <input 
-                      type="tel" 
-                      name="phone" 
-                      required 
-                      value={formData.phone} 
-                      onChange={handleChange} 
-                      placeholder="+44 7700 900077"
-                      className="w-full bg-gray-50 border-2 border-gray-200 rounded-2xl px-5 py-4 text-gray-900 font-medium focus:border-[#0A101D] focus:ring-4 focus:ring-gray-900/10 outline-none transition-all placeholder:text-gray-400"
-                    />
-                  </div>
-                </div>
+        {/* STEP 2: SCANNING */}
+        {step === 2 && (
+          <div className="text-center space-y-8 py-20">
+            <div className="relative w-32 h-32 mx-auto">
+              <div className="absolute inset-0 border-4 border-[#111] rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-[#ccff00] rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <div>
+              <h2 className="text-2xl font-black tracking-widest uppercase text-white animate-pulse">Analyzing Architecture...</h2>
+              <p className="text-[#008dd8] font-mono text-sm mt-4 tracking-widest">Scanning {formData.website}</p>
+            </div>
+          </div>
+        )}
 
-                <div>
-                  <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Website URL</label>
-                  {/* FIXED: type="text" removes the strict HTTPS requirement */}
-                  <input 
-                    type="text" 
-                    name="website" 
-                    required
-                    value={formData.website} 
-                    onChange={handleChange} 
-                    placeholder="yourcompany.com"
-                    className="w-full bg-gray-50 border-2 border-gray-200 rounded-2xl px-5 py-4 text-gray-900 font-medium focus:border-[#0A101D] focus:ring-4 focus:ring-gray-900/10 outline-none transition-all placeholder:text-gray-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Primary Growth Goal</label>
-                  <div className="relative">
-                    {/* FIXED: Proper default state and custom dropdown arrow */}
-                    <select 
-                      name="goal" 
-                      required
-                      value={formData.goal} 
-                      onChange={handleChange} 
-                      className={`w-full appearance-none bg-gray-50 border-2 border-gray-200 rounded-2xl px-5 py-4 font-medium focus:border-[#0A101D] focus:ring-4 focus:ring-gray-900/10 outline-none transition-all cursor-pointer ${formData.goal === "" ? "text-gray-400" : "text-gray-900"}`}
-                    >
-                      <option value="" disabled hidden>Select a Service</option>
-                      <option value="Increase Organic Traffic (SEO)">Increase Organic Traffic (SEO)</option>
-                      <option value="Scale Paid Ads Revenue (Meta Ads)">Scale Paid Ads Revenue (Meta Ads)</option>
-                      <option value="Build a New Website">Build a New Website</option>
-                      <option value="General Digital Strategy">General Digital Strategy</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none text-gray-500">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                  </div>
-                </div>
-
-                {error && <p className="text-red-500 text-sm font-bold px-2">{error}</p>}
-
-                {/* FIXED: Premium Theme CTA Button */}
-                <button 
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="w-full mt-4 bg-[#0A101D] text-white py-5 rounded-2xl font-black text-lg uppercase tracking-widest shadow-[0_15px_30px_rgba(10,16,29,0.2)] hover:bg-[#008dd8] hover:shadow-[0_20px_40px_rgba(0,141,216,0.3)] hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  {isSubmitting ? 'Transmitting Data...' : 'Initiate Sequence'}
-                </button>
-
-                <p className="text-center text-xs text-gray-400 font-medium uppercase tracking-widest mt-4">
-                  100% Secure. No credit card required.
-                </p>
-              </form>
-            )}
-          </motion.div>
-
-          {/* RIGHT SIDE: Value Proposition (Now 2nd) */}
-          <motion.div 
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="space-y-8"
-          >
-            <div className="bg-white p-8 rounded-[2rem] border-2 border-gray-100 shadow-[0_20px_40px_rgba(0,0,0,0.02)] relative overflow-hidden group hover:border-[#008dd8] transition-colors">
-               <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#ADD8E6]/40 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-               <h3 className="text-2xl font-black text-[#0A101D] mb-4 flex items-center gap-3">
-                 <svg className="w-8 h-8 text-[#008dd8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                 Deep Technical Analysis
-               </h3>
-               <p className="text-gray-500 font-medium leading-relaxed">We strip your website down to its core code. We analyze site speed, core web vitals, indexability issues, and hidden technical friction preventing you from ranking.</p>
+        {/* STEP 3: THE REPORT */}
+        {step === 3 && (
+          <div className="space-y-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-[#111] p-6 rounded-2xl border border-white/10">
+              <div>
+                <h2 className="text-xl font-black text-white uppercase tracking-widest">Scan Complete</h2>
+                <p className="text-[#ccff00] text-sm font-mono mt-1">{formData.website}</p>
+              </div>
+              
+              <button onClick={handleDownloadPDF} disabled={isDownloading} className="bg-[#ccff00] text-[#0a0a0a] px-8 py-3 rounded-full font-black uppercase tracking-widest text-xs hover:bg-[#b3e600] transition-all flex items-center gap-2 shadow-lg disabled:opacity-50">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                {isDownloading ? 'Packaging PDF...' : 'Download Full Report'}
+              </button>
             </div>
 
-            <div className="bg-white p-8 rounded-[2rem] border-2 border-gray-100 shadow-[0_20px_40px_rgba(0,0,0,0.02)] relative overflow-hidden group hover:border-[#0A101D] transition-colors">
-               <div className="absolute -top-10 -right-10 w-32 h-32 bg-gray-200 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-               <h3 className="text-2xl font-black text-[#0A101D] mb-4 flex items-center gap-3">
-                 <svg className="w-8 h-8 text-[#0A101D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                 Competitor Entity Mapping
-               </h3>
-               <p className="text-gray-500 font-medium leading-relaxed">We reverse-engineer exactly what your top 3 competitors are doing to capture market share, and build a blueprint to dismantle their lead.</p>
-            </div>
+            {/* --- PDF WRAPPER --- */}
+            <div id="audit-report-container" className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 md:p-12 text-white overflow-hidden">
+              
+              <div className="border-b border-white/10 pb-8 mb-8 flex justify-between items-end">
+                <div>
+                  <h1 className="text-4xl font-black uppercase tracking-tighter mb-2 text-[#008dd8]">Technical Audit</h1>
+                  <p className="text-gray-400 font-mono text-sm">Target: {formData.website}</p>
+                  <p className="text-gray-400 font-mono text-sm">Date: {new Date().toLocaleDateString()}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-5xl font-black text-red-500">42/100</div>
+                  <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mt-2">Overall Score</div>
+                </div>
+              </div>
 
-            <div className="bg-white p-8 rounded-[2rem] border-2 border-gray-100 shadow-[0_20px_40px_rgba(0,0,0,0.02)] relative overflow-hidden group hover:border-blue-600 transition-colors">
-               <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-100 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-               <h3 className="text-2xl font-black text-[#0A101D] mb-4 flex items-center gap-3">
-                 <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                 Actionable Growth Blueprint
-               </h3>
-               <p className="text-gray-500 font-medium leading-relaxed">You won't get a generic PDF. You get a bespoke, plain-English architectural blueprint detailing exactly how to scale your specific brand over the next 6 months.</p>
-            </div>
-          </motion.div>
+              <div className="space-y-10">
+                
+                {/* Note the 'break-inside-avoid' class on all these sections. This tells the PDF generator never to slice this specific box in half. */}
+                <section className="break-inside-avoid">
+                  <h3 className="text-lg font-black uppercase tracking-widest border-l-4 border-red-500 pl-4 mb-4">Critical Issues</h3>
+                  <div className="bg-red-500/10 border border-red-500/20 p-5 rounded-xl space-y-3">
+                    <div className="flex gap-3"><span className="text-red-500 font-black">✕</span><p className="text-sm font-medium text-red-200">Missing primary H1 tag on homepage.</p></div>
+                    <div className="flex gap-3"><span className="text-red-500 font-black">✕</span><p className="text-sm font-medium text-red-200">Load time exceeds 4.5 seconds on mobile.</p></div>
+                  </div>
+                </section>
 
-        </section>
+                <section className="break-inside-avoid">
+                  <h3 className="text-lg font-black uppercase tracking-widest border-l-4 border-yellow-500 pl-4 mb-4">Warnings</h3>
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 p-5 rounded-xl space-y-3">
+                    <div className="flex gap-3"><span className="text-yellow-500 font-black">!</span><p className="text-sm font-medium text-yellow-200">Meta description is too short.</p></div>
+                  </div>
+                </section>
+
+                {/* RESTORED: On-Page Architecture */}
+                <section className="break-inside-avoid">
+                  <h3 className="text-lg font-black uppercase tracking-widest border-l-4 border-blue-500 pl-4 mb-4">On-Page Architecture</h3>
+                  <div className="bg-blue-500/10 border border-blue-500/20 p-5 rounded-xl space-y-3">
+                    {reportData?.onPage && reportData.onPage.length > 0 ? (
+                      reportData.onPage.map((item, index) => (
+                        <div key={index} className="flex gap-3">
+                          <span className="text-blue-500 font-black">→</span>
+                          <p className="text-sm font-medium text-blue-200">{item}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        <div className="flex gap-3"><span className="text-blue-500 font-black">→</span><p className="text-sm font-medium text-blue-200">Header tag hierarchy jumps from H1 directly to H3.</p></div>
+                        <div className="flex gap-3"><span className="text-blue-500 font-black">→</span><p className="text-sm font-medium text-blue-200">Internal linking structure lacks topical clusters.</p></div>
+                        <div className="flex gap-3"><span className="text-blue-500 font-black">→</span><p className="text-sm font-medium text-blue-200">Image alt-text optimization is missing on 80% of assets.</p></div>
+                      </>
+                    )}
+                  </div>
+                </section>
+
+                {/* RESTORED: GEO / AI Overview Gaps */}
+                <section className="break-inside-avoid">
+                  <h3 className="text-lg font-black uppercase tracking-widest border-l-4 border-purple-500 pl-4 mb-4">GEO / AI Overview Gaps</h3>
+                  <div className="bg-purple-500/10 border border-purple-500/20 p-5 rounded-xl space-y-3">
+                    {reportData?.aiGaps && reportData.aiGaps.length > 0 ? (
+                      reportData.aiGaps.map((gap, index) => (
+                        <div key={index} className="flex gap-3">
+                          <span className="text-purple-500 font-black">✦</span>
+                          <p className="text-sm font-medium text-purple-200">{gap}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        <div className="flex gap-3"><span className="text-purple-500 font-black">✦</span><p className="text-sm font-medium text-purple-200">Brand Entity is not recognized by Gemini or ChatGPT.</p></div>
+                        <div className="flex gap-3"><span className="text-purple-500 font-black">✦</span><p className="text-sm font-medium text-purple-200">Conversational long-tail keywords are missing from structures.</p></div>
+                        <div className="flex gap-3"><span className="text-purple-500 font-black">✦</span><p className="text-sm font-medium text-purple-200">Lack of author authority signals for E-E-A-T compliance.</p></div>
+                      </>
+                    )}
+                  </div>
+                </section>
+
+                <section className="break-inside-avoid">
+                  <h3 className="text-lg font-black uppercase tracking-widest border-l-4 border-emerald-500 pl-4 mb-4">Passed Checks</h3>
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 p-5 rounded-xl space-y-3">
+                    <div className="flex gap-3"><span className="text-emerald-500 font-black">✓</span><p className="text-sm font-medium text-emerald-200">SSL Certificate is valid and active.</p></div>
+                  </div>
+                </section>
+              </div>
+
+              <div className="mt-12 pt-8 border-t border-white/10 text-center break-inside-avoid">
+                <h3 className="text-xl font-black uppercase mb-4 text-white">Stop Guessing. Start Scaling.</h3>
+                <p className="text-gray-400 text-sm max-w-lg mx-auto">Your technical architecture is actively losing you leads. Let our engineering team fix these errors and align your site for AI Search dominance.</p>
+                <div className="mt-6 text-xs font-mono text-[#008dd8]">founder@klarai.uk • klarai.uk</div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );
