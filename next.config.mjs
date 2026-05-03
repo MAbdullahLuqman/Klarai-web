@@ -1,11 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 1. THIS IS THE NEW PART: Tells Next.js to ignore the massive Chromium binary during build
-  experimental: {
-    serverComponentsExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
-  },
+  // THIS IS THE FIX: Moved out of "experimental" for newer Next.js versions
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
 
-  // 2. THIS IS YOUR EXISTING PART: Keeps your llms.txt hidden from Google but readable by AI
+  // Your existing llms.txt rules stay exactly the same
   async headers() {
     return [
       {

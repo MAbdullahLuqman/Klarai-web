@@ -1,9 +1,12 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase"; 
-import { doc, setDoc, getDoc, collection, getDocs, query, orderBy, serverTimestamp, deleteDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, collection, getDocs, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import Link from 'next/link';
+
+// Import the new Headless Notion-Style Editor
+import TipTapEditor from '@/components/TipTapEditor';
 
 // --- SERVICE URL MAP FOR LLMS.TXT ---
 const SERVICE_URL_MAP = {
@@ -37,80 +40,8 @@ const INITIAL_DATA = {
 };
 
 // ==========================================
-// UPGRADED RICH TEXT AREA (LINKS & IMAGES)
+// COMPONENT: MAIN ADMIN DASHBOARD WRAPPER
 // ==========================================
-const RichTextArea = ({ label, value, onChange, name, rows = 3, placeholder = "" }) => {
-  const inputRef = useRef(null);
-
-  const handleInsertLink = () => {
-    const el = inputRef.current;
-    if (!el) return;
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
-    const selectedText = value.substring(start, end);
-    
-    const url = window.prompt("Enter link URL (e.g., /seo-services or https://...):", "");
-    if (!url) return;
-    
-    const textToWrap = selectedText || window.prompt("Enter text to display:", "Click here");
-    if (!textToWrap) return;
-    
-    const linkHtml = `<a href="${url}" class="text-[#008dd8] hover:underline font-bold transition-colors">${textToWrap}</a>`;
-    const newValue = value.substring(0, start) + linkHtml + value.substring(end);
-    onChange({ target: { name: name || el.name, value: newValue } });
-  };
-
-  const handleInsertImage = () => {
-    const el = inputRef.current;
-    if (!el) return;
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
-    
-    const url = window.prompt("Enter Image URL (e.g., /images/chart.jpg or https://...):", "");
-    if (!url) return;
-    
-    const alt = window.prompt("Enter Image Alt Text (Important for SEO):", "Klarai Architecture");
-    
-    // Injects a beautifully styled responsive image tag
-    const imgHtml = `\n\n<img src="${url}" alt="${alt}" class="w-full rounded-2xl my-8 border-2 border-gray-100 shadow-sm object-cover" />\n\n`;
-    const newValue = value.substring(0, start) + imgHtml + value.substring(end);
-    onChange({ target: { name: name || el.name, value: newValue } });
-  };
-
-  return (
-    <div className="w-full">
-      <div className="flex justify-between items-center mb-2">
-        {label ? <label className="block text-[10px] text-gray-500 font-bold uppercase tracking-widest">{label}</label> : <div></div>}
-        <div className="flex gap-2">
-          <button 
-            type="button" 
-            onClick={handleInsertLink} 
-            className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-1 rounded hover:bg-blue-500/20 border border-blue-500/30 transition-colors flex items-center gap-1 font-bold uppercase"
-          >
-            🔗 Link
-          </button>
-          <button 
-            type="button" 
-            onClick={handleInsertImage} 
-            className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors flex items-center gap-1 font-bold uppercase"
-          >
-            🖼️ Image
-          </button>
-        </div>
-      </div>
-      <textarea 
-        name={name}
-        ref={inputRef} 
-        rows={rows} 
-        value={value} 
-        onChange={onChange} 
-        placeholder={placeholder} 
-        className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-200 resize-y focus:border-blue-500 outline-none leading-relaxed" 
-      />
-    </div>
-  );
-};
-
 export default function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -188,6 +119,7 @@ export default function AdminDashboard() {
   const handleFlatChange = (field, value) => {
     setContent(prev => ({ ...prev, [activeTab]: { ...prev[activeTab], [field]: value } }));
   };
+  
   const handleSaveToFirebase = async () => {
     setIsSaving(true);
     try {
@@ -240,6 +172,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[#030303] text-gray-200 flex font-sans selection:bg-[#3b82f6] selection:text-white">
       
+      {/* SIDEBAR NAVIGATION */}
       <aside className="w-64 bg-[#0a0a0a] border-r border-white/10 flex flex-col hidden md:flex h-screen sticky top-0">
         <div className="h-20 flex items-center px-8 border-b border-white/10 shrink-0"><span className="text-xl font-bold tracking-widest text-white">KLARAI <span className="text-[#3b82f6]">ADMIN</span></span></div>
         <div className="p-4 flex-1 overflow-y-auto space-y-8">
@@ -308,6 +241,7 @@ export default function AdminDashboard() {
         {viewMode === "blogBuilder" && <BlogBuilderView isEditing={false} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
         {viewMode === "blogEdit" && <BlogBuilderView key={activeBlogId} isEditing={true} pageId={activeBlogId} initialData={blogPagesList[activeBlogId]} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
 
+        {/* CORE PAGE EDITORS (SEO, AEO, WEB, ETC) */}
         {viewMode === "core" && (
           <>
             <header className="h-20 flex items-center justify-between px-8 bg-[#050505]/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-10 shrink-0">
@@ -350,7 +284,7 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="hero" title="Block 1: Hero Section" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Main H1 Headline</label><input type="text" value={content[activeTab].hero?.h1 || ""} onChange={(e) => handleNestedChange('hero', 'h1', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white font-bold" /></div>
-                              <RichTextArea label="Subheadline" value={content[activeTab].hero?.sub || ""} onChange={(e) => handleNestedChange('hero', 'sub', e.target.value)} rows={2} />
+                              <TipTapEditor label="Subheadline" name="sub" value={content[activeTab].hero?.sub || ""} onChange={(e) => handleNestedChange('hero', 'sub', e.target.value)} />
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Trust Bar (Separate with | )</label><input type="text" value={content[activeTab].hero?.trust || ""} onChange={(e) => handleNestedChange('hero', 'trust', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
                               <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-4 mt-4">
                                   <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Primary Button Text</label><input type="text" value={content[activeTab].hero?.btn1Text || ""} onChange={(e) => handleNestedChange('hero', 'btn1Text', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
@@ -365,8 +299,8 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="definition" title="Block 2: Definition (Snippet Target)" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].definition?.h2 || ""} onChange={(e) => handleNestedChange('definition', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <RichTextArea label="Paragraph (40-60 words)" value={content[activeTab].definition?.para || ""} onChange={(e) => handleNestedChange('definition', 'para', e.target.value)} />
-                              <RichTextArea label="Bullet Points (One per line)" value={content[activeTab].definition?.bullets || ""} onChange={(e) => handleNestedChange('definition', 'bullets', e.target.value)} placeholder="Point 1&#10;Point 2" />
+                              <TipTapEditor label="Paragraph (40-60 words)" name="para" value={content[activeTab].definition?.para || ""} onChange={(e) => handleNestedChange('definition', 'para', e.target.value)} />
+                              <TipTapEditor label="Bullet Points (One per line)" name="bullets" value={content[activeTab].definition?.bullets || ""} onChange={(e) => handleNestedChange('definition', 'bullets', e.target.value)} />
                           </div>
                       </section>
 
@@ -374,7 +308,7 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="included" title="Block 3: What's Included" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].included?.h2 || ""} onChange={(e) => handleNestedChange('included', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <RichTextArea label="Items (Format: Title: Description) - One per line" value={content[activeTab].included?.items || ""} onChange={(e) => handleNestedChange('included', 'items', e.target.value)} rows={4} />
+                              <TipTapEditor label="Items (Format: Title: Description) - One per line" name="items" value={content[activeTab].included?.items || ""} onChange={(e) => handleNestedChange('included', 'items', e.target.value)} />
                           </div>
                       </section>
 
@@ -382,7 +316,7 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="process" title="Block 4: Process" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].process?.h2 || ""} onChange={(e) => handleNestedChange('process', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <RichTextArea label="Steps (Format: Step Title: Description) - One per line" value={content[activeTab].process?.steps || ""} onChange={(e) => handleNestedChange('process', 'steps', e.target.value)} rows={4} />
+                              <TipTapEditor label="Steps (Format: Step Title: Description) - One per line" name="steps" value={content[activeTab].process?.steps || ""} onChange={(e) => handleNestedChange('process', 'steps', e.target.value)} />
                           </div>
                       </section>
 
@@ -391,7 +325,7 @@ export default function AdminDashboard() {
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].results?.h2 || ""} onChange={(e) => handleNestedChange('results', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Case Study (Format: Niche | Metric | Outcome)</label><input type="text" value={content[activeTab].results?.caseStudy || ""} onChange={(e) => handleNestedChange('results', 'caseStudy', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <RichTextArea label="Testimonial Quote" value={content[activeTab].results?.quote || ""} onChange={(e) => handleNestedChange('results', 'quote', e.target.value)} rows={2} />
+                              <TipTapEditor label="Testimonial Quote" name="quote" value={content[activeTab].results?.quote || ""} onChange={(e) => handleNestedChange('results', 'quote', e.target.value)} />
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Testimonial Author</label><input type="text" value={content[activeTab].results?.author || ""} onChange={(e) => handleNestedChange('results', 'author', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
                           </div>
                       </section>
@@ -410,7 +344,7 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="faq" title="Block 7: FAQ" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].faq?.h2 || ""} onChange={(e) => handleNestedChange('faq', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <RichTextArea label="Questions & Answers (Format: Question?|Answer) - One per line" value={content[activeTab].faq?.qas || ""} onChange={(e) => handleNestedChange('faq', 'qas', e.target.value)} rows={4} />
+                              <TipTapEditor label="Questions & Answers (Format: Question?|Answer) - One per line" name="qas" value={content[activeTab].faq?.qas || ""} onChange={(e) => handleNestedChange('faq', 'qas', e.target.value)} />
                           </div>
                       </section>
 
@@ -418,7 +352,7 @@ export default function AdminDashboard() {
                           <SectionHeader sectionKey="cta" title="Block 8: Final CTA" />
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].cta?.h2 || ""} onChange={(e) => handleNestedChange('cta', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <RichTextArea label="Description Text" value={content[activeTab].cta?.text || ""} onChange={(e) => handleNestedChange('cta', 'text', e.target.value)} rows={2} />
+                              <TipTapEditor label="Description Text" name="text" value={content[activeTab].cta?.text || ""} onChange={(e) => handleNestedChange('cta', 'text', e.target.value)} />
                               <div className="grid grid-cols-2 gap-4">
                                   <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Button Text</label><input type="text" value={content[activeTab].cta?.btnText || ""} onChange={(e) => handleNestedChange('cta', 'btnText', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
                                   <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Button Link URL</label><input type="text" value={content[activeTab].cta?.btnLink || ""} onChange={(e) => handleNestedChange('cta', 'btnLink', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-[#3b82f6]" /></div>
@@ -448,12 +382,6 @@ export default function AdminDashboard() {
 // ==========================================
 // COMPONENT: LEADS & SCANS DASHBOARD
 // ==========================================
-// ==========================================
-// COMPONENT: LEADS & SCANS DASHBOARD
-// ==========================================
-// ==========================================
-// COMPONENT: LEADS & SCANS DASHBOARD
-// ==========================================
 function LeadsView() {
   const [activeTab, setActiveTab] = useState('leads');
   const [leads, setLeads] = useState([]);
@@ -464,48 +392,35 @@ function LeadsView() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // 1. Fetch Leads WITHOUT orderBy (to avoid Firebase Index errors)
         const leadsSnapshot = await getDocs(collection(db, 'leads'));
         let leadsData = leadsSnapshot.docs.map(doc => {
           const data = doc.data();
-          // Safely grab the timestamp whether it's called capturedAt or createdAt
           const timeData = data.capturedAt || data.createdAt;
           return {
-            id: doc.id,
-            ...data,
-            // Keep the raw timestamp for sorting later
+            id: doc.id, ...data,
             rawTime: timeData ? timeData.toMillis() : 0,
             date: timeData ? timeData.toDate().toLocaleString() : 'Unknown Date'
           };
         });
-
-        // Sort leads in JavaScript (Newest first)
         leadsData.sort((a, b) => b.rawTime - a.rawTime);
         setLeads(leadsData);
 
-        // 2. Fetch Scans WITHOUT orderBy
         const scansSnapshot = await getDocs(collection(db, 'scans'));
         let scansData = scansSnapshot.docs.map(doc => {
           const data = doc.data();
           const timeData = data.scannedAt;
           return {
-            id: doc.id,
-            ...data,
+            id: doc.id, ...data,
             rawTime: timeData ? timeData.toMillis() : 0,
             date: timeData ? timeData.toDate().toLocaleString() : 'Unknown Date'
           };
         });
-
-        // Sort scans in JavaScript (Newest first)
         scansData.sort((a, b) => b.rawTime - a.rawTime);
         setScans(scansData);
-
       } catch (err) { 
         console.error("Error fetching data:", err); 
         alert("Failed to load data. Check console for details.");
-      } finally { 
-        setLoading(false); 
-      }
+      } finally { setLoading(false); }
     };
     fetchData();
   }, []);
@@ -516,7 +431,6 @@ function LeadsView() {
         
         <h2 className="text-3xl font-black uppercase tracking-widest text-white">Lead Generation & Analytics</h2>
         
-        {/* Metric Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-[#0a0a0a] p-6 rounded-2xl border border-white/10 shadow-lg flex items-center justify-between">
             <div>
@@ -535,10 +449,7 @@ function LeadsView() {
           </div>
         </div>
 
-        {/* Data Table Section */}
         <div className="bg-[#0a0a0a] rounded-2xl border border-white/10 shadow-lg overflow-hidden">
-          
-          {/* Tabs */}
           <div className="flex border-b border-white/10 bg-[#111]">
             <button 
               onClick={() => setActiveTab('leads')}
@@ -554,7 +465,6 @@ function LeadsView() {
             </button>
           </div>
 
-          {/* Table */}
           <div className="overflow-x-auto min-h-[400px]">
             {loading ? (
               <div className="p-10 text-center text-[#3b82f6] text-sm uppercase tracking-widest font-bold animate-pulse">Loading secure records...</div>
@@ -563,7 +473,6 @@ function LeadsView() {
                 <thead>
                   <tr className="bg-[#111] border-b border-white/10">
                     <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Date & Time</th>
-                    
                     {activeTab === 'leads' && (
                       <>
                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Prospect Name</th>
@@ -571,12 +480,10 @@ function LeadsView() {
                         <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Source / Goal</th>
                       </>
                     )}
-                    
                     <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Target Website</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  
                   {activeTab === 'leads' && leads.length === 0 && (
                     <tr><td colSpan="5" className="py-12 text-center text-gray-500 text-xs tracking-widest uppercase">No leads captured yet.</td></tr>
                   )}
@@ -586,58 +493,35 @@ function LeadsView() {
 
                   {activeTab === 'leads' && leads.map((lead) => (
                     <tr key={lead.id} className="hover:bg-white/5 transition-colors group">
-                      <td className="py-4 px-6 text-xs text-gray-500 font-mono group-hover:text-gray-400">
-                        {lead.date}
-                      </td>
-                      
-                      {/* Name Column */}
-                      <td className="py-4 px-6 text-sm font-bold text-white">
-                        {lead.name ? lead.name : <span className="text-gray-500 italic font-medium">Anonymous</span>}
-                      </td>
-                      
-                      {/* Contact Info Column (Email + Phone) */}
+                      <td className="py-4 px-6 text-xs text-gray-500 font-mono group-hover:text-gray-400">{lead.date}</td>
+                      <td className="py-4 px-6 text-sm font-bold text-white">{lead.name ? lead.name : <span className="text-gray-500 italic font-medium">Anonymous</span>}</td>
                       <td className="py-4 px-6">
                         <div className="text-sm font-medium text-emerald-400">{lead.email}</div>
                         {lead.phone && <div className="text-xs text-gray-500 mt-1 tracking-wider">📞 {lead.phone}</div>}
                       </td>
-                      
-                      {/* Source/Goal Column (Manual Lead vs PDF Download) */}
                       <td className="py-4 px-6">
                         {lead.goal ? (
-                          <span className="inline-block px-3 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[9px] uppercase tracking-widest rounded-full font-bold">
-                            Goal: {lead.goal}
-                          </span>
+                          <span className="inline-block px-3 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[9px] uppercase tracking-widest rounded-full font-bold">Goal: {lead.goal}</span>
                         ) : (
-                          <span className="inline-block px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] uppercase tracking-widest rounded-full font-bold">
-                            PDF Download
-                          </span>
+                          <span className="inline-block px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] uppercase tracking-widest rounded-full font-bold">PDF Download</span>
                         )}
                       </td>
-
                       <td className="py-4 px-6 text-sm font-medium text-gray-300">
                         {lead.website ? (
-                          <a href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#3b82f6] hover:underline transition-colors">
-                            {lead.website}
-                          </a>
-                        ) : (
-                          <span className="text-gray-600 italic">N/A</span>
-                        )}
+                          <a href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#3b82f6] hover:underline transition-colors">{lead.website}</a>
+                        ) : <span className="text-gray-600 italic">N/A</span>}
                       </td>
                     </tr>
                   ))}
 
-                  {/* Scans Table Body */}
                   {activeTab === 'scans' && scans.map((scan) => (
                     <tr key={scan.id} className="hover:bg-white/5 transition-colors group">
                       <td className="py-4 px-6 text-xs text-gray-500 font-mono group-hover:text-gray-400">{scan.date}</td>
                       <td className="py-4 px-6 text-sm font-bold text-white">
-                        <a href={scan.website?.startsWith('http') ? scan.website : `https://${scan.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#3b82f6] hover:underline transition-colors">
-                          {scan.website}
-                        </a>
+                        <a href={scan.website?.startsWith('http') ? scan.website : `https://${scan.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#3b82f6] hover:underline transition-colors">{scan.website}</a>
                       </td>
                     </tr>
                   ))}
-
                 </tbody>
               </table>
             )}
@@ -650,7 +534,7 @@ function LeadsView() {
 }
 
 // ==========================================
-// COMPONENT: NICHE PAGE BUILDER (AEO/SEO STRICT)
+// COMPONENT: NICHE PAGE BUILDER
 // ==========================================
 function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setViewMode }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -678,16 +562,14 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
       h1: base.h1 || '',
       subheadline: base.subheadline || '',
       trustLine: base.trustLine || '',
-      tldr: base.tldr || '', // Now a string to use RichText
+      tldr: base.tldr || '',
       statCards: parseArray(base.statCards, { number: '', label: '', source: '' }, 'label'),
       h2Sections: parseArray(base.h2Sections, { question: '', directAnswer: '', expansion: '' }, 'question'),
       deliverables: parseArray(base.deliverables, { action: '', outcome: '' }, 'action'),
       faqs: parseArray(base.faqs, { q: '', a: '' }, 'q'),
       relatedLinks: parseArray(base.relatedLinks, { title: '', url: '' }, 'title'),
       caseStudy: base.caseStudy || { location: '', before: '', after: '', time: '', kwBefore: '', kwAfter: '' },
-      process: Array.isArray(base.process) && base.process.length > 0 
-        ? base.process 
-        : ['Audit & Discovery', 'Strategic Blueprint', 'Execution & Deployment', 'Scaling & Growth'],
+      process: Array.isArray(base.process) && base.process.length > 0 ? base.process : ['', '', '', ''],
       authorName: base.authorName || 'Abdullah Luqman',
       authorRole: base.authorRole || 'Lead System Architect'
     };
@@ -696,26 +578,15 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const updateArray = (key, index, field, value) => {
-    const currentArray = formData[key] || [];
-    const newArr = [...currentArray];
-    let obj = newArr[index];
-    if (typeof obj !== 'object' || obj === null) {
-      obj = {};
-    } else {
-      obj = { ...obj };
-    }
-    obj[field] = value;
-    newArr[index] = obj;
+    const newArr = [...(formData[key] || [])];
+    newArr[index] = { ...newArr[index], [field]: value };
     setFormData({ ...formData, [key]: newArr });
   };
 
-  const addArrayItem = (key, emptyObj) => {
-    const currentArray = formData[key] || [];
-    setFormData({ ...formData, [key]: [...currentArray, emptyObj] });
-  };
-
+  const addArrayItem = (key, emptyObj) => setFormData({ ...formData, [key]: [...(formData[key] || []), emptyObj] });
+  
   const updateProcess = (index, value) => {
-    const newProcess = formData.process ? [...formData.process] : ['', '', '', ''];
+    const newProcess = [...(formData.process || ['', '', '', ''])];
     newProcess[index] = value;
     setFormData({ ...formData, process: newProcess });
   };
@@ -728,8 +599,7 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
     setStatus('Deploying to database...');
     try {
       const targetSlug = isEditing ? pageId : formData.slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      const pageRef = doc(db, 'niche_pages', targetSlug);
-      await setDoc(pageRef, { ...formData, slug: targetSlug, updatedAt: serverTimestamp() });
+      await setDoc(doc(db, 'niche_pages', targetSlug), { ...formData, slug: targetSlug, updatedAt: serverTimestamp() });
       setStatus(`Success: Niche Page ${isEditing ? 'updated' : 'generated'} and is now live!`);
       refreshData();
       window.scrollTo(0, 0);
@@ -738,8 +608,7 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
   };
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(`WARNING: Are you sure you want to permanently delete /niche/${pageId}?`);
-    if (!confirmDelete) return;
+    if (!window.confirm(`WARNING: Are you sure you want to permanently delete /niche/${pageId}?`)) return;
     setIsDeleting(true);
     try {
       await deleteDoc(doc(db, 'niche_pages', pageId));
@@ -757,15 +626,6 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
             {isEditing ? `Editing Niche: /${pageId}` : 'Strict Niche Architecture Builder'}
           </h2>
           <div className="flex items-center gap-3">
-            <Link 
-               href={`/niche/${formData.slug || pageId || 'draft'}/llms.txt`} 
-               target="_blank"
-               className="bg-[#3b82f6] text-white px-4 py-2 rounded text-xs font-bold hover:bg-blue-500 transition-colors flex items-center gap-2 shadow-lg"
-            >
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-              View Live Niche llms.txt
-            </Link>
-            
             {isEditing && (
               <button type="button" onClick={handleDelete} disabled={isDeleting} className="px-4 py-2 border border-red-500/50 text-red-500 text-xs font-bold uppercase tracking-widest rounded hover:bg-red-500/10 transition-colors disabled:opacity-50">
                 {isDeleting ? 'Deleting...' : 'Delete'}
@@ -779,144 +639,52 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
         <form onSubmit={handleSubmit} className="space-y-8">
           
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">1. System Config & Hub Details</h3>
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">1. System Config</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <input name="slug" placeholder="URL Slug (e.g., seo-for-plumbers)" required disabled={isEditing} value={formData.slug || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white disabled:opacity-50 rounded" />
-              <input name="service" placeholder="Hub Service (e.g., Advanced SEO)" required value={formData.service || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-              <input name="niche" placeholder="Hub Niche (e.g., Plumbers)" required value={formData.niche || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              <input name="slug" placeholder="URL Slug" required disabled={isEditing} value={formData.slug || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white disabled:opacity-50 rounded" />
+              <input name="service" placeholder="Hub Service" required value={formData.service || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+              <input name="niche" placeholder="Hub Niche" required value={formData.niche || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
             </div>
-            <input name="imageUrl" placeholder="Hub Card Image URL (/1.jpg)" required value={formData.imageUrl || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
           </div>
 
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">2. Page Hero & Metadata</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <input name="metaTitle" placeholder="Meta Title" value={formData.metaTitle || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-              <input name="metaDescription" placeholder="Meta Description" value={formData.metaDescription || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-            </div>
-            <input name="h1" placeholder="H1 (Keyword + Outcome)" required value={formData.h1 || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
-            <input name="subheadline" placeholder="Subline (Proof + Timeframe)" value={formData.subheadline || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-            <input name="trustLine" placeholder="Trust Line (e.g., No contracts · Results-focused)" value={formData.trustLine || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">2. Page Hero</h3>
+            <input name="metaTitle" placeholder="Meta Title" value={formData.metaTitle || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            <input name="h1" placeholder="H1 Headline" required value={formData.h1 || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
           </div>
 
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">3. TL;DR Block (50-60 words MAX)</h3>
-            <RichTextArea 
-              name="tldr" 
-              value={formData.tldr || ''} 
-              onChange={handleChange} 
-              placeholder="Direct, factual answer optimized for Featured Snippets/AEO..." 
-              rows={4} 
-            />
-          </div>
-
-          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">4. Stat Cards (Max 3)</h3>
-            {formData.statCards.map((stat, i) => (
-              <div key={i} className="flex gap-2">
-                <input placeholder="Number (e.g., 300%)" value={stat.number || ''} onChange={(e) => updateArray('statCards', i, 'number', e.target.value)} className="w-1/4 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-[#3b82f6] font-bold rounded" />
-                <input placeholder="Label (e.g., more leads)" value={stat.label || ''} onChange={(e) => updateArray('statCards', i, 'label', e.target.value)} className="w-1/2 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-                <input placeholder="Source" value={stat.source || ''} onChange={(e) => updateArray('statCards', i, 'source', e.target.value)} className="w-1/4 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-gray-400 rounded" />
-              </div>
-            ))}
-            {formData.statCards.length < 3 && <button type="button" onClick={() => addArrayItem('statCards', {number:'', label:'', source:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add Stat</button>}
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">3. TL;DR Block</h3>
+            <TipTapEditor name="tldr" value={formData.tldr || ''} onChange={handleChange} placeholder="Direct, factual answer..." />
           </div>
 
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">5. Question-Based H2s</h3>
             {formData.h2Sections.map((sec, i) => (
               <div key={i} className="space-y-3 p-4 bg-[#111] border border-white/5 rounded">
-                <input placeholder="H2 Question (e.g., How does Google rank plumbers?)" value={sec.question || ''} onChange={(e) => updateArray('h2Sections', i, 'question', e.target.value)} className="w-full bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
-                
-                <RichTextArea 
-                  label="Direct Answer (40-60 words)" 
-                  value={sec.directAnswer || ''} 
-                  onChange={(e) => updateArray('h2Sections', i, 'directAnswer', e.target.value)} 
-                  rows={2} 
-                />
-                
-                <RichTextArea 
-                  label="Expansion (100-150 words)" 
-                  value={sec.expansion || ''} 
-                  onChange={(e) => updateArray('h2Sections', i, 'expansion', e.target.value)} 
-                  rows={4} 
-                />
+                <input placeholder="H2 Question" value={sec.question || ''} onChange={(e) => updateArray('h2Sections', i, 'question', e.target.value)} className="w-full bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
+                <TipTapEditor label="Direct Answer" name="directAnswer" value={sec.directAnswer || ''} onChange={(e) => updateArray('h2Sections', i, 'directAnswer', e.target.value)} />
+                <TipTapEditor label="Expansion" name="expansion" value={sec.expansion || ''} onChange={(e) => updateArray('h2Sections', i, 'expansion', e.target.value)} />
               </div>
             ))}
             <button type="button" onClick={() => addArrayItem('h2Sections', {question:'', directAnswer:'', expansion:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add H2 Section</button>
           </div>
 
           <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">6. Deliverables (Action → Outcome)</h3>
-            {formData.deliverables.map((del, i) => (
-              <div key={i} className="flex gap-2">
-                <input placeholder="Action (e.g., FAQ Schema)" value={del.action || ''} onChange={(e) => updateArray('deliverables', i, 'action', e.target.value)} className="flex-1 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-                <input placeholder="Outcome (e.g., appear in snippets)" value={del.outcome || ''} onChange={(e) => updateArray('deliverables', i, 'outcome', e.target.value)} className="flex-1 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-              </div>
-            ))}
-            <button type="button" onClick={() => addArrayItem('deliverables', {action:'', outcome:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add Deliverable</button>
-          </div>
-
-          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">7. Niche Case Study</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <input name="location" placeholder="Location/Type (e.g., UK Plumber)" value={formData.caseStudy?.location || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-              <input name="time" placeholder="Timeframe (e.g., 4 months)" value={formData.caseStudy?.time || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-              <input name="before" placeholder="Metric Before (e.g., 15 calls/mo)" value={formData.caseStudy?.before || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-              <input name="after" placeholder="Metric After (e.g., 70 calls/mo)" value={formData.caseStudy?.after || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-              <input name="kwBefore" placeholder="Page 1 KWs Before (e.g., 2)" value={formData.caseStudy?.kwBefore || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-              <input name="kwAfter" placeholder="Page 1 KWs After (e.g., 19)" value={formData.caseStudy?.kwAfter || ''} onChange={handleCaseStudy} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-            </div>
-          </div>
-
-          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">8. Simple Process (4 Steps)</h3>
-            <div className="grid grid-cols-2 gap-4">
-              {formData.process.map((step, i) => (
-                <input key={i} placeholder={`Step ${i+1}`} value={step || ''} onChange={(e) => updateProcess(i, e.target.value)} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">9. FAQ Section (Feeds JSON-LD)</h3>
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">9. FAQ Section</h3>
             {formData.faqs.map((faq, i) => (
               <div key={i} className="flex flex-col gap-2 p-4 border border-white/5 bg-[#111] rounded">
                 <input placeholder="Question" value={faq.q || ''} onChange={(e) => updateArray('faqs', i, 'q', e.target.value)} className="w-full bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-white" />
-                <RichTextArea 
-                  placeholder="Answer (Include numbers, clear outcomes)" 
-                  value={faq.a || ''} 
-                  onChange={(e) => updateArray('faqs', i, 'a', e.target.value)} 
-                  rows={3} 
-                />
+                <TipTapEditor placeholder="Answer" name="a" value={faq.a || ''} onChange={(e) => updateArray('faqs', i, 'a', e.target.value)} />
               </div>
             ))}
             <button type="button" onClick={() => addArrayItem('faqs', {q:'', a:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add FAQ</button>
           </div>
 
-          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">10. Related Guides (Internal Linking)</h3>
-            {formData.relatedLinks.map((link, i) => (
-              <div key={i} className="flex gap-2">
-                <input placeholder="Link Title" value={link.title || ''} onChange={(e) => updateArray('relatedLinks', i, 'title', e.target.value)} className="flex-1 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-                <input placeholder="Absolute or Relative URL" value={link.url || ''} onChange={(e) => updateArray('relatedLinks', i, 'url', e.target.value)} className="flex-1 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-[#3b82f6] rounded" />
-              </div>
-            ))}
-            <button type="button" onClick={() => addArrayItem('relatedLinks', {title:'', url:''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add Link</button>
-          </div>
-
           <div className="p-6 bg-[#111] rounded-lg border border-white/10 space-y-6">
-            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">11. Author Settings</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <input name="authorName" placeholder="Author Name" value={formData.authorName || ''} onChange={handleChange} className="p-3 border border-white/10 bg-black text-white rounded focus:border-blue-500 outline-none text-sm" />
-              <input name="authorRole" placeholder="Author Role" value={formData.authorRole || ''} onChange={handleChange} className="p-3 border border-white/10 bg-black text-white rounded focus:border-blue-500 outline-none text-sm" />
-            </div>
-            
-            <div className="flex items-center gap-4 border-t border-white/10 pt-6">
-              <button type="submit" disabled={isSubmitting || isDeleting} className={`px-10 py-4 rounded font-black uppercase tracking-widest text-sm transition-all shadow-lg w-full md:w-auto ${isEditing ? 'bg-[#10b981] hover:bg-emerald-400 text-white' : 'bg-[#10b981] hover:bg-emerald-400 text-white'}`}>
-                {isSubmitting ? 'Transmitting...' : (isEditing ? 'Update Live Niche Architecture' : 'Deploy Niche Architecture')}
-              </button>
-            </div>
+            <button type="submit" disabled={isSubmitting || isDeleting} className={`px-10 py-4 rounded font-black uppercase tracking-widest text-sm transition-all shadow-lg w-full md:w-auto ${isEditing ? 'bg-[#10b981] hover:bg-emerald-400 text-white' : 'bg-[#10b981] hover:bg-emerald-400 text-white'}`}>
+              {isSubmitting ? 'Transmitting...' : (isEditing ? 'Update Live Niche Architecture' : 'Deploy Niche Architecture')}
+            </button>
           </div>
 
         </form>
@@ -926,7 +694,7 @@ function NicheBuilderView({ isEditing, pageId, initialData, refreshData, setView
 }
 
 // ==========================================
-// COMPONENT: BLOG BUILDER (THE MASSIVE CMS)
+// COMPONENT: BLOG BUILDER (THE MASSIVE CMS RESTORED)
 // ==========================================
 function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewMode }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -965,22 +733,10 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
     newArr[index] = value;
     setFormData({...formData, [key]: newArr});
   };
-  const addSimpleArrayItem = (key) => setFormData({...formData, [key]: [...(formData[key] || []), '']});
-  const removeSimpleArrayItem = (key, index) => {
-    const newArr = [...(formData[key] || [])];
-    newArr.splice(index, 1);
-    setFormData({...formData, [key]: newArr});
-  };
 
   const updateComplexArray = (key, index, field, value) => {
     const newArr = [...(formData[key] || [])];
     newArr[index] = { ...newArr[index], [field]: value };
-    setFormData({...formData, [key]: newArr});
-  };
-  const addComplexArrayItem = (key, obj) => setFormData({...formData, [key]: [...(formData[key] || []), obj]});
-  const removeComplexArrayItem = (key, index) => {
-    const newArr = [...(formData[key] || [])];
-    newArr.splice(index, 1);
     setFormData({...formData, [key]: newArr});
   };
 
@@ -989,14 +745,6 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
     if (!newSecs[secIndex][field]) newSecs[secIndex][field] = [];
     newSecs[secIndex][field][arrIndex] = value;
     setFormData({...formData, sections: newSecs});
-  };
-  
-  const removeSectionArrayItem = (secIndex, field, arrIndex) => {
-    const newSecs = [...(formData.sections || [])];
-    if (newSecs[secIndex][field]) {
-      newSecs[secIndex][field].splice(arrIndex, 1);
-      setFormData({...formData, sections: newSecs});
-    }
   };
 
   const moveSection = (index, direction) => {
@@ -1009,13 +757,6 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
     setFormData({...formData, sections: newSecs});
   };
 
-  const addSubheading = (secIndex) => {
-    const newSecs = [...(formData.sections || [])];
-    if(!newSecs[secIndex].subheadings) newSecs[secIndex].subheadings = [];
-    newSecs[secIndex].subheadings.push({ title: '', content: [''], list: [], comparison: null });
-    setFormData({...formData, sections: newSecs});
-  };
-
   const updateSubheading = (secIndex, subIndex, field, value, contentIndex = -1) => {
     const newSecs = [...(formData.sections || [])];
     if (!newSecs[secIndex].subheadings[subIndex]) return;
@@ -1023,78 +764,23 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
     if (field === 'content') {
       if (!newSecs[secIndex].subheadings[subIndex].content) newSecs[secIndex].subheadings[subIndex].content = [];
       newSecs[secIndex].subheadings[subIndex].content[contentIndex] = value;
-    }
-    else if (field === 'list') {
+    } else if (field === 'list') {
       if (!newSecs[secIndex].subheadings[subIndex].list) newSecs[secIndex].subheadings[subIndex].list = [];
       newSecs[secIndex].subheadings[subIndex].list[contentIndex] = value;
-    }
-    else {
+    } else {
       newSecs[secIndex].subheadings[subIndex][field] = value;
     }
     setFormData({...formData, sections: newSecs});
   };
 
-  const addSubheadingContent = (secIndex, subIndex) => {
-     const newSecs = [...(formData.sections || [])];
-     if (!newSecs[secIndex].subheadings[subIndex].content) newSecs[secIndex].subheadings[subIndex].content = [];
-     newSecs[secIndex].subheadings[subIndex].content.push('');
-     setFormData({...formData, sections: newSecs});
-  };
-
-  const removeSubheadingContent = (secIndex, subIndex, contentIndex) => {
-    const newSecs = [...(formData.sections || [])];
-    if (newSecs[secIndex].subheadings[subIndex].content) {
-      newSecs[secIndex].subheadings[subIndex].content.splice(contentIndex, 1);
-      setFormData({...formData, sections: newSecs});
-    }
-  };
-
-  const addSubheadingList = (secIndex, subIndex) => {
-     const newSecs = [...(formData.sections || [])];
-     if(!newSecs[secIndex].subheadings[subIndex].list) newSecs[secIndex].subheadings[subIndex].list = [];
-     newSecs[secIndex].subheadings[subIndex].list.push('');
-     setFormData({...formData, sections: newSecs});
-  };
-
-  const removeSubheadingList = (secIndex, subIndex, listIndex) => {
-    const newSecs = [...(formData.sections || [])];
-    if (newSecs[secIndex].subheadings[subIndex].list) {
-      newSecs[secIndex].subheadings[subIndex].list.splice(listIndex, 1);
-      setFormData({...formData, sections: newSecs});
-    }
-  };
-
-  // --- SAAS CARD COMPARISON LOGIC ---
+  // --- SAAS COMPARISON CARD LOGIC ---
   const toggleComparison = (secIndex, subIndex = -1) => {
     const newSecs = [...(formData.sections || [])];
-    
-    const defaultCard = {
-      badge: '', icon: 'SE', title: 'SEO', subtitle: 'Search Engine Optimisation',
-      metrics: [ { label: 'GOAL', value: 'Bring organic traffic to your website' } ]
-    };
-
+    const defaultCard = { badge: '', icon: 'SE', title: 'SEO', subtitle: 'Search Engine Optimisation', metrics: [ { label: 'GOAL', value: 'Bring organic traffic' } ] };
     const targetSub = subIndex === -1 ? newSecs[secIndex] : newSecs[secIndex].subheadings[subIndex];
     
-    if (targetSub.comparison) {
-       targetSub.comparison = null;
-    } else {
-       targetSub.comparison = { cards: [ { ...defaultCard } ] };
-    }
-    setFormData({...formData, sections: newSecs});
-  };
-
-  const addComparisonCard = (secIndex, subIndex) => {
-    const newSecs = [...(formData.sections || [])];
-    const target = subIndex === -1 ? newSecs[secIndex].comparison : newSecs[secIndex].subheadings[subIndex].comparison;
-    if (!target.cards) target.cards = [];
-    target.cards.push({ badge: '', icon: 'X', title: 'New Item', subtitle: 'Subtitle', metrics: [{label: 'GOAL', value: ''}] });
-    setFormData({...formData, sections: newSecs});
-  };
-
-  const removeComparisonCard = (secIndex, subIndex, cIdx) => {
-    const newSecs = [...(formData.sections || [])];
-    const target = subIndex === -1 ? newSecs[secIndex].comparison : newSecs[secIndex].subheadings[subIndex].comparison;
-    if (target.cards) target.cards.splice(cIdx, 1);
+    if (targetSub.comparison) targetSub.comparison = null;
+    else targetSub.comparison = { cards: [ { ...defaultCard } ] };
     setFormData({...formData, sections: newSecs});
   };
 
@@ -1105,63 +791,18 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
     setFormData({...formData, sections: newSecs});
   };
 
-  const addCardMetric = (secIndex, subIndex, cIdx) => {
-    const newSecs = [...(formData.sections || [])];
-    const target = subIndex === -1 ? newSecs[secIndex].comparison : newSecs[secIndex].subheadings[subIndex].comparison;
-    if(!target.cards[cIdx].metrics) target.cards[cIdx].metrics = [];
-    target.cards[cIdx].metrics.push({ label: 'NEW', value: '' });
-    setFormData({...formData, sections: newSecs});
-  };
-
-  const updateCardMetric = (secIndex, subIndex, cIdx, mIdx, field, value) => {
-    const newSecs = [...(formData.sections || [])];
-    const target = subIndex === -1 ? newSecs[secIndex].comparison : newSecs[secIndex].subheadings[subIndex].comparison;
-    if (target.cards[cIdx].metrics && target.cards[cIdx].metrics[mIdx]) {
-      target.cards[cIdx].metrics[mIdx][field] = value;
-    }
-    setFormData({...formData, sections: newSecs});
-  };
-
-  const removeCardMetric = (secIndex, subIndex, cIdx, mIdx) => {
-    const newSecs = [...(formData.sections || [])];
-    const target = subIndex === -1 ? newSecs[secIndex].comparison : newSecs[secIndex].subheadings[subIndex].comparison;
-    if (target.cards[cIdx].metrics) target.cards[cIdx].metrics.splice(mIdx, 1);
-    setFormData({...formData, sections: newSecs});
-  };
-
   const ComparisonEditor = ({ comp, secIndex, subIndex }) => (
-    <div className="mt-6 p-5 bg-[#141414] border border-blue-500/30 rounded-xl space-y-6 relative shadow-lg">
-      <div className="flex justify-between items-center border-b border-white/10 pb-3">
+    <div className="mt-6 p-5 bg-[#141414] border border-blue-500/30 rounded-xl shadow-lg">
+      <div className="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
         <h4 className="text-[10px] font-black uppercase tracking-widest text-[#008dd8]">SaaS Comparison Cards</h4>
-        <div className="flex gap-4">
-           <button type="button" onClick={() => addComparisonCard(secIndex, subIndex)} className="text-blue-400 hover:text-blue-300 text-[10px] font-bold uppercase tracking-widest">+ Add Card</button>
-           <button type="button" onClick={() => toggleComparison(secIndex, subIndex)} className="text-red-500 hover:text-red-400 text-[10px] font-bold uppercase tracking-widest">✕ Remove All</button>
-        </div>
+        <button type="button" onClick={() => toggleComparison(secIndex, subIndex)} className="text-red-500 hover:text-red-400 text-[10px] font-bold uppercase tracking-widest">✕ Remove All</button>
       </div>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
          {(comp.cards || []).map((card, cIdx) => (
             <div key={cIdx} className="bg-[#0a0a0a] border border-white/10 p-4 rounded-xl space-y-3 relative">
-               <button type="button" onClick={() => removeComparisonCard(secIndex, subIndex, cIdx)} className="absolute top-3 right-3 text-red-500 hover:text-red-400 font-black">✕</button>
-               <input placeholder="Badge (e.g. Most Urgent)" value={card.badge || ''} onChange={(e) => updateCardField(secIndex, subIndex, cIdx, 'badge', e.target.value)} className="w-full bg-blue-900/20 text-blue-300 placeholder-blue-500/50 border border-blue-500/30 p-2 text-[10px] uppercase font-bold outline-none rounded" />
-               <div className="flex gap-2">
-                 <input placeholder="Icon" value={card.icon || ''} onChange={(e) => updateCardField(secIndex, subIndex, cIdx, 'icon', e.target.value)} className="w-12 bg-[#111] border border-white/10 p-2 text-center text-xs outline-none text-white font-bold rounded" maxLength="2" />
-                 <div className="flex-1 space-y-1">
-                    <input placeholder="Title (e.g. SEO)" value={card.title || ''} onChange={(e) => updateCardField(secIndex, subIndex, cIdx, 'title', e.target.value)} className="w-full bg-transparent border-b border-white/10 px-2 py-1 text-sm outline-none text-white font-black" />
-                    <input placeholder="Subtitle" value={card.subtitle || ''} onChange={(e) => updateCardField(secIndex, subIndex, cIdx, 'subtitle', e.target.value)} className="w-full bg-transparent border-b border-white/10 px-2 py-1 text-xs outline-none text-gray-400" />
-                 </div>
-               </div>
-               <div className="pt-2 space-y-2">
-                  <label className="text-[9px] uppercase tracking-widest text-gray-600 font-bold block">Metrics</label>
-                  {(card.metrics || []).map((metric, mIdx) => (
-                    <div key={mIdx} className="flex flex-col gap-1 bg-[#1a1a1a] p-2 rounded border border-white/5 relative">
-                       <button type="button" onClick={() => removeCardMetric(secIndex, subIndex, cIdx, mIdx)} className="absolute top-1 right-1 text-red-500 hover:text-red-400 text-[10px]">✕</button>
-                       <input placeholder="Label (e.g. GOAL)" value={metric.label || ''} onChange={(e) => updateCardMetric(secIndex, subIndex, cIdx, mIdx, 'label', e.target.value)} className="w-full bg-transparent text-[10px] uppercase text-gray-500 font-bold outline-none" />
-                       <textarea placeholder="Value..." value={metric.value || ''} onChange={(e) => updateCardMetric(secIndex, subIndex, cIdx, mIdx, 'value', e.target.value)} rows={2} className="w-full bg-black/50 p-1.5 text-xs text-white outline-none rounded border border-white/5" />
-                    </div>
-                  ))}
-                  <button type="button" onClick={() => addCardMetric(secIndex, subIndex, cIdx)} className="text-[10px] text-gray-400 hover:text-white uppercase tracking-widest font-bold mt-1 w-full text-left">+ Add Metric</button>
-               </div>
+               <input placeholder="Badge (e.g. Most Urgent)" value={card.badge || ''} onChange={(e) => updateCardField(secIndex, subIndex, cIdx, 'badge', e.target.value)} className="w-full bg-blue-900/20 text-blue-300 border border-blue-500/30 p-2 text-[10px] uppercase font-bold outline-none rounded" />
+               <input placeholder="Title (e.g. SEO)" value={card.title || ''} onChange={(e) => updateCardField(secIndex, subIndex, cIdx, 'title', e.target.value)} className="w-full bg-transparent border-b border-white/10 px-2 py-1 text-sm outline-none text-white font-black" />
+               <input placeholder="Subtitle" value={card.subtitle || ''} onChange={(e) => updateCardField(secIndex, subIndex, cIdx, 'subtitle', e.target.value)} className="w-full bg-transparent border-b border-white/10 px-2 py-1 text-xs outline-none text-gray-400" />
             </div>
          ))}
       </div>
@@ -1195,6 +836,8 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
   return (
     <div className="flex-1 overflow-y-auto p-8 h-full">
       <div className="max-w-[1200px] mx-auto pb-32">
+        
+        {/* === HEADER & DELETE === */}
         <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
           <h2 className="font-black text-2xl uppercase tracking-widest text-purple-400">
             {isEditing ? `Editing Blog: /${pageId}` : 'Strict Article Architecture'}
@@ -1208,171 +851,123 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
 
         <form onSubmit={handleSubmit} className="space-y-8">
           
+          {/* === SECTION 1: URL & METADATA === */}
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
-            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">1. URL & Categorization</h3>
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">1. URL & Metadata</h3>
             <input name="slug" placeholder="URL Slug (e.g., local-seo-guide)" required disabled={isEditing} value={formData.slug} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded disabled:opacity-50" />
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Core Service</label>
-                <select name="serviceTag" value={formData.serviceTag || 'general'} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded">
-                  <option value="general">General Architecture</option>
-                  <option value="seo">Advanced SEO</option>
-                  <option value="aeo">AEO (Answer Engines)</option>
-                  <option value="web">Web Development</option>
-                  <option value="ads">Meta Ads</option>
-                  <option value="smma">Social Media</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Target Industry</label>
-                <select name="industryTag" value={formData.industryTag || 'none'} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded">
-                  <option value="none">No Specific Industry (General)</option>
-                  <option value="dental">Dental & Healthcare</option>
-                  <option value="trades">Home Services & Trades</option>
-                  <option value="saas">SaaS & Tech</option>
-                  <option value="ecom">E-Commerce</option>
-                  <option value="b2b">B2B Enterprise</option>
-                </select>
-              </div>
-            </div>
             <input name="title" placeholder="Meta Title" value={formData.seoMeta?.title || ''} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded mt-4" />
-            <textarea name="metaDescription" placeholder="Meta Description" value={formData.seoMeta?.metaDescription || ''} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-20" />
           </div>
 
+          {/* === SECTION 2: HERO DATA === */}
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
             <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">2. Hero Data</h3>
-            <input name="title" placeholder="H1 Headline" required value={formData.hero?.title || ''} onChange={(e)=>handleChange(e, 'hero')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
+            <TipTapEditor label="H1 Headline (Linkable)" name="title" value={formData.hero?.title || ''} onChange={(e)=>handleChange(e, 'hero')} />
             <textarea name="description" placeholder="Hero Subtext / Hook" required value={formData.hero?.description || ''} onChange={(e)=>handleChange(e, 'hero')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-20" />
-            <div className="grid grid-cols-2 gap-4">
-               <input name="publishDate" type="date" value={formData.hero?.publishDate || ''} onChange={(e)=>handleChange(e, 'hero')} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-               <input name="readTime" placeholder="Read Time (e.g. 5 Min)" value={formData.hero?.readTime || ''} onChange={(e)=>handleChange(e, 'hero')} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-            </div>
           </div>
 
-          <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
-            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">3. AEO Snippet & TLDR</h3>
-            <RichTextArea label="AEO Quick Answer (40-60 words)" name="quickAnswer" value={formData.quickAnswer || ''} onChange={handleChange} rows={4} />
-            <div className="pt-4 border-t border-white/10">
-              <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2">TL;DR Bullets</label>
-              {(formData.tldr || []).map((pt, i) => (
-                <div key={i} className="flex gap-2 mb-2">
-                  <input value={pt} onChange={(e)=>updateSimpleArray('tldr', i, e.target.value)} className="flex-1 bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" placeholder={`Bullet ${i+1}`} />
-                  <button type="button" onClick={()=>removeSimpleArrayItem('tldr', i)} className="bg-red-500/10 text-red-500 px-3 rounded hover:bg-red-500/20">✕</button>
-                </div>
-              ))}
-              <button type="button" onClick={()=>addSimpleArrayItem('tldr')} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold mt-2">+ Add Bullet</button>
-            </div>
-          </div>
-
-          <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
-            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">4. Introduction</h3>
-            {(formData.intro || []).map((para, i) => (
-              <div key={i} className="flex gap-2 items-start">
+          {/* === SECTION 2.5: TL;DR SUMMARY === */}
+          <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4 border-l-4 border-[#008dd8]">
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">2.5 TL;DR Summary Points</h3>
+            {(formData.tldr || []).map((point, i) => (
+              <div key={`tldr-${i}`} className="flex gap-2 items-start mb-4">
                 <div className="flex-1">
-                  <RichTextArea value={para} onChange={(e)=>updateSimpleArray('intro', i, e.target.value)} rows={3} placeholder={`Intro Paragraph ${i+1}`} />
+                  <TipTapEditor 
+                    name={`tldr-${i}`} 
+                    value={point} 
+                    onChange={(e)=>updateSimpleArray('tldr', i, e.target.value)} 
+                    placeholder="Enter summary bullet point..."
+                  />
                 </div>
-                <button type="button" onClick={()=>removeSimpleArrayItem('intro', i)} className="bg-red-500/10 text-red-500 h-[42px] px-3 mt-7 rounded hover:bg-red-500/20">✕</button>
+                <button type="button" onClick={()=>{const n=[...(formData.tldr || [])]; n.splice(i,1); setFormData({...formData, tldr: n})}} className="bg-red-500/10 text-red-500 h-[42px] px-3 rounded hover:bg-red-500/20 font-bold">✕</button>
               </div>
             ))}
-            <button type="button" onClick={()=>addSimpleArrayItem('intro')} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">+ Add Intro Paragraph</button>
+            <button type="button" onClick={()=>setFormData({...formData, tldr: [...(formData.tldr || []), '']})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold bg-blue-500/10 px-3 py-2 rounded hover:bg-blue-500/20 transition-colors">
+              + Add TL;DR Point
+            </button>
           </div>
 
+          {/* === SECTION 3: AEO SNIPPET & INTRO PARAGRAPHS === */}
+          <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">3. AEO Snippet & Intro</h3>
+            <TipTapEditor label="AEO Quick Answer" name="quickAnswer" value={formData.quickAnswer || ''} onChange={handleChange} />
+            
+            <div className="pt-4 border-t border-white/10">
+              <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2">Intro Paragraphs</label>
+              {(formData.intro || []).map((para, i) => (
+                <div key={i} className="flex gap-2 items-start mb-4">
+                  <div className="flex-1"><TipTapEditor name={`intro-${i}`} value={para} onChange={(e)=>updateSimpleArray('intro', i, e.target.value)} /></div>
+                  <button type="button" onClick={()=>{const n=[...formData.intro]; n.splice(i,1); setFormData({...formData, intro: n})}} className="bg-red-500/10 text-red-500 h-[42px] px-3 rounded hover:bg-red-500/20">✕</button>
+                </div>
+              ))}
+              <button type="button" onClick={()=>setFormData({...formData, intro: [...(formData.intro || []), '']})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">+ Add Intro Paragraph</button>
+            </div>
+          </div>
+
+          {/* === SECTION 4: CORE CONTENT SECTIONS (H2, H3, SAAS CARDS) === */}
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-8">
             <div className="flex justify-between items-center border-b border-white/10 pb-2">
-               <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">5. Core Content Sections (H2s)</h3>
-               <button type="button" onClick={()=>addComplexArrayItem('sections', { id: `sec-${(formData.sections||[]).length+1}`, heading: '', contentType: 'default', content: [''], list: [], subheadings: [], comparison: null })} className="text-[10px] bg-white/10 px-2 py-1 rounded text-white uppercase tracking-widest font-bold hover:bg-white/20">+ Add H2 Section</button>
+               <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">4. Core Content Sections (H2 & H3)</h3>
+               <button type="button" onClick={()=> { const n=[...(formData.sections||[])]; n.push({ id: `sec-${n.length+1}`, heading: '', content: [''], list: [], subheadings: [], comparison: null }); setFormData({...formData, sections: n}); }} className="text-[10px] bg-white/10 px-2 py-1 rounded text-white uppercase tracking-widest font-bold hover:bg-white/20">+ Add H2 Section</button>
             </div>
             
             {(formData.sections || []).map((sec, i) => (
               <div key={i} className="p-5 bg-[#111] border border-white/10 rounded-xl shadow-lg space-y-4 relative">
                 
+                {/* Section Controls (Up/Down/Delete) */}
                 <div className="absolute top-4 right-4 flex gap-2">
                    <button type="button" onClick={() => moveSection(i, 'up')} disabled={i === 0} className="text-gray-400 hover:text-white disabled:opacity-30">↑</button>
                    <button type="button" onClick={() => moveSection(i, 'down')} disabled={i === (formData.sections||[]).length - 1} className="text-gray-400 hover:text-white disabled:opacity-30">↓</button>
-                   <button type="button" onClick={() => removeComplexArrayItem('sections', i)} className="text-red-500 ml-4 hover:text-red-400 font-bold text-xs uppercase">Delete Section</button>
+                   <button type="button" onClick={() => { const n=[...formData.sections]; n.splice(i,1); setFormData({...formData, sections: n}); }} className="text-red-500 ml-4 hover:text-red-400 font-bold text-xs uppercase">Delete</button>
                 </div>
 
-                <div className="flex gap-2 w-3/4">
-                  <input placeholder="ID (what-is-seo)" value={sec.id || ''} onChange={(e)=>updateComplexArray('sections', i, 'id', e.target.value)} className="w-1/3 bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-gray-400" />
-                  <input placeholder="H2 Heading" value={sec.heading || ''} onChange={(e)=>updateComplexArray('sections', i, 'heading', e.target.value)} className="w-2/3 bg-transparent border-b border-blue-500/50 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
+                {/* H2 Setup */}
+                <div className="w-3/4 space-y-2">
+                  <input placeholder="Anchor ID (what-is-seo)" value={sec.id || ''} onChange={(e)=>updateComplexArray('sections', i, 'id', e.target.value)} className="w-1/3 bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-gray-400" />
+                  <TipTapEditor label="H2 Heading (Linkable)" name={`sec-${i}-heading`} value={sec.heading || ''} onChange={(e)=>updateComplexArray('sections', i, 'heading', e.target.value)} />
                 </div>
-                
-                <select value={sec.contentType || 'default'} onChange={(e)=>updateComplexArray('sections', i, 'contentType', e.target.value)} className="bg-black border border-white/10 focus:border-blue-500 outline-none text-white text-xs p-2 rounded">
-                  <option value="default">Default Article</option>
-                  <option value="howto">How-To (Numbered Steps)</option>
-                  <option value="definition">Definition Block</option>
-                </select>
 
+                {/* H2 Paragraphs */}
                 <div className="space-y-4 border-l-2 border-white/10 pl-4">
                   <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Paragraphs</label>
                   {(sec.content || []).map((para, pIdx) => (
-                    <div key={pIdx} className="flex gap-2 items-start">
-                      <div className="flex-1">
-                        <RichTextArea value={para} onChange={(e)=>updateSectionArray(i, 'content', pIdx, e.target.value)} rows={3} />
-                      </div>
-                      <button type="button" onClick={() => removeSectionArrayItem(i, 'content', pIdx)} className="bg-red-500/10 text-red-500 h-[42px] px-3 mt-7 rounded hover:bg-red-500/20">✕</button>
+                    <div key={pIdx} className="flex gap-2 items-start mb-2">
+                      <div className="flex-1"><TipTapEditor name={`sec-${i}-para-${pIdx}`} value={para} onChange={(e)=>updateSectionArray(i, 'content', pIdx, e.target.value)} /></div>
+                      <button type="button" onClick={() => { const n=[...formData.sections]; n[i].content.splice(pIdx,1); setFormData({...formData, sections: n}); }} className="bg-red-500/10 text-red-500 h-[42px] px-3 rounded hover:bg-red-500/20">✕</button>
                     </div>
                   ))}
                   <button type="button" onClick={()=> { const n=[...(formData.sections||[])]; if(!n[i].content) n[i].content=[]; n[i].content.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">+ Add Paragraph</button>
                 </div>
 
-                <div className="space-y-2 border-l-2 border-white/10 pl-4 mt-4">
-                  <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">List Items</label>
-                  {(sec.list || []).map((li, lIdx) => (
-                    <div key={lIdx} className="flex gap-2">
-                       <input value={li} onChange={(e)=>updateSectionArray(i, 'list', lIdx, e.target.value)} className="flex-1 bg-black/50 border border-white/5 p-3 text-sm focus:border-blue-500 outline-none text-gray-300 rounded" />
-                       <button type="button" onClick={() => removeSectionArrayItem(i, 'list', lIdx)} className="bg-red-500/10 text-red-500 px-3 rounded hover:bg-red-500/20">✕</button>
-                    </div>
-                  ))}
-                  <button type="button" onClick={()=> { const n=[...(formData.sections||[])]; if(!n[i].list) n[i].list=[]; n[i].list.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest mt-2">+ Add List Item</button>
-                </div>
-
+                {/* H2 SaaS Cards */}
                 {!sec.comparison ? (
-                   <button type="button" onClick={() => toggleComparison(i)} className="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded font-bold uppercase tracking-widest mt-4 hover:bg-blue-500/20 transition-colors block border border-blue-500/20">
-                     + Add SaaS Comparison Cards Here
-                   </button>
+                   <button type="button" onClick={() => toggleComparison(i)} className="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded font-bold uppercase tracking-widest mt-4 hover:bg-blue-500/20 transition-colors block border border-blue-500/20">+ Add SaaS Comparison Cards Here</button>
                 ) : (
                    <ComparisonEditor comp={sec.comparison} secIndex={i} subIndex={-1} />
                 )}
 
+                {/* H3 SUBHEADINGS */}
                 <div className="space-y-6 border-l-2 border-purple-500/30 pl-4 mt-8">
                   <div className="flex justify-between items-center">
                      <label className="text-[10px] uppercase tracking-widest text-purple-400 font-bold">H3 Subheadings</label>
-                     <button type="button" onClick={() => addSubheading(i)} className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-1 rounded font-bold uppercase tracking-widest">+ Add H3</button>
+                     <button type="button" onClick={() => { const n=[...formData.sections]; if(!n[i].subheadings) n[i].subheadings=[]; n[i].subheadings.push({ title: '', content: [''] }); setFormData({...formData, sections: n}); }} className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-1 rounded font-bold uppercase tracking-widest">+ Add H3</button>
                   </div>
                   
                   {(sec.subheadings || []).map((sub, sIdx) => (
                     <div key={sIdx} className="bg-black/50 p-4 border border-white/5 rounded space-y-4 relative">
-                      <button type="button" onClick={() => removeSectionArrayItem(i, 'subheadings', sIdx)} className="absolute top-4 right-4 text-red-500 hover:text-red-400 text-xs font-bold uppercase">✕ Remove H3</button>
-                      <input placeholder="H3 Title" value={sub.title || ''} onChange={(e) => updateSubheading(i, sIdx, 'title', e.target.value)} className="w-3/4 bg-transparent border-b border-purple-500/50 p-2 text-sm focus:border-purple-500 outline-none text-white font-bold" />
+                      <button type="button" onClick={() => { const n=[...formData.sections]; n[i].subheadings.splice(sIdx,1); setFormData({...formData, sections: n}); }} className="absolute top-4 right-4 text-red-500 hover:text-red-400 text-xs font-bold uppercase">✕ Remove H3</button>
                       
+                      <div className="w-3/4">
+                        <TipTapEditor label="H3 Title (Linkable)" name={`sec-${i}-sub-${sIdx}-title`} value={sub.title || ''} onChange={(e) => updateSubheading(i, sIdx, 'title', e.target.value)} />
+                      </div>
+                      
+                      {/* H3 Paragraphs */}
                       {(sub.content || []).map((subPara, spIdx) => (
-                         <div key={spIdx} className="flex gap-2 items-start">
-                           <div className="flex-1">
-                             <RichTextArea value={subPara} onChange={(e) => updateSubheading(i, sIdx, 'content', e.target.value, spIdx)} rows={3} />
-                           </div>
-                           <button type="button" onClick={() => removeSubheadingContent(i, sIdx, spIdx)} className="bg-red-500/10 text-red-500 h-[42px] px-3 mt-7 rounded hover:bg-red-500/20">✕</button>
+                         <div key={spIdx} className="flex gap-2 items-start mb-2">
+                           <div className="flex-1"><TipTapEditor name={`sec-${i}-sub-${sIdx}-para-${spIdx}`} value={subPara} onChange={(e) => updateSubheading(i, sIdx, 'content', e.target.value, spIdx)} /></div>
+                           <button type="button" onClick={() => { const n=[...formData.sections]; n[i].subheadings[sIdx].content.splice(spIdx,1); setFormData({...formData, sections: n}); }} className="bg-red-500/10 text-red-500 h-[42px] px-3 rounded hover:bg-red-500/20">✕</button>
                          </div>
                       ))}
-                      <button type="button" onClick={() => addSubheadingContent(i, sIdx)} className="text-[10px] text-purple-500 font-bold uppercase tracking-widest">+ Add H3 Paragraph</button>
-
-                      <div className="pt-2 border-t border-white/5 mt-2">
-                        {(sub.list || []).map((subLi, slIdx) => (
-                          <div key={slIdx} className="flex gap-2 mb-2">
-                             <input value={subLi} onChange={(e)=>updateSubheading(i, sIdx, 'list', e.target.value, slIdx)} className="flex-1 bg-black/50 border border-white/5 p-2 text-sm focus:border-purple-500 outline-none text-gray-300 rounded" placeholder="List item..." />
-                             <button type="button" onClick={() => removeSubheadingList(i, sIdx, slIdx)} className="bg-red-500/10 text-red-500 px-3 rounded hover:bg-red-500/20">✕</button>
-                          </div>
-                        ))}
-                        <button type="button" onClick={() => addSubheadingList(i, sIdx)} className="text-[10px] text-purple-500 font-bold uppercase tracking-widest mt-1">+ Add H3 List Item</button>
-                      </div>
-
-                      {!sub.comparison ? (
-                        <button type="button" onClick={() => toggleComparison(i, sIdx)} className="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded font-bold uppercase tracking-widest mt-4 hover:bg-blue-500/20 transition-colors block border border-blue-500/20">
-                          + Add SaaS Comparison Cards Under H3
-                        </button>
-                      ) : (
-                        <ComparisonEditor comp={sub.comparison} secIndex={i} subIndex={sIdx} />
-                      )}
+                      <button type="button" onClick={() => { const n=[...formData.sections]; n[i].subheadings[sIdx].content.push(''); setFormData({...formData, sections: n}); }} className="text-[10px] text-purple-500 font-bold uppercase tracking-widest">+ Add H3 Paragraph</button>
                     </div>
                   ))}
                 </div>
@@ -1381,30 +976,45 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
             ))}
           </div>
 
+          {/* === SECTION 5: PREMIUM CTA TOOL BLOCK === */}
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
-            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">6. Embedded Tool CTA</h3>
-            <input name="title" placeholder="Tool Title" value={formData.toolBlock?.title || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
-            <input name="description" placeholder="Tool Description" value={formData.toolBlock?.description || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-            <div className="grid grid-cols-2 gap-4">
-              <input name="ctaText" placeholder="Button Text" value={formData.toolBlock?.ctaText || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
-              <input name="ctaLink" placeholder="Button URL" value={formData.toolBlock?.ctaLink || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-[#3b82f6] rounded" />
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">5. Premium CTA Block (Dark Box)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div>
+                  <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1 block">Headline</label>
+                  <input name="title" value={formData.toolBlock?.title || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+               </div>
+               <div>
+                  <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1 block">Description</label>
+                  <input name="description" value={formData.toolBlock?.description || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+               </div>
+               <div>
+                  <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1 block">Button Text</label>
+                  <input name="ctaText" value={formData.toolBlock?.ctaText || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+               </div>
+               <div>
+                  <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1 block">Button URL</label>
+                  <input name="ctaLink" value={formData.toolBlock?.ctaLink || ''} onChange={(e)=>handleChange(e, 'toolBlock')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-[#3b82f6] rounded" />
+               </div>
             </div>
           </div>
 
+          {/* === SECTION 6: FAQs === */}
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
-            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">7. FAQ Section</h3>
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">6. Frequently Asked Questions</h3>
             {(formData.faqs || []).map((faq, i) => (
-              <div key={i} className="flex flex-col gap-2 p-4 border border-white/5 bg-[#111] rounded relative">
-                <button type="button" onClick={() => removeComplexArrayItem('faqs', i)} className="absolute top-4 right-4 text-red-500 hover:text-red-400 text-xs font-bold uppercase">✕</button>
-                <input placeholder="Question" value={faq.question || ''} onChange={(e)=>updateComplexArray('faqs', i, 'question', e.target.value)} className="w-3/4 bg-transparent border-b border-white/10 pb-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
-                <RichTextArea value={faq.answer || ''} onChange={(e)=>updateComplexArray('faqs', i, 'answer', e.target.value)} rows={3} />
+              <div key={`faq-${i}`} className="p-4 bg-[#111] border border-white/5 rounded space-y-3 relative">
+                <button type="button" onClick={() => { const n=[...(formData.faqs||[])]; n.splice(i,1); setFormData({...formData, faqs: n}); }} className="absolute top-2 right-2 text-red-500 hover:text-red-400 text-[10px] font-bold uppercase">✕</button>
+                <input placeholder="Question" value={faq.question || ''} onChange={(e) => updateComplexArray('faqs', i, 'question', e.target.value)} className="w-full bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
+                <TipTapEditor label="Answer" name={`faq-ans-${i}`} value={faq.answer || ''} onChange={(e) => updateComplexArray('faqs', i, 'answer', e.target.value)} />
               </div>
             ))}
-            <button type="button" onClick={()=>addComplexArrayItem('faqs', {question: '', answer: ''})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold hover:text-blue-300">+ Add FAQ</button>
+            <button type="button" onClick={()=>setFormData({...formData, faqs: [...(formData.faqs || []), {question:'', answer:''}]})} className="text-[10px] text-blue-400 uppercase tracking-widest font-bold">+ Add FAQ</button>
           </div>
 
+          {/* === SECTION 7: SUBMIT BUTTON === */}
           <div className="p-6 bg-[#111] rounded-lg border border-white/10 space-y-6">
-              <button type="submit" disabled={isSubmitting || isDeleting} className="w-full bg-purple-600 hover:bg-purple-500 text-white px-10 py-4 rounded font-black uppercase tracking-widest text-sm shadow-lg transition-colors">
+              <button type="submit" disabled={isSubmitting || isDeleting} className="w-full bg-purple-600 hover:bg-purple-500 text-white px-10 py-4 rounded font-black uppercase tracking-widest text-sm shadow-lg transition-colors disabled:opacity-50">
                 {isSubmitting ? 'Transmitting...' : (isEditing ? 'Update Live Blog Post' : 'Publish Blog Post')}
               </button>
           </div>

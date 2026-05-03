@@ -1,60 +1,27 @@
-import { Geist, Geist_Mono } from "next/font/google";
-import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Inter } from "next/font/google";
 import "./globals.css";
-import GlobalHeader from '@/components/GlobalHeader';
-import GlobalFooter from "@/components/GlobalFooter";
 
-// Initialize the modern fonts
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+import { AdminModeProvider } from '@/context/AdminModeContext';
+import AdminToggle from '@/components/AdminToggle';
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] });
 
-// 1. KLARAI SEO METADATA
 export const metadata = {
-  title: 'KLARAI | Advanced AI Growth Engine',
-  description: 'We build AI-powered growth systems. Answer Engine Optimization, SEO, and 3D Web Development for modern agencies.',
-  keywords: 'AEO, SEO, Performance Marketing, 3D Web Design, AI Agency',
-  openGraph: {
-    title: 'KLARAI | AI-Powered Growth',
-    description: 'We build AI-powered growth systems.',
-    url: 'https://www.klarai.uk',
-    siteName: 'KLARAI',
-    images: [
-      {
-        url: '/og-image.png', // Add this image to your public folder later
-        width: 1200,
-        height: 630,
-      },
-    ],
-    locale: 'en_GB',
-    type: 'website',
-  },
+  title: "Klarai",
+  description: "Next-Gen SEO for UK Businesses",
 };
 
-// 2. ROOT LAYOUT
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable}`}
-    >
-      <body className="bg-[#030303] text-white antialiased min-h-screen flex flex-col">
-       <GlobalHeader />
-        {/* Main Content */}
-
-        {children}
-        
-        {/* Global Footer (Hidden on homepage automatically by its own code) */}
-        <GlobalFooter />
-        
-        {/* Vercel Analytics */}
-        <SpeedInsights />
+    <html lang="en" className="scroll-smooth">
+      <body className={`${inter.className} bg-[#030303] text-white antialiased`}>
+        <AdminModeProvider>
+          
+          {children}
+          
+          <AdminToggle />
+          
+        </AdminModeProvider>
       </body>
     </html>
   );
