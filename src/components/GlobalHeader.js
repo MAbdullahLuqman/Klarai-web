@@ -43,6 +43,7 @@ export default function GlobalHeader() {
     { name: 'Industries', path: '/industries' },
     { name: 'Architects', path: '/about' },
     { name: 'Blog', path: '/blog' },
+    { name: 'Portfolio', path: '/portfolio' },
   ];
 
   const isActive = (path) => {
