@@ -42,7 +42,7 @@ export default function GlobalHeader() {
     { name: 'Services', path: '/services' },
     { name: 'Industries', path: '/industries' },
     { name: 'Architects', path: '/about' },
-    { name: 'Blog', path: '/blog' },
+    
     { name: 'Portfolio', path: '/portfolio' },
   ];
 
