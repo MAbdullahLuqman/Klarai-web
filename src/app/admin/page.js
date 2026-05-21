@@ -58,8 +58,10 @@ export default function AdminDashboard() {
 
   const [nichePagesList, setNichePagesList] = useState({});
   const [blogPagesList, setBlogPagesList] = useState({});
+  const [staticPagesList, setStaticPagesList] = useState({});
   const [activeNicheId, setActiveNicheId] = useState(null);
   const [activeBlogId, setActiveBlogId] = useState(null);
+  const [activeStaticPageId, setActiveStaticPageId] = useState(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -97,6 +99,13 @@ export default function AdminDashboard() {
       let fetchedBlogs = {};
       blogQuery.forEach(doc => { fetchedBlogs[doc.id] = doc.data(); });
       setBlogPagesList(fetchedBlogs);
+    } catch (error) {}
+
+    try {
+      const staticQuery = await getDocs(collection(db, "static_pages"));
+      let fetchedStatic = {};
+      staticQuery.forEach(doc => { fetchedStatic[doc.id] = doc.data(); });
+      setStaticPagesList(fetchedStatic);
     } catch (error) {}
 
     setIsDataLoading(false);
@@ -181,6 +190,7 @@ export default function AdminDashboard() {
             <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Workspace</p>
             <nav className="flex flex-col gap-2">
               <button onClick={() => setViewMode("leads")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "leads" ? "text-[#3b82f6]" : "text-gray-400 hover:text-white"}`}>Leads Tracker</button>
+              <button onClick={() => setViewMode("staticBuilder")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "staticBuilder" ? "text-orange-400" : "text-orange-400/70 hover:text-orange-400"}`}>+ New Static Page</button>
               <button onClick={() => setViewMode("builder")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "builder" ? "text-[#10b981]" : "text-[#10b981]/70 hover:text-[#10b981]"}`}>+ New Niche Page</button>
               <button onClick={() => setViewMode("blogBuilder")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "blogBuilder" ? "text-purple-400" : "text-purple-400/70 hover:text-purple-400"}`}>+ New Blog Post</button>
             </nav>
@@ -204,6 +214,21 @@ export default function AdminDashboard() {
                 Object.keys(blogPagesList).map((blogId) => (
                   <button key={blogId} onClick={() => { setViewMode("blogEdit"); setActiveBlogId(blogId); }} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors truncate ${viewMode === "blogEdit" && activeBlogId === blogId ? "bg-purple-500/10 text-purple-400 border border-purple-500/30" : "text-gray-400 hover:text-white"}`}>
                     /blog/{blogId}
+                  </button>
+                ))
+              )}
+            </nav>
+          </div>
+
+          <div>
+            <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Static Pages</p>
+            <nav className="flex flex-col gap-2">
+              {Object.keys(staticPagesList).length === 0 ? (
+                <p className="px-4 text-xs text-gray-600 italic">No static pages created yet.</p>
+              ) : (
+                Object.keys(staticPagesList).map((pageId) => (
+                  <button key={pageId} onClick={() => { setViewMode("staticEdit"); setActiveStaticPageId(pageId); }} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors truncate ${viewMode === "staticEdit" && activeStaticPageId === pageId ? "bg-orange-500/10 text-orange-400 border border-orange-500/30" : "text-gray-400 hover:text-white"}`}>
+                    /{pageId}
                   </button>
                 ))
               )}
@@ -240,6 +265,9 @@ export default function AdminDashboard() {
 
         {viewMode === "blogBuilder" && <BlogBuilderView isEditing={false} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
         {viewMode === "blogEdit" && <BlogBuilderView key={activeBlogId} isEditing={true} pageId={activeBlogId} initialData={blogPagesList[activeBlogId]} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
+
+        {viewMode === "staticBuilder" && <StaticPageBuilder isEditing={false} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
+        {viewMode === "staticEdit" && <StaticPageBuilder key={activeStaticPageId} isEditing={true} pageId={activeStaticPageId} initialData={staticPagesList[activeStaticPageId]} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
 
         {/* CORE PAGE EDITORS (SEO, AEO, WEB, ETC) */}
         {viewMode === "core" && (
@@ -749,11 +777,20 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
 
   const moveSection = (index, direction) => {
     const newSecs = [...(formData.sections || [])];
+    let newIndex = index;
+    
     if (direction === 'up' && index > 0) {
-      [newSecs[index - 1], newSecs[index]] = [newSecs[index], newSecs[index - 1]];
+      const temp = newSecs[index - 1];
+      newSecs[index - 1] = newSecs[index];
+      newSecs[index] = temp;
+      newIndex = index - 1;
     } else if (direction === 'down' && index < newSecs.length - 1) {
-      [newSecs[index + 1], newSecs[index]] = [newSecs[index], newSecs[index + 1]];
+      const temp = newSecs[index + 1];
+      newSecs[index + 1] = newSecs[index];
+      newSecs[index] = temp;
+      newIndex = index + 1;
     }
+    
     setFormData({...formData, sections: newSecs});
   };
 
@@ -1017,6 +1054,195 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
               <button type="submit" disabled={isSubmitting || isDeleting} className="w-full bg-purple-600 hover:bg-purple-500 text-white px-10 py-4 rounded font-black uppercase tracking-widest text-sm shadow-lg transition-colors disabled:opacity-50">
                 {isSubmitting ? 'Transmitting...' : (isEditing ? 'Update Live Blog Post' : 'Publish Blog Post')}
               </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  );
+}
+// ==========================================
+// COMPONENT: STATIC PAGE BUILDER (For Portfolio, SEO Result, etc)
+// ==========================================
+function StaticPageBuilder({ isEditing, pageId, initialData, refreshData, setViewMode }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [status, setStatus] = useState('');
+
+  const [formData, setFormData] = useState(() => {
+    const base = initialData || {};
+    return {
+      slug: base.slug || '',
+      metaTitle: base.metaTitle || '',
+      metaDescription: base.metaDescription || '',
+      pageTitle: base.pageTitle || '',
+      pageSubtitle: base.pageSubtitle || '',
+      sections: Array.isArray(base.sections) && base.sections.length > 0 ? base.sections : [{ heading: '', content: '' }]
+    };
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const updateSection = (index, field, value) => {
+    const newSections = [...formData.sections];
+    newSections[index] = { ...newSections[index], [field]: value };
+    setFormData({ ...formData, sections: newSections });
+  };
+
+  const addSection = () => {
+    setFormData({ ...formData, sections: [...formData.sections, { heading: '', content: '' }] });
+  };
+
+  const removeSection = (index) => {
+    const newSections = formData.sections.filter((_, i) => i !== index);
+    setFormData({ ...formData, sections: newSections });
+  };
+
+  const moveSection = (index, direction) => {
+    const newSecs = [...formData.sections];
+    let newIndex = index;
+    
+    if (direction === 'up' && index > 0) {
+      const temp = newSecs[index - 1];
+      newSecs[index - 1] = newSecs[index];
+      newSecs[index] = temp;
+      newIndex = index - 1;
+    } else if (direction === 'down' && index < newSecs.length - 1) {
+      const temp = newSecs[index + 1];
+      newSecs[index + 1] = newSecs[index];
+      newSecs[index] = temp;
+      newIndex = index + 1;
+    }
+    
+    setFormData({ ...formData, sections: newSecs });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setStatus('Saving page...');
+    try {
+      const targetSlug = isEditing ? pageId : formData.slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      await setDoc(doc(db, 'static_pages', targetSlug), { 
+        ...formData, 
+        slug: targetSlug, 
+        updatedAt: serverTimestamp() 
+      });
+      setStatus(`Success: Page /${targetSlug} ${isEditing ? 'updated' : 'created'} and is now live!`);
+      refreshData();
+      window.scrollTo(0, 0);
+    } catch (error) { 
+      setStatus(`Error: ${error.message}`); 
+    } 
+    finally { 
+      setIsSubmitting(false); 
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm(`WARNING: Are you sure you want to permanently delete /${pageId}?`)) return;
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'static_pages', pageId));
+      alert(`Page /${pageId} deleted successfully.`);
+      await refreshData();
+      setViewMode('staticBuilder'); 
+    } catch (error) { 
+      alert('Error: Could not delete page.'); 
+      setIsDeleting(false); 
+    }
+  };
+
+  return (
+    <div className="flex-1 overflow-y-auto p-8 h-full">
+      <div className="max-w-4xl mx-auto pb-32">
+        <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+          <h2 className={`font-black text-2xl uppercase tracking-widest ${isEditing ? 'text-orange-400' : 'text-orange-400'}`}>
+            {isEditing ? `Editing: /${pageId}` : 'Create New Static Page'}
+          </h2>
+          <div className="flex items-center gap-3">
+            {isEditing && (
+              <button type="button" onClick={handleDelete} disabled={isDeleting} className="px-4 py-2 border border-red-500/50 text-red-500 text-xs font-bold uppercase tracking-widest rounded hover:bg-red-500/10 transition-colors disabled:opacity-50">
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {status && <div className={`mb-8 p-4 border text-xs tracking-widest uppercase font-bold rounded ${status.includes('Success') ? 'border-green-500/50 bg-green-500/10 text-green-400' : 'border-red-500/50 bg-red-500/10 text-red-400'}`}>{status}</div>}
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          
+          {/* META DATA */}
+          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">Meta Data & SEO</h3>
+            <div>
+              <label className="block text-xs text-gray-500 font-bold uppercase mb-2">URL Slug (URL Path)</label>
+              <input name="slug" placeholder="portfolio" required disabled={isEditing} value={formData.slug || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white disabled:opacity-50 rounded" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Meta Title (SEO)</label>
+              <input name="metaTitle" placeholder="Page Title | Your Company" value={formData.metaTitle || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Meta Description (SEO)</label>
+              <textarea name="metaDescription" placeholder="Page description for search engines..." rows="2" value={formData.metaDescription || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded resize-none" />
+            </div>
+          </div>
+
+          {/* PAGE HEADER */}
+          <div className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
+            <h3 className="text-blue-400 uppercase tracking-widest text-[10px] font-bold">Page Header</h3>
+            <div>
+              <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Main Heading (H1)</label>
+              <input name="pageTitle" placeholder="Engineering Portfolio" value={formData.pageTitle || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white font-bold rounded" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Subheading</label>
+              <input name="pageSubtitle" placeholder="A collection of high-performance web applications..." value={formData.pageSubtitle || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            </div>
+          </div>
+
+          {/* PAGE CONTENT SECTIONS */}
+          <div className="space-y-6 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
+            <div className="flex justify-between items-center border-b border-white/10 pb-2">
+              <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">Content Sections</h3>
+              <button type="button" onClick={addSection} className="text-[10px] bg-white/10 px-3 py-1.5 rounded text-white uppercase tracking-widest font-bold hover:bg-white/20">+ Add Section</button>
+            </div>
+            
+            {formData.sections.map((section, i) => (
+              <div key={i} className="p-5 bg-[#111] border border-white/10 rounded-xl shadow-lg space-y-4 relative">
+                
+                {/* Section Controls */}
+                <div className="absolute top-4 right-4 flex gap-2">
+                  <button type="button" onClick={() => moveSection(i, 'up')} disabled={i === 0} className="text-gray-400 hover:text-white disabled:opacity-30 text-lg">↑</button>
+                  <button type="button" onClick={() => moveSection(i, 'down')} disabled={i === (formData.sections||[]).length - 1} className="text-gray-400 hover:text-white disabled:opacity-30 text-lg">↓</button>
+                  <button type="button" onClick={() => removeSection(i)} className="text-red-500 ml-4 hover:text-red-400 font-bold text-xs uppercase">Delete</button>
+                </div>
+
+                {/* Section Heading */}
+                <div className="w-3/4 space-y-2">
+                  <label className="block text-[10px] text-gray-500 font-bold uppercase tracking-widest">Heading (H2)</label>
+                  <input placeholder="Section Title" value={section.heading || ''} onChange={(e) => updateSection(i, 'heading', e.target.value)} className="w-full bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-white font-bold" />
+                </div>
+
+                {/* Section Content */}
+                <div className="space-y-2 border-l-2 border-white/10 pl-4">
+                  <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Content (Rich Text)</label>
+                  <TipTapEditor name={`section-${i}`} value={section.content || ''} onChange={(e) => updateSection(i, 'content', e.target.value)} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* SUBMIT BUTTON */}
+          <div className="p-6 bg-[#111] rounded-lg border border-white/10 space-y-6">
+            <button type="submit" disabled={isSubmitting || isDeleting} className={`px-10 py-4 rounded font-black uppercase tracking-widest text-sm transition-all shadow-lg w-full md:w-auto ${isEditing ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white'}`}>
+              {isSubmitting ? 'Saving...' : (isEditing ? 'Update Page' : 'Create Page')}
+            </button>
           </div>
 
         </form>
