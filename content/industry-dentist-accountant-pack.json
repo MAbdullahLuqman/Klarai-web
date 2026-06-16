@@ -1,0 +1,266 @@
+[
+  {
+    "collection": "industry_pages",
+    "id": "seo-for-dentists",
+    "data": {
+      "slug": "seo-for-dentists",
+      "meta": {
+        "title": "SEO for Dentists UK: Rank Higher, Win More Patients | Klarai",
+        "description": "Dental SEO that fills appointment books — treatment-specific pages, Map Pack dominance, YMYL trust signals and AI search visibility. Free strategy call, no lock-in."
+      },
+      "hero": {
+        "h1": "SEO for Dentists UK",
+        "sub": "Patients no longer ask friends for a dentist first — they search. When someone types 'dental implants Manchester' or 'emergency dentist near me', the practice that appears wins the patient. It's rarely the best clinician. It's always the best optimised one.",
+        "cta": "Get my free dental SEO strategy call",
+        "ctaHref": "/contact"
+      },
+      "tldr": {
+        "text": "78% of valuable dental searches are treatment-specific, not generic 'dentist near me'. Emergency queries resolve in the Map Pack — elective treatments (implants, Invisalign) resolve in organic. You need both, built differently. Klarai builds treatment pages that rank, GBP profiles that win the Map Pack, and YMYL trust signals that Google requires for dental content. Full guide: our dental SEO blog post covers every tactic in depth."
+      },
+      "sections": [
+        {
+          "h2": "Why most dental practices are invisible when patients search",
+          "paras": [
+            "A patient with a cracked tooth doesn't scroll. They search 'emergency dentist Birmingham', look at the Map Pack top three, and call. A patient researching implants searches 'dental implants cost' with their city and compares the first few practices. In both cases the practices that appear are the ones with proper SEO — not the best clinicians, just the best optimised.",
+            "Two failures cause this invisibility. First: a single treatments page listing implants, Invisalign, whitening, hygiene and emergency care together. Google cannot match 'dental implants [city]' to a page covering twelve treatments. Each high-value treatment needs its own dedicated page. Second: a neglected Google Business Profile, so the practice never enters the Map Pack for the emergency searches that resolve almost entirely there."
+          ]
+        },
+        {
+          "h2": "The two SEO strategies every dental practice needs",
+          "sub": [
+            {
+              "h3": "Map Pack for emergency and urgent searches",
+              "text": "Toothache, broken tooth, lost crown — these queries resolve in the Google Map Pack top 3, not organic. Winning here requires the right GBP categories (Dentist primary, Emergency Dental Service as secondary), a 4.7+ star rating with 50+ recent reviews, and consistent NAP across all UK directories."
+            },
+            {
+              "h3": "Organic rankings for elective treatments",
+              "text": "Dental implants, Invisalign, composite bonding, veneers — patients research these for days before booking. They read, compare, and choose the practice whose content answers their questions best. Each treatment needs a dedicated page with clinical detail, pricing ranges, a named clinician, and their GDC number."
+            },
+            {
+              "h3": "YMYL trust signals Google requires",
+              "text": "Dental content is classified as YMYL — Your Money or Your Life. Google holds it to medical-grade E-E-A-T standards. Named clinicians with GDC numbers, treatment-specific FAQs, last-reviewed dates, and links to NHS/BDA guidance are non-negotiable for ranking."
+            },
+            {
+              "h3": "AI search visibility (ChatGPT, Perplexity)",
+              "text": "When patients ask AI engines 'how much do dental implants cost in Manchester', specific practice pages get cited. The pages getting cited answer the question directly, include pricing ranges, and use FAQ schema. Generic treatment overviews don't appear."
+            }
+          ]
+        },
+        {
+          "h2": "The treatment pages that bring high-value patients",
+          "paras": [
+            "The practices winning implants, Invisalign and cosmetic enquiries have one thing in common: a dedicated page for each treatment, built with clinical depth, real pricing, and a named clinician. Here's the architecture that works."
+          ],
+          "list": [
+            "Dental implants — pricing range, implantologist named with GDC number, procedure stages, what to expect, FAQ block",
+            "Invisalign / clear aligners — provider tier, cost tiers (Lite/Moderate/Comprehensive), treatment timeline, before/after",
+            "Composite bonding — cost per tooth, longevity, who it suits, comparison with veneers",
+            "Emergency dentist — same-day promise, opening hours prominent, phone number above fold",
+            "Teeth whitening — specific systems (Enlighten, Boutique, Zoom) — branded searches matter",
+            "Veneers — porcelain vs composite comparison, cost breakdown, candidacy criteria"
+          ]
+        },
+        {
+          "h2": "Reviews: the threshold that unlocks Map Pack reach",
+          "paras": [
+            "Below 4.5 stars or under 30 Google reviews, proximity dominates Map Pack rankings entirely. You can only compete within roughly a 1-mile radius. Cross the 4.7+ star mark with 50+ reviews refreshed monthly and Google's prominence signal lets you compete 2-3 miles further out — reaching patients in neighbouring postcodes you currently can't touch.",
+            "The right time to ask for a review is 24 hours after treatment completion — not at the chair. For high-value work like implants or Invisalign, ask 6 weeks after the final fit when the patient is actually enjoying the result. Incentivised reviews violate both GDC guidance and CMA rules — never offer them."
+          ]
+        },
+        {
+          "h2": "How Klarai works with dental practices",
+          "list": [
+            "Audit. We review your treatment pages, GBP categories, review velocity, and competitor rankings in your postcode. You get a prioritised list of what to fix first.",
+            "Foundations. We resolve technical blockers, fix GBP categories and service area, build any missing treatment pages with proper schema and clinical depth.",
+            "Rankings. We optimise for the treatment + location searches you're closest to ranking for, so you see new patient enquiries before the longer campaigns compound.",
+            "AI visibility. We structure treatment content so it gets cited by ChatGPT, Perplexity and Google AI Overviews.",
+            "Grow. We track new patient enquiries, refine what's working, and expand into more competitive terms and additional locations over time."
+          ]
+        },
+        {
+          "h2": "Why Klarai for dental SEO",
+          "paras": [
+            "We're founder-led — Abdullah Luqman builds the work directly, not a junior account manager. We work month to month with no lock-in. We understand UK-specific factors: GDC registration, NHS vs private split, CQC compliance signals, and how British patients actually search for dental care. We'll tell you honestly if SEO isn't the right spend for your practice yet."
+          ]
+        }
+      ],
+      "related": [
+        {
+          "label": "Full Dental SEO Playbook: Treatment Pages, Map Pack & AI Visibility",
+          "href": "/blog/how-to-do-seo-for-dentists"
+        },
+        {
+          "label": "What Is Answer Engine Optimisation?",
+          "href": "/blog/what-is-answer-engine-optimisation"
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How much does dental SEO cost in the UK?",
+          "a": "Most single-location practices focused on 2-3 high-value treatments need £1,500-£2,000/month for 9-12 months to see compounding results. Larger practices with multiple sites or wider treatment menus typically invest £2,500-£3,500/month. We audit first and recommend only what your practice needs."
+        },
+        {
+          "q": "How long before we see new patient enquiries from SEO?",
+          "a": "Map Pack improvement from GBP optimisation can produce a measurable lift in calls within 6-10 weeks. Organic rankings for competitive treatment terms like 'dental implants [major city]' typically take 4-7 months. AI search citations can appear within 30 days of publishing well-structured treatment pages."
+        },
+        {
+          "q": "Do I need separate pages for each dental treatment?",
+          "a": "Yes — this is the single highest-impact structural change most practices can make. Google cannot rank a page that covers twelve treatments for a search that mentions one specific treatment. Each high-value treatment needs its own URL, H1, schema markup and clinical detail."
+        },
+        {
+          "q": "What's the difference between dental SEO and general local SEO?",
+          "a": "Two things. First, YMYL — dental content requires medical-grade E-E-A-T signals (GDC numbers, named clinicians, clinical accuracy) that generic local SEO ignores. Second, dental searches split between emergency intent (Map Pack only) and elective treatment intent (organic only), requiring two parallel strategies on the same site."
+        },
+        {
+          "q": "Can a smaller practice compete with larger dental groups?",
+          "a": "Yes — and often more effectively. A focused single-location practice can rank higher for specific treatments in specific postcodes than a multi-site group that spreads its authority thinly. The key is specialisation: dominate 3-4 treatments in your postcode rather than chasing everything everywhere."
+        }
+      ],
+      "cta": {
+        "heading": "Book a free dental SEO strategy call",
+        "sub": "We'll audit your treatment pages, GBP setup and review velocity, then map out exactly what needs to change to rank higher and win more high-value patients.",
+        "primary": "Book a free strategy call",
+        "primaryHref": "/contact",
+        "secondary": "Read the full dental SEO guide",
+        "secondaryHref": "/blog/how-to-do-seo-for-dentists"
+      }
+    }
+  },
+  {
+    "collection": "industry_pages",
+    "id": "seo-for-accountants",
+    "data": {
+      "slug": "seo-for-accountants",
+      "meta": {
+        "title": "SEO for Accountants UK: Win More Clients from Google | Klarai",
+        "description": "Accountancy SEO built around niche specialisations, seasonal search spikes and ICAEW trust signals. Rank for contractor, landlord and specialist accounting searches."
+      },
+      "hero": {
+        "h1": "SEO for Accountants UK",
+        "sub": "Accountancy searches spike 340% in January. The firms that win those clients started building content in October. Here's how to make sure that firm is yours in the next cycle.",
+        "cta": "Get my free accountancy SEO strategy call",
+        "ctaHref": "/contact"
+      },
+      "tldr": {
+        "text": "SEO for accountants works when you target niche specialisations (contractors, landlords, e-commerce sellers) rather than fighting for 'accountant [major city]' against firms with 30 years of citations. Financial content is YMYL — ICAEW, ACCA and AAT credentials are E-E-A-T signals Google specifically requires. The seasonal calendar rewards firms that publish self-assessment content in October, not January. Full playbook: our accountancy SEO blog post covers every tactic in detail."
+      },
+      "sections": [
+        {
+          "h2": "Why most accountancy firms lose on Google",
+          "paras": [
+            "The most common mistake is targeting 'accountant [major city]' — a term dominated by firms with decades of Google authority, hundreds of reviews, and content libraries built over years. Most small and mid-sized firms spend their SEO budget fighting a battle they can't win for at least two years.",
+            "The firms growing fastest from organic search have stopped fighting that battle. They've picked the specialisations the big generalists ignore — contractor accounting, landlord tax, Shopify seller accounts — and they're winning those queries within 6 months. Lower difficulty, higher intent, better clients."
+          ]
+        },
+        {
+          "h2": "The four pillars of accountancy SEO that actually work",
+          "sub": [
+            {
+              "h3": "Niche specialisation pages",
+              "text": "A page targeting 'accountant for contractors' (KD ~15) outranks a page targeting 'accountant Manchester' (KD ~35) and converts better — the searcher already knows they need a specialist. Build one page per niche you genuinely serve: IR35 specialists, landlord tax, e-commerce, R&D credits, crypto tax."
+            },
+            {
+              "h3": "Seasonal content timed to UK tax deadlines",
+              "text": "Google needs 8-12 weeks to rank new content. Self-assessment content published in January loses to content published in October. The firms capturing January traffic published their guides in Q4. Plan every content piece backwards from the UK tax calendar."
+            },
+            {
+              "h3": "YMYL trust signals for financial content",
+              "text": "Financial content is YMYL — Google requires demonstrable expertise. ICAEW or ACCA membership numbers, named authors with qualifications, last-reviewed dates on every advice page, and AML supervision body details are the signals raters check. Missing them means lower ranking regardless of content quality."
+            },
+            {
+              "h3": "Local plus niche, not local or national",
+              "text": "Own 'contractor accountant Manchester' before targeting 'accountant Manchester'. Own 'landlord tax accountant Leeds' before targeting 'accountant Leeds'. Layer niche expertise onto local geography — you'll rank in months, not years, and the clients convert at much higher rates."
+            }
+          ]
+        },
+        {
+          "h2": "The niches that rank fast and convert well",
+          "paras": [
+            "Every one of these has meaningful search volume in the UK, keyword difficulty under 20, and a buyer who already knows they need a specialist — not a generalist who 'also does that'."
+          ],
+          "list": [
+            "Accountant for contractors and IR35 specialists",
+            "Accountant for landlords and property investors (Section 24, rental income)",
+            "Accountant for e-commerce sellers (Amazon, Shopify, VAT OSS)",
+            "Accountant for freelancers and sole traders",
+            "R&D tax credit specialists",
+            "Crypto tax accountants",
+            "Accountant for dentists, doctors and NHS locums",
+            "Expat and non-dom tax specialists"
+          ]
+        },
+        {
+          "h2": "The seasonal SEO calendar for UK accountants",
+          "paras": [
+            "Most accountancy SEO fails because content is published too late. The January self-assessment rush rewards firms that acted in October. Here's the publishing calendar that captures seasonal demand."
+          ],
+          "list": [
+            "October: publish all self-assessment guides, penalty FAQs and allowance explainers",
+            "November: build internal links to that content, earn citations",
+            "December: refresh with current 2025/26 tax year figures",
+            "January–February: convert traffic with clear service pages and pricing",
+            "March–April: year-end planning content for sole traders and small businesses",
+            "May–July: company accounts and corporation tax deadline content",
+            "August–September: refresh limited company and payroll content for autumn filings"
+          ]
+        },
+        {
+          "h2": "How Klarai works with accountancy firms",
+          "list": [
+            "Audit. We review your current pages, identify the niche specialisations you can rank for in 3-6 months, and map the gaps in your seasonal content calendar.",
+            "Foundations. We fix technical blockers, build or rebuild your niche specialisation pages with YMYL-compliant trust signals, and set up proper schema (AccountingService, Person, FAQPage).",
+            "Rankings. We optimise for the searches you're closest to ranking for first — niche + local combinations where you can win quickly.",
+            "Seasonal content. We build the content calendar and publish each piece at the right time in the tax cycle, so you capture demand when it peaks.",
+            "Grow. We track new client enquiries, monitor seasonal ranking performance, and expand into more competitive terms as your authority compounds."
+          ]
+        },
+        {
+          "h2": "Why Klarai for accountancy SEO",
+          "paras": [
+            "We're founder-led — Abdullah Luqman does the work directly. We understand UK-specific requirements: ICAEW/ACCA credentialing, HMRC AML supervision, Making Tax Digital implications for content. We work month to month with no lock-in. If SEO isn't the right spend for your firm yet, we'll tell you honestly rather than taking a retainer."
+          ]
+        }
+      ],
+      "related": [
+        {
+          "label": "Full Accountancy SEO Playbook: Niches, Seasonal Calendar & YMYL",
+          "href": "/blog/how-to-do-seo-for-accountants"
+        },
+        {
+          "label": "What Is Answer Engine Optimisation?",
+          "href": "/blog/what-is-answer-engine-optimisation"
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How much does SEO for accountants cost in the UK?",
+          "a": "A single-office firm targeting 2-3 niche specialisations typically needs £1,200-£1,800/month for 9-12 months. Larger firms with multiple offices or more aggressive growth targets invest £2,500-£3,500/month. We audit first and recommend only what your firm actually needs."
+        },
+        {
+          "q": "How long before SEO produces new client enquiries?",
+          "a": "Niche specialisation pages (contractor accountant, landlord accountant) typically start producing enquiries within 8-14 weeks when well-built and supported by internal links. Broader local terms take 6-9 months. Timing matters more here than in almost any sector — content published ahead of tax deadlines compounds; content published during them is too late."
+        },
+        {
+          "q": "Should we target local or national rankings?",
+          "a": "Local plus niche is the winning combination for most firms. National ranking works only for genuinely national specialisms (R&D tax, crypto, expat) where the niche is narrow enough. Generalist firms targeting national terms almost always lose to specialists."
+        },
+        {
+          "q": "What's the single highest-ROI SEO action for an accountancy firm?",
+          "a": "Picking one niche you genuinely serve and building a 1,500-word page for it — with pricing, software stack, niche-specific tax rules and an FAQ block. Most firms try to rank for everything and rank for nothing. The specialist page outranks the generalist firm within months."
+        },
+        {
+          "q": "Does publishing AI-generated content work for accountancy SEO?",
+          "a": "No — not for YMYL financial content. Google's quality rater guidelines require demonstrable expertise on financial topics, and AI-generated content lacks the specificity that gets cited by AI search engines. Draft with AI if useful, but every published page must be written or substantially edited by a qualified accountant and bylined accordingly."
+        }
+      ],
+      "cta": {
+        "heading": "Book a free accountancy SEO strategy call",
+        "sub": "We'll identify the niche specialisations you can rank for in the next 3-6 months, map your seasonal content gaps, and show you what needs to change before the next January peak.",
+        "primary": "Book a free strategy call",
+        "primaryHref": "/contact",
+        "secondary": "Read the full accountancy SEO guide",
+        "secondaryHref": "/blog/how-to-do-seo-for-accountants"
+      }
+    }
+  }
+]
