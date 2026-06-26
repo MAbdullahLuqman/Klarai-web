@@ -26,6 +26,7 @@ export default async function sitemap() {
   let blogSlugs = [];
   let industrySlugs = [];
   let nicheSlugs = [];
+  let caseStudySlugs = [];
   try {
     const snap = await getDoc(doc(db, "_meta", "slugs"));
     if (snap.exists()) {
@@ -33,6 +34,7 @@ export default async function sitemap() {
       blogSlugs = data.blogSlugs || [];
       industrySlugs = data.industrySlugs || [];
       nicheSlugs = data.nicheSlugs || [];
+      caseStudySlugs = data.caseStudySlugs || [];
     }
   } catch {
     // Registry not created yet — sitemap falls back to static routes only
@@ -62,6 +64,12 @@ export default async function sitemap() {
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.6,
+    })),
+    ...caseStudySlugs.map((s) => ({
+      url: `${SITE_URL}/case-studies/${s}`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.7,
     })),
   ];
 }

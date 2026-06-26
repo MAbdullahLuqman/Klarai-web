@@ -22,10 +22,9 @@ const itemVariants = {
 const TiltCard = ({ children, className }) => {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== "undefined" && window.innerWidth > 768);
 
   useEffect(() => {
-    setIsDesktop(window.innerWidth > 768);
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -400,7 +399,7 @@ const RankingsSection = () => {
             <div>
               <h4 className="text-white font-black text-sm uppercase tracking-tight mb-2">AI / Conversational Search Win</h4>
               <p className="text-gray-400 text-sm font-medium leading-relaxed italic">
-                "What's the difference between ai answer tracking tools and ai-optimized content platforms?"
+                &quot;What&apos;s the difference between ai answer tracking tools and ai-optimized content platforms?&quot;
               </p>
               <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-2">
                 Ranking for LLM-style semantic queries

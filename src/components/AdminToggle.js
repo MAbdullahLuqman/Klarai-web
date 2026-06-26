@@ -1,18 +1,9 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAdminMode } from '@/context/AdminModeContext';
 
 export default function AdminToggle() {
   const { isAdminLoggedIn, viewMode, toggleViewMode, authLoading } = useAdminMode();
-  const [mounted, setMounted] = useState(false);
-
-  // This prevents Next.js Server-Side Rendering from silently crashing the component
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   // 🚨 I HAVE COMMENTED THIS OUT SO THE BUTTON IS FORCED TO SHOW 🚨
   // if (authLoading || !isAdminLoggedIn) return null;
 

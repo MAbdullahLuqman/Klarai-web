@@ -10,6 +10,7 @@ const COLLECTIONS = [
   { id: "industry_pages", label: "Industry hubs (industry_pages)" },
   { id: "niche_pages", label: "Niche pages (niche_pages)" },
   { id: "static_pages", label: "Static pages (static_pages)" },
+  { id: "case_studies", label: "Case studies (case_studies)" },
 ];
 
 // Required-field hints (renderer expectations). Missing fields warn, not block.
@@ -41,6 +42,7 @@ const COLLECTION_SCHEMAS = {
   ],
   niche_pages: ["slug", "niche", "h1", "subheadline", "metaTitle", "metaDescription"],
   static_pages: ["slug", "title", "content"],
+  case_studies: ["title", "slug", "status", "heroTitle", "excerpt", "metrics[].label", "cta.heading"],
 };
 
 const hasPath = (obj, path) => {

@@ -4,15 +4,11 @@ import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ReactLenis, useLenis } from "lenis/react";
-import "lenis/dist/lenis.css";
 import AuditSearchBar from "@/components/AuditSearchBar";
+import WebsitePreviewFrame from "@/components/WebsitePreviewFrame";
 
-gsap.registerPlugin(ScrollTrigger);
-
-const mountainImage = "/images/hero-mountain.jpg";
-const mountainForegroundImage = "/images/hero-mountain-foreground.webp";
+const mountainVideo = "/hero-mountain-base.mp4";
+const mountainForegroundImage = "/images/hero-mountain-foreground-clean.webp";
 
 const services = [
   {
@@ -79,20 +75,31 @@ const faqs = [
 function HeroLandscape() {
   return (
     <div className="absolute inset-0 isolate overflow-hidden bg-[#eec59f] [transform:translate3d(0,0,0)]">
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(180deg,#657d9b_0%,#c5a2a2_28%,#f0b06d_48%,#f5d8a0_66%,#5f6f74_100%)]" />
-      <img
-        src={mountainImage}
-        alt=""
-        draggable={false}
-        decoding="async"
-        fetchPriority="high"
-        className="hero-mountain-base pointer-events-none absolute inset-0 z-[1] h-full w-full select-none object-cover object-[48%_100%] brightness-[0.9] contrast-[1.08] saturate-[1.02] will-change-transform [backface-visibility:hidden] [mask-image:linear-gradient(to_bottom,transparent_0%,transparent_28%,rgba(0,0,0,0.16)_41%,rgba(0,0,0,0.5)_50%,#000_62%,#000_100%)] [transform:translate3d(0,0,0)] md:object-center"
-      />
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(180deg,#9caebf_0%,#c5c1bc_26%,#d5c4ad_45%,#bbb7aa_62%,#3f4d50_100%)]" />
+      <div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_50%_16%,rgba(255,255,255,0.42)_0%,rgba(255,255,255,0.08)_24%,rgba(255,255,255,0)_54%)]" />
+      <h1
+        aria-label="KlarAI"
+        className="hero-brand-backdrop pointer-events-none absolute inset-x-0 top-[40%] z-[12] flex select-none justify-center overflow-hidden whitespace-nowrap text-[4rem] font-black uppercase leading-none tracking-[0] text-white drop-shadow-[0_12px_42px_rgba(5,10,18,0.28)] [perspective:900px] sm:top-[29%] sm:text-8xl md:top-[24%] md:text-[9rem] lg:text-[13rem] xl:text-[16rem]"
+      >
+        {"KLARAI".split("").map((letter, index) => (
+          <span key={`${letter}-${index}`} aria-hidden="true" className="hero-brand-letter inline-block will-change-transform">
+            {letter}
+          </span>
+        ))}
+      </h1>
+      <video
+        className="hero-video-base pointer-events-none absolute inset-0 z-[6] h-full w-full select-none object-cover object-center will-change-transform [backface-visibility:hidden] [transform:translate3d(0,0,0)]"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+      >
+        <source src={mountainVideo} type="video/mp4" />
+      </video>
       <div
         className="hero-sky-night absolute inset-0 z-[2] bg-[linear-gradient(180deg,#111827_0%,#233044_34%,#313b48_56%,#101418_100%)]"
-      />
-      <div
-        className="hero-sun absolute left-[78%] top-[24%] z-10 h-36 w-36 -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_46%_24%,#fffdf2_0%,#ffe4a2_16%,#ffc164_34%,rgba(255,145,63,0.46)_52%,rgba(243,188,122,0)_76%)] opacity-55 shadow-[0_0_42px_rgba(255,184,96,0.18)] mix-blend-screen blur-[1px] will-change-transform [backface-visibility:hidden] [transform:translate3d(-50%,0,0)] sm:left-[67%] sm:top-[11%] sm:h-64 sm:w-64 sm:opacity-90 sm:shadow-[0_0_80px_rgba(255,184,96,0.34)] lg:left-[57%] lg:top-[9%] lg:h-80 lg:w-80"
       />
       <img
         src={mountainForegroundImage}
@@ -100,51 +107,35 @@ function HeroLandscape() {
         draggable={false}
         decoding="async"
         fetchPriority="high"
-        className="hero-mountain-foreground pointer-events-none absolute inset-0 z-20 h-full w-full select-none object-cover object-[48%_100%] brightness-[1.02] contrast-[1.08] saturate-[1.04] will-change-transform [backface-visibility:hidden] [transform:translate3d(0,0,0)] md:object-center"
+        className="hero-mountain-foreground pointer-events-none absolute inset-0 z-20 h-full w-full select-none object-cover object-center brightness-[1.02] contrast-[1.08] saturate-[0.96] will-change-transform [backface-visibility:hidden] [transform:translate3d(0,0,0)]"
       />
       <div
-        className="hero-mountain-shade absolute inset-0 z-20 bg-[linear-gradient(180deg,rgba(18,24,31,0.02)_0%,rgba(18,24,31,0.28)_46%,rgba(2,5,8,0.82)_100%)]"
+        className="hero-mountain-shade absolute inset-0 z-[7] bg-[linear-gradient(180deg,rgba(18,24,31,0.02)_0%,rgba(18,24,31,0.28)_46%,rgba(2,5,8,0.82)_100%)]"
       />
-      <div className="absolute inset-0 z-30 bg-[linear-gradient(180deg,rgba(5,7,10,0.1)_0%,rgba(5,7,10,0.02)_32%,rgba(5,7,10,0.24)_58%,rgba(5,7,10,0.78)_100%)] md:hidden" />
-      <div className="absolute inset-0 z-30 bg-[linear-gradient(90deg,rgba(16,12,10,0.42)_0%,rgba(18,15,15,0.18)_45%,rgba(13,18,24,0.24)_100%)]" />
-      <div className="absolute inset-0 z-30 bg-[radial-gradient(circle_at_57%_34%,rgba(255,220,168,0.16)_0%,rgba(12,16,20,0.16)_56%,rgba(5,7,10,0.58)_100%)]" />
+      <div className="absolute inset-0 z-[7] bg-[linear-gradient(180deg,rgba(5,7,10,0.1)_0%,rgba(5,7,10,0.02)_32%,rgba(5,7,10,0.24)_58%,rgba(5,7,10,0.78)_100%)] md:hidden" />
+      <div className="absolute inset-0 z-[7] bg-[linear-gradient(90deg,rgba(16,12,10,0.42)_0%,rgba(18,15,15,0.18)_45%,rgba(13,18,24,0.24)_100%)]" />
+      <div className="absolute inset-0 z-[7] bg-[radial-gradient(circle_at_52%_30%,rgba(255,255,255,0.13)_0%,rgba(12,16,20,0.12)_52%,rgba(5,7,10,0.62)_100%)]" />
     </div>
   );
 }
 
-function LenisScrollTriggerSync() {
-  useLenis(() => {
-    ScrollTrigger.update();
-  }, []);
-
-  return null;
-}
-
 function PitchsidePreview() {
   return (
-    <div className="overflow-hidden rounded-[1.35rem] border border-white/14 bg-[#0d1214] shadow-[0_35px_100px_rgba(0,0,0,0.34)]">
-      <div className="flex h-11 items-center justify-between border-b border-white/10 bg-[#151b1e] px-4">
-        <div className="flex gap-2">
-          <span className="h-3 w-3 rounded-full bg-[#ff5f56]" />
-          <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
-          <span className="h-3 w-3 rounded-full bg-[#27c93f]" />
-        </div>
-        <div className="max-w-[58%] truncate rounded-md border border-white/10 bg-black/30 px-5 py-1 text-center text-[10px] font-bold text-white/48">
-          pitchside.ai
-        </div>
-        <Link href="/portfolio" className="text-[10px] font-black uppercase tracking-[0.16em] text-white/50 transition hover:text-white">
-          View
-        </Link>
-      </div>
-      <div className="relative aspect-[16/10] bg-black">
-        <iframe
-          src="https://pticheside.vercel.app/"
-          title="Pitchside AI website preview"
-          loading="lazy"
-          className="h-full w-full border-0"
-        />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_58%,rgba(0,0,0,0.34)_100%)]" />
-      </div>
+    <div className="relative">
+      <WebsitePreviewFrame
+        url="https://pitchside.ai"
+        title="Pitchside AI website preview"
+        label="pitchside.ai"
+        desktopHeight={900}
+        className="border-white/14 shadow-[0_35px_100px_rgba(0,0,0,0.34)]"
+        chromeClassName="h-11"
+        action={
+          <Link href="/portfolio" className="text-[10px] font-black uppercase tracking-[0.16em] text-white/50 transition hover:text-white">
+            View
+          </Link>
+        }
+      />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(0,0,0,0.34)_100%)]" />
     </div>
   );
 }
@@ -154,38 +145,24 @@ export default function HomePage() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.set(".hero-sky-night", { autoAlpha: 0, force3D: true });
-      gsap.set(".hero-mountain-shade", { autoAlpha: 0, force3D: true });
-      gsap.set(".hero-mountain-base, .hero-mountain-foreground", { y: 0, z: 0.01, scale: 1.045, transformOrigin: "50% 50%", force3D: true });
-      gsap.set(".hero-sun", { y: 0, z: 0.01, scale: 1, autoAlpha: 1, transformOrigin: "50% 50%", force3D: true });
-      gsap.set(".hero-content", { y: 0, z: 0.01, scale: 1, autoAlpha: 1, transformOrigin: "50% 50%", force3D: true });
-      gsap.set(".hero-frame", { z: 0.01, scale: 1, transformOrigin: "50% 50%", force3D: true });
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-      const tl = gsap.timeline({
-        defaults: { ease: "none" },
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: "top top",
-          end: "+=140%",
-          pin: true,
-          scrub: 1,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      });
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-      tl.to(".hero-sun", { y: 455, scale: 0.58, autoAlpha: 0, duration: 1 }, 0)
-        .to(".hero-sky-night", { autoAlpha: 1, duration: 1 }, 0)
-        .to(".hero-mountain-shade", { autoAlpha: 0.86, duration: 1 }, 0)
-        .to(".hero-mountain-base, .hero-mountain-foreground", { y: -24, scale: 1.08, duration: 1 }, 0)
-        .to(".hero-content", { y: -34, scale: 0.982, autoAlpha: 0.72, duration: 1 }, 0)
-        .to(".hero-frame", { scale: 0.992, duration: 1 }, 0);
+      tl.fromTo(".hero-sky-night", { autoAlpha: 0.92 }, { autoAlpha: 0.2, duration: 2.2 }, 0)
+        .fromTo(".hero-video-base", { scale: 1.06, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 1.8, ease: "power2.out" }, 0)
+        .fromTo(
+          ".hero-brand-letter",
+          { yPercent: 125, scale: 0.72, rotationX: -38, autoAlpha: 0 },
+          { yPercent: 0, scale: 1, rotationX: 0, autoAlpha: 1, duration: 1.35, stagger: 0.09, ease: "back.out(1.35)" },
+          0.45,
+        )
+        .fromTo(".hero-mountain-foreground", { yPercent: 18, scale: 1.1 }, { yPercent: 0, scale: 1, duration: 2.15, ease: "power2.out" }, 0.2)
+        .fromTo(".hero-mountain-shade", { autoAlpha: 0 }, { autoAlpha: 0.68, duration: 1.8 }, 0.65)
+        .fromTo(".hero-content", { y: 34, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.15 }, 1.25);
     }, heroRef);
 
-    const refresh = window.requestAnimationFrame(() => ScrollTrigger.refresh());
-
     return () => {
-      window.cancelAnimationFrame(refresh);
       ctx.revert();
     };
   }, []);
@@ -204,61 +181,27 @@ export default function HomePage() {
   };
 
   return (
-    <ReactLenis
-      root
-      options={{
-        autoRaf: true,
-        duration: 1.28,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        smoothWheel: true,
-        wheelMultiplier: 0.82,
-        touchMultiplier: 1.05,
-        anchors: true,
-      }}
-    >
-      <LenisScrollTriggerSync />
+    <>
       <div className="min-h-screen overflow-x-hidden bg-[#f4efe4] text-[#2f3438] selection:bg-[#ad5b2b] selection:text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <main>
-        <section ref={heroRef} className="hero-pin relative min-h-[720px] h-[100svh] bg-[#151b1e] md:min-h-[620px]">
+        <section ref={heroRef} className="relative min-h-[720px] h-[100svh] bg-[#151b1e] md:min-h-[620px]">
           <div className="hero-frame min-h-[720px] h-[100svh] overflow-hidden bg-[#151b1e] shadow-[0_30px_90px_rgba(33,39,38,0.22)] md:min-h-[620px]">
             <HeroLandscape />
 
-            <div className="hero-content relative z-20 flex h-full flex-col justify-between px-5 pb-8 pt-28 sm:px-7 md:px-14 md:pb-10 md:pt-32">
-              <div>
-                <motion.h1
-                  initial={{ opacity: 0, y: 28 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.08, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                  className="max-w-[900px] font-serif text-[2.5rem] font-medium leading-[0.98] tracking-[0.01em] text-[#fff7ed] drop-shadow-[0_5px_28px_rgba(10,12,14,0.58)] sm:text-6xl md:text-7xl lg:text-[7.4rem]"
-                >
-                  Visibility is not
-                  <br />
-                  an accident.
-                  <br />
-                  Neither is trust.
-                </motion.h1>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-[0.68fr_1fr] md:items-end">
-                <div className="order-2 flex flex-col gap-3 sm:flex-row md:order-1">
-                  <Link href="/seoauditor" className="rounded-md bg-[#ad5b2b] px-7 py-4 text-center text-sm font-bold text-white transition hover:bg-[#8d4822]">
+            <div className="hero-content relative z-30 flex h-full flex-col items-end justify-end px-5 pb-8 pt-28 sm:px-7 md:px-14 md:pb-10 md:pt-32">
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                  <Link href="/seoauditor" className="flex min-h-14 min-w-40 items-center justify-center rounded-md bg-[#ad5b2b] px-9 text-base font-bold text-white shadow-[0_12px_32px_rgba(54,25,10,0.28)] transition hover:bg-[#8d4822]">
                     SEO Audit
                   </Link>
-                  <Link href="/contact" className="rounded-md border border-[#ad5b2b] bg-[#fbf6eb]/58 px-7 py-4 text-center text-sm font-bold text-[#9b542a] backdrop-blur-sm transition hover:bg-white">
+                  <Link href="/contact" className="flex min-h-14 min-w-40 items-center justify-center rounded-md border border-[#ad5b2b] bg-[#fbf6eb]/80 px-9 text-base font-bold text-[#9b542a] backdrop-blur-sm transition hover:bg-white">
                     Contact
                   </Link>
-                </div>
-                <p className="order-1 max-w-xl rounded-md border border-white/10 bg-[#111827]/34 p-4 text-sm font-semibold leading-relaxed text-white shadow-[0_14px_42px_rgba(0,0,0,0.18)] backdrop-blur-md sm:text-base md:order-2 md:justify-self-end md:border-0 md:bg-transparent md:p-0 md:text-right md:text-lg md:shadow-none md:backdrop-blur-0">
-                  Escape the noise with search architecture, AI-readable authority, and digital experiences that feel calm, credible, and impossible to miss.
-                </p>
               </div>
             </div>
-
-            <div className="pointer-events-none absolute bottom-8 left-1/2 z-30 hidden h-px w-[72%] -translate-x-1/2 bg-white/28 md:block" />
           </div>
         </section>
 
@@ -460,6 +403,6 @@ export default function HomePage() {
         </section>
       </main>
       </div>
-    </ReactLenis>
+    </>
   );
 }

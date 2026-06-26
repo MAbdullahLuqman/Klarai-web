@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, Suspense, useRef } from 'react';
+import React, { useCallback, useState, useEffect, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -18,6 +18,12 @@ const auditPhases = [
   "Feeding entity data to Generative AI scoring engine",
   "Compiling final Klarai intelligence report"
 ];
+
+const formatAuditUrl = (inputUrl) => {
+  let formatted = inputUrl.trim();
+  if (!/^https?:\/\//i.test(formatted)) formatted = 'https://' + formatted;
+  return formatted;
+};
 
 export default function AuditorClient() {
   return (
@@ -38,21 +44,15 @@ function AuditorCore() {
   const [progress, setProgress] = useState(0);
   const [auditComplete, setAuditComplete] = useState(false);
   const [auditResult, setAuditResult] = useState(null); 
-  const [hasTriggeredAuto, setHasTriggeredAuto] = useState(false);
+  const hasTriggeredAuto = useRef(false);
   const reportRef = useRef(null);
 
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
-  const formatUrl = (inputUrl) => {
-    let formatted = inputUrl.trim();
-    if (!/^https?:\/\//i.test(formatted)) formatted = 'https://' + formatted;
-    return formatted;
-  };
-
-  const executeAudit = async (targetUrlString) => {
-    const formattedUrl = formatUrl(targetUrlString);
+  const executeAudit = useCallback(async (targetUrlString) => {
+    const formattedUrl = formatAuditUrl(targetUrlString);
     setIsAnalyzing(true);
     setAuditComplete(false);
     setProgress(0);
@@ -91,7 +91,7 @@ function AuditorCore() {
       clearInterval(phaseInterval);
       setIsAnalyzing(false);
     }
-  };
+  }, []);
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
@@ -100,11 +100,11 @@ function AuditorCore() {
   };
 
   useEffect(() => {
-    if (autoStart && defaultUrl && !hasTriggeredAuto) {
-      setHasTriggeredAuto(true);
+    if (autoStart && defaultUrl && !hasTriggeredAuto.current) {
+      hasTriggeredAuto.current = true;
       executeAudit(defaultUrl);
     }
-  }, [autoStart, defaultUrl, hasTriggeredAuto]);
+  }, [autoStart, defaultUrl, executeAudit]);
 
   const downloadPDF = () => {
     window.print();
@@ -167,7 +167,7 @@ function AuditorCore() {
                 Free AI SEO Audit Tool <br/> <span className="text-[#008dd8]">for UK Websites</span>
               </h1>
               <p className="text-xs sm:text-sm text-gray-400 font-medium max-w-lg mx-auto leading-relaxed">
-                Enter any website URL and Klarai's Gemini-powered SEO auditor analyses your site in 30 seconds.
+                Enter any website URL and Klarai&apos;s Gemini-powered SEO auditor analyses your site in 30 seconds.
               </p>
 
               <form onSubmit={handleFormSubmit} className="mt-8 relative max-w-xl mx-auto group w-full px-2">
@@ -195,7 +195,7 @@ function AuditorCore() {
             <div className="w-full max-w-2xl mx-auto bg-gray-900 rounded-[1.25rem] border border-gray-800 overflow-hidden animate-fade-in mt-6">
               <div className="bg-[#0A101D] border-b border-gray-800 px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-gray-400 text-[9px] font-mono uppercase tracking-widest ml-2">Target: {formatUrl(url)}</span>
+                  <span className="text-gray-400 text-[9px] font-mono uppercase tracking-widest ml-2">Target: {formatAuditUrl(url)}</span>
                 </div>
                 <span className="text-[#00b4d8] text-[9px] font-mono font-bold">{progress}%</span>
               </div>
@@ -256,7 +256,7 @@ function AuditorCore() {
                   <div>
                     <h3 className="text-lg font-black text-gray-900 mb-3 flex items-center gap-2"><span className="text-[#008dd8]">✨</span> AI Executive Verdict</h3>
                     <p className="text-sm text-gray-700 font-medium italic leading-relaxed bg-blue-50 p-4 rounded-xl border border-blue-100">
-                      "{summary?.verdict || "Analysis completed. Review the metrics below."}"
+                      &quot;{summary?.verdict || "Analysis completed. Review the metrics below."}&quot;
                     </p>
                   </div>
                 </div>

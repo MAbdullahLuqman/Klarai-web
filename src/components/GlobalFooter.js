@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -29,8 +30,14 @@ export default function GlobalFooter() {
       <div className="relative mx-auto max-w-[1480px]">
         <div className="grid gap-12 border-b border-white/10 pb-14 lg:grid-cols-[1.1fr_0.9fr_0.8fr_0.8fr]">
           <div>
-            <Link href="/" className="font-serif text-5xl font-bold tracking-wide text-[#f9f5ec]">
-              Klarai
+            <Link href="/" className="inline-flex items-center" aria-label="Klarai home">
+              <Image
+                src="/klarai-logo-transparent.png"
+                alt="Klarai"
+                width={190}
+                height={54}
+                className="h-12 w-auto object-contain"
+              />
             </Link>
             <p className="mt-6 max-w-md text-base font-medium leading-relaxed text-white/58">
               Search architecture, answer-engine visibility and high-converting web systems for UK-focused brands.

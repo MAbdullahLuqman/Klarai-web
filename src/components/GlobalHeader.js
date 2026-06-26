@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -79,8 +80,15 @@ export default function GlobalHeader() {
             {leftLinks.map(renderDesktopLink)}
           </div>
 
-          <Link href="/" className="justify-self-start font-serif text-2xl font-bold tracking-wide text-[#8f4a25] md:justify-self-center" onClick={() => setIsMobileMenuOpen(false)}>
-            Klarai
+          <Link href="/" className="flex items-center justify-self-start md:justify-self-center" onClick={() => setIsMobileMenuOpen(false)} aria-label="Klarai home">
+            <Image
+              src="/klarai-logo-transparent.png"
+              alt="Klarai"
+              width={154}
+              height={44}
+              priority
+              className="h-8 w-auto object-contain md:h-9"
+            />
           </Link>
 
           <div className="hidden items-center justify-end gap-1 md:flex">

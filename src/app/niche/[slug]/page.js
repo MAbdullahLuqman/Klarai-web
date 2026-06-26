@@ -5,6 +5,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { canonical } from '@/lib/seo-config';
 import { safeGetDoc, safeGetDocs } from '@/lib/firestore-safe';
+import { hydrateCaseStudyRefs } from '@/lib/caseStudies';
+import RelatedCaseStudies from '@/components/RelatedCaseStudies';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +31,7 @@ export default async function NicheLandingPage({ params }) {
 
   if (!docSnap?.exists?.()) notFound(); 
   const page = docSnap.data() || {};
+  const relatedCaseStudies = await hydrateCaseStudyRefs(page.relatedCaseStudies || []);
 
   let relatedPosts = [];
   try {
@@ -245,6 +248,8 @@ export default async function NicheLandingPage({ params }) {
               )) : <p className="text-xs font-medium text-gray-500">No recent articles found.</p>}
             </div>
           </section>
+
+          <RelatedCaseStudies studies={relatedCaseStudies} />
 
           <section className="bg-[#0A101D] text-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl relative overflow-hidden mt-12 flex flex-col items-center text-center">
              <div className="absolute top-0 right-0 w-80 h-80 bg-[#008dd8]/20 rounded-full blur-[80px] pointer-events-none"></div>

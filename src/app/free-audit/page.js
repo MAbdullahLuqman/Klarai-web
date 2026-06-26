@@ -116,7 +116,7 @@ export default function CleanAuditGateway() {
                       {/* STEP 1: NAME */}
                       {step === 1 && (
                         <>
-                          <h2 className="text-3xl sm:text-5xl font-serif font-medium text-[#2f3438] mb-12 tracking-tight text-center">Let's build together.</h2>
+                          <h2 className="text-3xl sm:text-5xl font-serif font-medium text-[#2f3438] mb-12 tracking-tight text-center">Let&apos;s build together.</h2>
                           <div className="w-full max-w-sm group">
                             <label className={labelClass}>Your Full Name *</label>
                             <input required autoFocus type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="John Doe" className={inputClass} />
@@ -225,13 +225,13 @@ export default function CleanAuditGateway() {
           <div className="bg-white border-l-2 border-[#ad5b2b] p-6 rounded-r-md mb-12 shadow-[0_20px_70px_rgba(0,0,0,0.05)]">
             <h3 className="text-[10px] font-black text-[#ad5b2b] uppercase tracking-widest mb-2">AEO Quick Answer</h3>
             <p className="text-sm text-black/58 font-medium leading-relaxed">
-              Klarai's free AI SEO audit tool analyses any website in 30 seconds using Google Gemini. It checks technical SEO health, on-page signals, Core Web Vitals, local SEO consistency, schema markup, and AI search visibility, then delivers a prioritised, plain-English action plan.
+              Klarai&apos;s free AI SEO audit tool analyses any website in 30 seconds using Google Gemini. It checks technical SEO health, on-page signals, Core Web Vitals, local SEO consistency, schema markup, and AI search visibility, then delivers a prioritised, plain-English action plan.
             </p>
           </div>
           <h2 className="font-serif text-4xl font-medium leading-tight text-[#2f3438] mb-6">Most websites have SEO problems hiding in plain sight.</h2>
           <div className="space-y-4 text-sm text-black/58 leading-relaxed font-medium">
             <p>A title tag duplicated across a dozen pages. A robots.txt accidentally blocking Google from your most important service section. A site loading in 6 seconds on mobile while a competitor loads in 1.4. These are not rare edge cases.</p>
-            <p>The traditional fix was to hire an agency, wait two weeks for a PDF, and pay several hundred pounds. Klarai's SEO auditor does the same analysis in 30 seconds, powered by Google Gemini.</p>
+            <p>The traditional fix was to hire an agency, wait two weeks for a PDF, and pay several hundred pounds. Klarai&apos;s SEO auditor does the same analysis in 30 seconds, powered by Google Gemini.</p>
           </div>
         </div>
       </section>

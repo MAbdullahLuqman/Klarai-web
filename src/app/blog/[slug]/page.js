@@ -7,6 +7,8 @@ import ScrollProgressBar from '@/components/ScrollProgressBar';
 import { breadcrumbSchema, canonical, organizationSchema } from '@/lib/seo-config';
 import { stripHtml } from '@/lib/html';
 import { safeGetDoc } from '@/lib/firestore-safe';
+import { hydrateCaseStudyRefs } from '@/lib/caseStudies';
+import RelatedCaseStudies from '@/components/RelatedCaseStudies';
 
 // 1. IMPORT OUR LIVE EDITOR WRAPPER
 import LiveEditableField from '@/components/LiveEditableField';
@@ -100,6 +102,7 @@ export default async function BlogPostPage({ params }) {
 
   if (!docSnap?.exists?.()) notFound(); 
   const post = docSnap.data();
+  const relatedCaseStudies = await hydrateCaseStudyRefs(post.relatedCaseStudies || []);
   const plainTitle = stripHtml(post.hero?.title || slug);
   const plainDescription = stripHtml(post.hero?.description);
 
@@ -208,6 +211,33 @@ export default async function BlogPostPage({ params }) {
                   <LiveEditableField docId={slug} fieldPath={`intro.${i}`} initialHtml={para} />
                 </div>
               ))}
+            </section>
+          )}
+
+          {post.downloadAsset?.enabled === true && (
+            <section className="rounded-[1.35rem] border border-[#ad5b2b]/20 bg-white p-8 shadow-[0_24px_80px_rgba(0,0,0,0.05)]">
+              <p className="mb-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#ad5b2b]">Download resource</p>
+              <h2 className="text-3xl font-black tracking-tight text-[#0A101D]">
+                <LiveEditableField docId={slug} fieldPath="downloadAsset.title" initialHtml={post.downloadAsset.title || "Download the guide"} isHeading={true} />
+              </h2>
+              {post.downloadAsset.description && (
+                <div className="mt-4 text-base font-medium leading-relaxed text-black/58">
+                  <LiveEditableField docId={slug} fieldPath="downloadAsset.description" initialHtml={post.downloadAsset.description} />
+                </div>
+              )}
+              {post.downloadAsset.fileUrl && (
+                <a
+                  href={post.downloadAsset.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-7 inline-flex rounded-md bg-[#ad5b2b] px-7 py-4 text-sm font-black text-white transition hover:bg-[#8d4822]"
+                >
+                  {post.downloadAsset.buttonText || "Download"}
+                </a>
+              )}
+              {post.downloadAsset.leadGateEnabled && post.downloadAsset.leadGateFormTitle && (
+                <p className="mt-4 text-xs font-bold text-black/42">{post.downloadAsset.leadGateFormTitle}</p>
+              )}
             </section>
           )}
 
@@ -323,6 +353,8 @@ export default async function BlogPostPage({ params }) {
               </div>
             </section>
           )}
+
+          <RelatedCaseStudies studies={relatedCaseStudies} />
 
         </article>
 

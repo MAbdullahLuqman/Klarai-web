@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { ExternalLink, Github, Maximize2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ExternalLink, Github, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import WebsitePreviewFrame from "@/components/WebsitePreviewFrame";
 
 const portfolioProjects = [
   {
@@ -19,7 +20,7 @@ const portfolioProjects = [
     title: "Pitchside AI web experience",
     description: "A sports-tech homepage and search foundation built before launch so the platform can capture demand from day one.",
     techStack: "React, frontend development, responsive UI",
-    liveUrl: "https://pticheside.vercel.app/",
+    liveUrl: "https://pitchside.ai",
     githubUrl: "https://github.com/MAbdullahLuqman/pticheside",
   },
 ];
@@ -87,24 +88,13 @@ export default function PortfolioPage() {
               </div>
             </aside>
 
-            <div className="overflow-hidden rounded-[1.35rem] border border-black/10 bg-[#0d1214] shadow-[0_35px_100px_rgba(0,0,0,0.18)]">
-              <div className="flex h-12 items-center justify-between border-b border-white/10 bg-[#151b1e] px-4">
-                <div className="flex gap-2">
-                  <span className="h-3 w-3 rounded-full bg-[#ff5f56]" />
-                  <span className="h-3 w-3 rounded-full bg-[#ffbd2e]" />
-                  <span className="h-3 w-3 rounded-full bg-[#27c93f]" />
-                </div>
-                <div className="max-w-[58%] truncate rounded-md border border-white/10 bg-black/30 px-5 py-1 text-center text-[10px] font-bold text-white/48">
-                  {currentProject.liveUrl}
-                </div>
-                <a href={currentProject.liveUrl} target="_blank" rel="noopener noreferrer" className="text-white/48 transition hover:text-white" aria-label="Open project">
-                  <Maximize2 size={15} />
-                </a>
-              </div>
-              <div className="h-[72vh] min-h-[620px] bg-white">
-                <iframe src={currentProject.liveUrl} className="h-full w-full border-0" title={`${currentProject.title} preview`} loading="lazy" allowFullScreen />
-              </div>
-            </div>
+            <WebsitePreviewFrame
+              url={currentProject.liveUrl}
+              title={`${currentProject.title} preview`}
+              desktopHeight={1180}
+              className="border-black/10"
+              viewportClassName="min-h-[360px]"
+            />
           </motion.section>
         </AnimatePresence>
       </div>

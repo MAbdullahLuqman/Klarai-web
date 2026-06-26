@@ -6,6 +6,8 @@ import { notFound } from "next/navigation";
 import { removedNicheSlugs } from "@/lib/seo-config";
 import { mergeServicePageContent } from "@/lib/service-page-content";
 import { safeGetDoc, safeGetDocs } from "@/lib/firestore-safe";
+import { hydrateCaseStudyRefs } from "@/lib/caseStudies";
+import RelatedCaseStudies from "@/components/RelatedCaseStudies";
 
 const parseDelimitedList = (text, delimiter = ":") => {
   if (!text) return [];
@@ -59,6 +61,7 @@ export default async function ServiceLayout({ serviceId }) {
   const docSnap = await safeGetDoc(doc(db, "pages", serviceId), `pages/${serviceId}`);
   const page = mergeServicePageContent(serviceId, docSnap?.exists?.() ? docSnap.data() : {});
   if (!page.hero?.h1) notFound();
+  const relatedCaseStudies = await hydrateCaseStudyRefs(page.relatedCaseStudies || []);
 
   let activeNiches = [];
   try {
@@ -323,6 +326,14 @@ export default async function ServiceLayout({ serviceId }) {
                 </Link>
               ))}
             </div>
+          </div>
+        </section>
+      )}
+
+      {relatedCaseStudies.length > 0 && (
+        <section className="px-5 py-12 sm:px-8 lg:px-12">
+          <div className="mx-auto max-w-[1480px]">
+            <RelatedCaseStudies studies={relatedCaseStudies} />
           </div>
         </section>
       )}

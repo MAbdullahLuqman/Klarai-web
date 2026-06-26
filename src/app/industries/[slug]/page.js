@@ -5,6 +5,8 @@ import { db } from "@/lib/firebase";
 import { doc } from "firebase/firestore";
 import { canonical, breadcrumbSchema, SITE_URL } from "@/lib/seo-config";
 import { safeGetDoc } from "@/lib/firestore-safe";
+import { hydrateCaseStudyRefs } from "@/lib/caseStudies";
+import RelatedCaseStudies from "@/components/RelatedCaseStudies";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +62,7 @@ export default async function IndustrySlugPage({ params }) {
   const sections = page.sections || [];
   const related = page.related || [];
   const faqs = page.faqs || [];
+  const relatedCaseStudies = await hydrateCaseStudyRefs(page.relatedCaseStudies || []);
   const breadcrumb = breadcrumbSchema([
     { name: "Home", path: "/" },
     { name: "Industries", path: "/industries" },
@@ -148,6 +151,12 @@ export default async function IndustrySlugPage({ params }) {
               </details>
             ))}
           </div>
+        </section>
+      )}
+
+      {relatedCaseStudies.length > 0 && (
+        <section className="mx-auto mt-20 max-w-[1100px]">
+          <RelatedCaseStudies studies={relatedCaseStudies} />
         </section>
       )}
 

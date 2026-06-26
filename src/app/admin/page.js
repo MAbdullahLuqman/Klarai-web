@@ -1,14 +1,36 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { db, auth } from "@/lib/firebase"; 
 import { doc, setDoc, getDoc, collection, getDocs, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import Link from 'next/link';
 import { mergeServicePageContent, servicePageContent } from '@/lib/service-page-content';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import EmptyState from '@/components/admin/EmptyState';
+import PageHeader from '@/components/admin/PageHeader';
 
 // Import the new Headless Notion-Style Editor
 import TipTapEditor from '@/components/TipTapEditor';
 import JsonUploader from '@/components/admin/JsonUploader';
+import AdminShell from '@/components/admin/AdminShell';
+import AdminDashboardView from '@/components/admin/AdminDashboard';
+import ContentLibrary from '@/components/admin/ContentLibrary';
+import InternalLinkStudio from '@/components/admin/InternalLinkStudio';
+import CaseStudyManager from '@/components/admin/CaseStudyManager';
+import SectionContentHub from '@/components/admin/SectionContentHub';
+import AdminSettings from '@/components/admin/AdminSettings';
+import DownloadAssetEditor from '@/components/admin/DownloadAssetEditor';
+import SlugLockControl from '@/components/admin/SlugLockControl';
+import RoutePreviewCard from '@/components/admin/RoutePreviewCard';
+import SeoChecklist from '@/components/admin/SeoChecklist';
+import { prepareBlogPostForSave } from '@/lib/adminContentAdapters';
 
 // --- SERVICE URL MAP FOR LLMS.TXT ---
 const SERVICE_URL_MAP = {
@@ -16,6 +38,8 @@ const SERVICE_URL_MAP = {
   aeo: '/services/aeo-services',
   web: '/services/web-development'
 };
+
+const cleanAdminText = (value) => String(value || "").replace(/<[^>]*>/g, "").trim();
 
 // --- ORIGINAL BASE SCHEMA ---
 const generateBaseSchema = (serviceName, keyword) => ({
@@ -72,7 +96,7 @@ export default function AdminDashboard() {
   const [loginError, setLoginError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const [viewMode, setViewMode] = useState("core"); 
+  const [viewMode, setViewMode] = useState("dashboard"); 
   const [isDataLoading, setIsDataLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState("seo");
@@ -83,6 +107,7 @@ export default function AdminDashboard() {
   const [blogPagesList, setBlogPagesList] = useState({});
   const [industryPagesList, setIndustryPagesList] = useState({});
   const [staticPagesList, setStaticPagesList] = useState({});
+  const [caseStudiesList, setCaseStudiesList] = useState({});
   const [activeNicheId, setActiveNicheId] = useState(null);
   const [activeBlogId, setActiveBlogId] = useState(null);
   const [activeIndustryId, setActiveIndustryId] = useState(null);
@@ -129,6 +154,13 @@ export default function AdminDashboard() {
       let fetchedStatic = {};
       staticQuery.forEach(doc => { fetchedStatic[doc.id] = doc.data(); });
       setStaticPagesList(fetchedStatic);
+    } catch (error) {}
+
+    try {
+      const caseStudiesQuery = await getDocs(collection(db, "case_studies"));
+      let fetchedCaseStudies = {};
+      caseStudiesQuery.forEach(doc => { fetchedCaseStudies[doc.id] = doc.data(); });
+      setCaseStudiesList(fetchedCaseStudies);
     } catch (error) {}
 
     setIsDataLoading(false);
@@ -190,6 +222,81 @@ export default function AdminDashboard() {
     finally { setIsSaving(false); }
   };
 
+  const allAdminCollections = {
+    pages: content,
+    niche_pages: nichePagesList,
+    blog_posts: blogPagesList,
+    industry_pages: industryPagesList,
+    static_pages: staticPagesList,
+    case_studies: caseStudiesList,
+  };
+
+  const adminCounts = {
+    dashboard: Object.keys(blogPagesList).length + Object.keys(industryPagesList).length + Object.keys(caseStudiesList).length,
+    contentLibrary: Object.values(allAdminCollections).reduce((total, docs) => total + Object.keys(docs || {}).length, 0),
+    servicesHub: 3,
+    industriesHub: Object.keys(industryPagesList).length,
+    blogGuidesHub: Object.keys(blogPagesList).length,
+    blogPosts: Object.keys(blogPagesList).length,
+    guides: Object.values(blogPagesList).filter((post) => ["guide", "checklist", "keyword-list"].includes(post.postType)).length,
+    industries: Object.keys(industryPagesList).length,
+    caseStudies: Object.keys(caseStudiesList).length,
+    drafts: [
+      ...Object.values(blogPagesList),
+      ...Object.values(industryPagesList),
+      ...Object.values(staticPagesList),
+      ...Object.values(caseStudiesList),
+    ].filter((item) => item?.status === "draft").length,
+  };
+
+  const handleLibraryEdit = (item) => {
+    if (item.collection === "blog_posts") { setActiveBlogId(item.id); setViewMode("blogEdit"); }
+    else if (item.collection === "industry_pages") { setActiveIndustryId(item.id); setViewMode("industryEdit"); }
+    else if (item.collection === "niche_pages") { setActiveNicheId(item.id); setViewMode("nicheEdit"); }
+    else if (item.collection === "static_pages") { setActiveStaticPageId(item.id); setViewMode("staticEdit"); }
+    else if (item.collection === "case_studies") { setViewMode("caseStudies"); }
+    else if (item.collection === "pages") { setActiveTab(item.id); setViewMode("core"); }
+  };
+
+  const serviceHubItems = useMemo(() => (
+    ["seo", "aeo", "web"].map((id) => {
+      const page = content[id] || {};
+      return {
+        id,
+        title: cleanAdminText(page.hero?.h1 || page.meta?.title || id.toUpperCase()),
+        subtitle: cleanAdminText(page.hero?.sub || page.meta?.description || "Core service page"),
+        path: SERVICE_URL_MAP[id],
+        status: "published",
+        type: "service",
+      };
+    })
+  ), [content]);
+
+  const industryHubItems = useMemo(() => (
+    Object.entries(industryPagesList).map(([id, page]) => ({
+      id,
+      title: cleanAdminText(page.title || page.h1 || page.heroTitle || page.hero?.h1 || id),
+      subtitle: cleanAdminText(page.excerpt || page.subtitle || page.metaDescription || page.intro),
+      path: `/industries/${page.slug || id}`,
+      status: page.status || (page.published === false ? "draft" : "published"),
+      type: "industry",
+      industry: page.industry || page.slug || id,
+    }))
+  ), [industryPagesList]);
+
+  const blogHubItems = useMemo(() => (
+    Object.entries(blogPagesList).map(([id, post]) => ({
+      id,
+      title: cleanAdminText(post.title || post.h1 || post.heroTitle || id),
+      subtitle: cleanAdminText(post.excerpt || post.metaDescription || post.subtitle),
+      path: `/blog/${post.slug || id}`,
+      status: post.status || (post.published === false ? "draft" : "published"),
+      type: post.postType || "standard",
+      service: post.primaryService,
+      industry: post.industry,
+    }))
+  ), [blogPagesList]);
+
   const renderSectionHeader = (sectionKey, title) => {
     const isVisible = content[activeTab][sectionKey]?.visible !== false;
     return (
@@ -208,126 +315,136 @@ export default function AdminDashboard() {
     );
   };
 
-  if (isAuthLoading) return <div className="min-h-screen bg-[#030303] text-white flex items-center justify-center">Authenticating...</div>;
+  if (isAuthLoading) return (
+    <div className="admin-theme flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-4 w-48" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </CardContent>
+      </Card>
+    </div>
+  );
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#030303] flex items-center justify-center px-4 font-sans selection:bg-[#185FA5] selection:text-white">
-        <div className="w-full max-w-md bg-[#0a0a0a] border border-white/10 p-8 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-          <div className="flex justify-center mb-8"><img src="/klarailogo.webp" alt="Klarai Logo" className="h-8 object-contain" /></div>
-          <h1 className="text-xl font-bold text-white text-center mb-2 tracking-wide">Admin Portal</h1>
+      <div className="admin-theme flex min-h-screen items-center justify-center bg-background px-4 font-sans selection:bg-primary selection:text-primary-foreground">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mb-4 flex justify-center"><img src="/klarailogo.webp" alt="Klarai Logo" className="h-8 object-contain" /></div>
+            <CardTitle>Admin portal</CardTitle>
+            <CardDescription>Sign in with your Firebase admin account to manage content.</CardDescription>
+          </CardHeader>
+          <CardContent>
           <form onSubmit={handleLogin} className="space-y-5">
-            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Admin Email</label><input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#3b82f6]" required /></div>
-            <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">Password</label><input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#3b82f6]" required /></div>
-            {loginError && <p className="text-xs text-red-500 text-center font-bold">{loginError}</p>}
-            <button type="submit" disabled={isLoggingIn} className="w-full bg-[#185FA5] hover:bg-[#144d85] text-white font-bold py-3 rounded-xl mt-4 disabled:cursor-not-allowed disabled:opacity-60">{isLoggingIn ? "Checking..." : "Access Dashboard"}</button>
+            <div className="space-y-2">
+              <Label htmlFor="admin-email">Admin email</Label>
+              <Input id="admin-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="admin-password">Password</Label>
+              <Input id="admin-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+            {loginError && <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">{loginError}</p>}
+            <Button type="submit" disabled={isLoggingIn} className="w-full">{isLoggingIn ? "Checking..." : "Access dashboard"}</Button>
           </form>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  if (isDataLoading) return <div className="min-h-screen bg-[#030303] text-white flex items-center justify-center">Loading Secure Admin Panel...</div>;
+  if (isDataLoading) return (
+    <div className="admin-theme flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Loading admin panel</CardTitle>
+          <CardDescription>Fetching live Firebase content.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-3/4" />
+          <Skeleton className="h-10 w-1/2" />
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#030303] text-gray-200 flex font-sans selection:bg-[#3b82f6] selection:text-white">
-      
-      {/* SIDEBAR NAVIGATION */}
-      <aside className="w-64 bg-[#0a0a0a] border-r border-white/10 flex flex-col hidden md:flex h-screen sticky top-0">
-        <div className="h-20 flex items-center px-8 border-b border-white/10 shrink-0"><span className="text-xl font-bold tracking-widest text-white">Klarai <span className="text-[#3b82f6]">ADMIN</span></span></div>
-        <div className="p-4 flex-1 overflow-y-auto space-y-8">
-          
-          <div>
-            <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Workspace</p>
-            <nav className="flex flex-col gap-2">
-              <button onClick={() => setViewMode("leads")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "leads" ? "text-[#3b82f6]" : "text-gray-400 hover:text-white"}`}>Leads Tracker</button>
-              <button onClick={() => setViewMode("homepage")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "homepage" ? "text-[#ccff00]" : "text-[#ccff00]/70 hover:text-[#ccff00]"}`}>Homepage Story</button>
-              <button onClick={() => setViewMode("staticBuilder")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "staticBuilder" ? "text-orange-400" : "text-orange-400/70 hover:text-orange-400"}`}>+ New Static Page</button>
-              <button onClick={() => setViewMode("industryBuilder")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "industryBuilder" ? "text-cyan-400" : "text-cyan-400/70 hover:text-cyan-400"}`}>+ New Industry Hub</button>
-              <button onClick={() => setViewMode("builder")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "builder" ? "text-[#10b981]" : "text-[#10b981]/70 hover:text-[#10b981]"}`}>+ New Niche Page</button>
-              <button onClick={() => setViewMode("blogBuilder")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "blogBuilder" ? "text-purple-400" : "text-purple-400/70 hover:text-purple-400"}`}>+ New Blog Post</button>
-              <button onClick={() => setViewMode("jsonUpload")} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "jsonUpload" ? "text-[#ccff00]" : "text-[#ccff00]/70 hover:text-[#ccff00]"}`}>JSON Upload</button>
-            </nav>
-          </div>
-
-          <div>
-            <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Core Pages</p>
-            <nav className="flex flex-col gap-2">
-              {[ { id: "seo", name: "SEO Services" }, { id: "aeo", name: "AEO Services" }, { id: "web", name: "Web Development" }, { id: "footer", name: "Global Footer" } ].map((tab) => (
-                <button key={tab.id} onClick={() => { setViewMode("core"); setActiveTab(tab.id); }} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors ${viewMode === "core" && activeTab === tab.id ? "bg-[#3b82f6]/10 text-[#3b82f6] border border-[#3b82f6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]" : "text-gray-400 hover:text-white"}`}>{tab.name}</button>
-              ))}
-            </nav>
-          </div>
-
-          <div>
-            <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Active Blog Posts</p>
-            <nav className="flex flex-col gap-2">
-              {Object.keys(blogPagesList).length === 0 ? (
-                <p className="px-4 text-xs text-gray-600 italic">No posts published yet.</p>
-              ) : (
-                Object.keys(blogPagesList).map((blogId) => (
-                  <button key={blogId} onClick={() => { setViewMode("blogEdit"); setActiveBlogId(blogId); }} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors truncate ${viewMode === "blogEdit" && activeBlogId === blogId ? "bg-purple-500/10 text-purple-400 border border-purple-500/30" : "text-gray-400 hover:text-white"}`}>
-                    /blog/{blogId}
-                  </button>
-                ))
-              )}
-            </nav>
-          </div>
-
-          <div>
-            <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Industry Hubs</p>
-            <nav className="flex flex-col gap-2">
-              {Object.keys(industryPagesList).length === 0 ? (
-                <p className="px-4 text-xs text-gray-600 italic">No industry hubs published yet.</p>
-              ) : (
-                Object.keys(industryPagesList).map((industryId) => (
-                  <button key={industryId} onClick={() => { setViewMode("industryEdit"); setActiveIndustryId(industryId); }} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors truncate ${viewMode === "industryEdit" && activeIndustryId === industryId ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30" : "text-gray-400 hover:text-white"}`}>
-                    /industries/{industryId}
-                  </button>
-                ))
-              )}
-            </nav>
-          </div>
-
-          <div>
-            <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Static Pages</p>
-            <nav className="flex flex-col gap-2">
-              {Object.keys(staticPagesList).length === 0 ? (
-                <p className="px-4 text-xs text-gray-600 italic">No static pages created yet.</p>
-              ) : (
-                Object.keys(staticPagesList).map((pageId) => (
-                  <button key={pageId} onClick={() => { setViewMode("staticEdit"); setActiveStaticPageId(pageId); }} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors truncate ${viewMode === "staticEdit" && activeStaticPageId === pageId ? "bg-orange-500/10 text-orange-400 border border-orange-500/30" : "text-gray-400 hover:text-white"}`}>
-                    /{pageId}
-                  </button>
-                ))
-              )}
-            </nav>
-          </div>
-
-          <div>
-            <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-4 px-4">Active Niche Pages</p>
-            <nav className="flex flex-col gap-2">
-              {Object.keys(nichePagesList).length === 0 ? (
-                <p className="px-4 text-xs text-gray-600 italic">No custom pages built yet.</p>
-              ) : (
-                Object.keys(nichePagesList).map((nicheId) => (
-                  <button key={nicheId} onClick={() => { setViewMode("nicheEdit"); setActiveNicheId(nicheId); }} className={`text-left px-4 py-2 text-sm font-medium rounded hover:bg-white/5 transition-colors truncate ${viewMode === "nicheEdit" && activeNicheId === nicheId ? "bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/30" : "text-gray-400 hover:text-white"}`}>
-                    /niche/{nicheId}
-                  </button>
-                ))
-              )}
-            </nav>
-          </div>
-
-        </div>
-        <div className="p-4 border-t border-white/10 shrink-0">
-            <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-400/10 rounded-lg font-bold">Sign Out</button>
-        </div>
-      </aside>
-
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+    <AdminShell activeView={viewMode} onChangeView={setViewMode} onLogout={handleLogout} counts={adminCounts}>
         
+        {viewMode === "dashboard" && <AdminDashboardView counts={adminCounts} onNavigate={setViewMode} />}
+        {viewMode === "contentLibrary" && <ContentLibrary collections={allAdminCollections} onEdit={handleLibraryEdit} />}
+        {viewMode === "servicesHub" && (
+          <SectionContentHub
+            eyebrow="Fixed public routes"
+            title="Services"
+            description="Edit the existing service pages from one list. These routes are fixed to protect the live site; use Static Pages for new supporting service content."
+            items={serviceHubItems}
+            createLabel="New support page"
+            onCreate={() => setViewMode("staticBuilder")}
+            onEdit={(item) => {
+              setActiveTab(item.id);
+              setViewMode("core");
+            }}
+          />
+        )}
+        {viewMode === "industriesHub" && (
+          <SectionContentHub
+            eyebrow="Industry pages"
+            title="Industries"
+            description="Manage every industry page in one place, then open the existing industry builder only when you need to create or edit."
+            items={industryHubItems}
+            createLabel="New industry page"
+            emptyText="No industry pages found."
+            onCreate={() => setViewMode("industryBuilder")}
+            onEdit={(item) => {
+              setActiveIndustryId(item.id);
+              setViewMode("industryEdit");
+            }}
+          />
+        )}
+        {viewMode === "blogGuidesHub" && (
+          <SectionContentHub
+            eyebrow="Blog and guide library"
+            title="Blog & Guides"
+            description="Guide-style posts stay inside blog_posts and continue to publish under /blog. Create or edit from this section without changing the public blog template."
+            items={blogHubItems}
+            createLabel="New blog or guide"
+            emptyText="No blog posts found."
+            onCreate={() => setViewMode("blogBuilder")}
+            onEdit={(item) => {
+              setActiveBlogId(item.id);
+              setViewMode("blogEdit");
+            }}
+          />
+        )}
         {viewMode === "leads" && <LeadsView />}
         {viewMode === "homepage" && <HomePageStoryEditor />}
+        {viewMode === "caseStudies" && <CaseStudyManager collections={allAdminCollections} onSaved={fetchAllLiveContent} />}
+        {viewMode === "internalLinks" && <InternalLinkStudio collections={allAdminCollections} />}
+        {viewMode === "settings" && <AdminSettings />}
+        {viewMode === "portfolioAdmin" && (
+          <AdminNotice
+            eyebrow="Portfolio"
+            title="Portfolio editing"
+            description="Portfolio content still uses the existing static page. Use Static Pages or JSON Import for data-backed content until a portfolio_items collection is added."
+            actionHref="/portfolio"
+            actionLabel="Preview portfolio"
+          />
+        )}
+        {viewMode === "toolsAudit" && (
+          <AdminNotice
+            eyebrow="SEO / Metadata"
+            title="Audit tools and metadata"
+            description="The SEO audit experience is live on the public route. Captured leads and completed scans are managed in Leads / Forms."
+            actionHref="/seoauditor"
+            actionLabel="Open SEO auditor"
+          />
+        )}
 
         {viewMode === "builder" && <NicheBuilderView isEditing={false} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
         {viewMode === "nicheEdit" && <NicheBuilderView key={activeNicheId} isEditing={true} pageId={activeNicheId} initialData={nichePagesList[activeNicheId]} refreshData={fetchAllLiveContent} setViewMode={setViewMode} />}
@@ -475,8 +592,7 @@ export default function AdminDashboard() {
             </div>
           </>
         )}
-      </main>
-    </div>
+    </AdminShell>
   );
 }
 
@@ -630,6 +746,25 @@ function LeadsView() {
         </div>
 
       </div>
+    </div>
+  );
+}
+
+function AdminNotice({ eyebrow, title, description, actionHref, actionLabel }) {
+  return (
+    <div className="p-5 md:p-8">
+      <PageHeader eyebrow={eyebrow} title={title} description={description} />
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Current workflow</CardTitle>
+          <CardDescription>This keeps the existing backend and routes intact while giving editors a clear next step.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild>
+            <Link href={actionHref} target="_blank">{actionLabel}</Link>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -1192,6 +1327,10 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
     const b = initialData || {};
     return {
       slug: b.slug || '',
+      status: b.status || 'published',
+      postType: b.postType || 'standard',
+      primaryService: b.primaryService ?? b.serviceTag ?? 'general',
+      industry: b.industry ?? b.industryTag ?? 'general',
       serviceTag: b.serviceTag || 'general', 
       industryTag: b.industryTag || 'none',   
       seoMeta: b.seoMeta || { title: '', metaDescription: '', canonicalUrl: '' },
@@ -1204,6 +1343,10 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
         id: 'section-1', heading: '', contentType: 'default', content: [''], list: [], subheadings: [], comparison: null 
       }),
       toolBlock: b.toolBlock || { title: 'Free System Audit', description: 'Find out exactly where your digital architecture is failing.', ctaText: 'Start Audit', ctaLink: '/free-audit' },
+      downloadAsset: b.downloadAsset || { enabled: false },
+      relatedCaseStudies: b.relatedCaseStudies || [],
+      relatedPosts: b.relatedPosts || [],
+      relatedServices: b.relatedServices || [],
       faqs: parseArray(b.faqs, { question: '', answer: '' }),
       authorInfo: b.authorInfo || { name: 'Abdullah Luqman', role: 'Lead Architect', bio: 'Architecting digital systems for absolute scale.', profileUrl: '/about' }
     };
@@ -1309,7 +1452,8 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
     setIsSubmitting(true);
     try {
       const targetSlug = isEditing ? pageId : formData.slug.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      await setDoc(doc(db, 'blog_posts', targetSlug), { ...formData, slug: targetSlug, updatedAt: serverTimestamp() });
+      const dataToSave = prepareBlogPostForSave({ ...formData, slug: targetSlug }, initialData || {});
+      await setDoc(doc(db, 'blog_posts', targetSlug), { ...dataToSave, updatedAt: serverTimestamp() }, { merge: true });
       alert('Success! Blog Post Published.');
       refreshData();
       window.scrollTo(0, 0);
@@ -1351,6 +1495,31 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
             <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">1. URL & Metadata</h3>
             <input name="slug" placeholder="URL Slug (e.g., local-seo-guide)" required disabled={isEditing} value={formData.slug} onChange={(e)=>handleChange(e)} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded disabled:opacity-50" />
             <input name="title" placeholder="Meta Title" value={formData.seoMeta?.title || ''} onChange={(e)=>handleChange(e, 'seoMeta')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded mt-4" />
+            <textarea name="metaDescription" placeholder="Meta Description" value={formData.seoMeta?.metaDescription || ''} onChange={(e)=>handleChange(e, 'seoMeta')} rows={2} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded resize-none" />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <select name="status" value={formData.status || 'published'} onChange={handleChange} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded">
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+                <option value="archived">Archived</option>
+              </select>
+              <select name="postType" value={formData.postType || 'standard'} onChange={handleChange} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded">
+                <option value="standard">Standard</option>
+                <option value="guide">Guide</option>
+                <option value="checklist">Checklist</option>
+                <option value="keyword-list">Keyword list</option>
+                <option value="comparison">Comparison</option>
+                <option value="news">News</option>
+              </select>
+              <select name="primaryService" value={formData.primaryService || 'general'} onChange={handleChange} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded">
+                <option value="general">General</option>
+                <option value="seo">SEO</option>
+                <option value="aeo">AEO</option>
+                <option value="web-development">Web Development</option>
+              </select>
+              <input name="industry" placeholder="Industry" value={formData.industry || ''} onChange={handleChange} className="bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
+            </div>
+            <RoutePreviewCard path={`/blog/${formData.slug || 'new-post'}`} status={formData.status} />
+            <SeoChecklist item={{ collection: 'blog_posts', id: formData.slug, ...formData, raw: formData }} />
           </div>
 
           {/* === SECTION 2: HERO DATA === */}
@@ -1493,6 +1662,11 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
                </div>
             </div>
           </div>
+
+          <DownloadAssetEditor
+            value={formData.downloadAsset}
+            onChange={(downloadAsset) => setFormData({ ...formData, downloadAsset })}
+          />
 
           {/* === SECTION 6: FAQs === */}
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
