@@ -53,7 +53,7 @@ export default function BlogClient({ initialPosts }) {
       {featuredPost && (
         <section className="px-5 pb-14 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-[1480px]">
-            <Link href={`/blog/${featuredPost.slug || featuredPost.id}`} className="group grid overflow-hidden rounded-[1.25rem] border border-black/8 bg-white shadow-[0_28px_90px_rgba(0,0,0,0.06)] md:grid-cols-[0.44fr_0.56fr]">
+            <Link href={`/blog/${featuredPost.slug || featuredPost.id}`} className={`group grid overflow-hidden rounded-[1.25rem] border border-black/8 bg-white shadow-[0_28px_90px_rgba(0,0,0,0.06)] ${featuredPost.displayImage ? "md:grid-cols-[0.44fr_0.56fr]" : ""}`}>
               <div className="flex flex-col justify-center p-6 sm:p-8 md:p-12">
                 <div className="mb-6 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-[0.16em] text-black/36">
                   <span>{featuredPost.hero?.publishDate}</span>
@@ -71,14 +71,12 @@ export default function BlogClient({ initialPosts }) {
                   </span>
                 )}
               </div>
-              <div className="relative min-h-[340px] bg-[#151b1e]">
-                {featuredPost.displayImage ? (
+              {featuredPost.displayImage && (
+                <div className="relative min-h-[340px] bg-[#151b1e]">
                   <img src={featuredPost.displayImage} alt={featuredPost.hero?.title} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                ) : (
-                  <div className="absolute inset-0 bg-[linear-gradient(135deg,#2f3438_0%,#6f8fa3_100%)]" />
-                )}
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_52%,rgba(0,0,0,0.32)_100%)]" />
-              </div>
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_52%,rgba(0,0,0,0.32)_100%)]" />
+                </div>
+              )}
             </Link>
           </div>
         </section>
@@ -115,13 +113,11 @@ export default function BlogClient({ initialPosts }) {
         <div className="mx-auto grid max-w-[1480px] gap-4 md:grid-cols-2 lg:grid-cols-3">
           {gridPosts.map((post) => (
             <Link href={`/blog/${post.slug || post.id}`} key={post.id} className="group flex flex-col overflow-hidden rounded-[1.1rem] border border-black/8 bg-white shadow-[0_24px_80px_rgba(0,0,0,0.05)] transition hover:-translate-y-1 hover:border-[#ad5b2b]/45">
-              <div className="relative h-56 bg-[#151b1e]">
-                {post.displayImage ? (
+              {post.displayImage && (
+                <div className="relative h-56 bg-[#151b1e]">
                   <img src={post.displayImage} alt={post.hero?.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                ) : (
-                  <div className="h-full w-full bg-[linear-gradient(135deg,#2f3438_0%,#6f8fa3_100%)]" />
-                )}
-              </div>
+                </div>
+              )}
               <div className="flex flex-1 flex-col p-7">
                 <div className="mb-4 flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.14em] text-black/34">
                   <span>{post.hero?.publishDate}</span>

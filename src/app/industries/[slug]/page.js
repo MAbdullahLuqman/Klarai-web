@@ -72,7 +72,7 @@ export default async function IndustrySlugPage({ params }) {
   const faqs = page.faqs || [];
   const relatedCaseStudies = await hydrateCaseStudyRefs(page.relatedCaseStudies || []);
   const sectionsWithIds = sections.map((section, index) => ({ ...section, id: sectionId(section, index) }));
-  const heroImage = page.imageUrl || page.hero?.image || "";
+  const heroImage = page.imageEnabled === true && page.imageUrl ? page.imageUrl : "";
   const breadcrumb = breadcrumbSchema([
     { name: "Home", path: "/" },
     { name: "Industries", path: "/industries" },
@@ -129,13 +129,6 @@ export default async function IndustrySlugPage({ params }) {
               <p className="mt-6 text-lg font-medium leading-8 text-black/58">{page.hero.sub}</p>
             )}
           </header>
-
-          <section className="mb-10 rounded-[0.9rem] border border-[#b9ff00]/80 bg-[#080a0d] p-6 text-white shadow-[0_22px_70px_rgba(0,0,0,0.12)]">
-            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.28em] text-[#ccff00]">Market status</p>
-            <p className="text-sm font-medium leading-6 text-white/82">
-              This industry page is built to explain the market, map search intent, and turn the right local visitors into qualified enquiries.
-            </p>
-          </section>
 
           {heroImage && (
             <figure className="mb-12 overflow-hidden rounded-[1.15rem] bg-[#eef1f2] shadow-[0_24px_70px_rgba(0,0,0,0.14)]">

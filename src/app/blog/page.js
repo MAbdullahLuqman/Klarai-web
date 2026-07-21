@@ -16,39 +16,8 @@ export const metadata = {
 
 export const dynamic = 'force-dynamic';
 
-const extractFirstImage = (post) => {
+const extractBlogCoverImage = (post) => {
   if (post.hero?.coverImage && post.hero.coverImage.trim() !== '') return post.hero.coverImage;
-  const imgRegex = /<img[^>]+src="([^">]+)"/i;
-  
-  if (post.intro) {
-    for (const para of post.intro) {
-      if (!para) continue;
-      const match = para.match(imgRegex);
-      if (match) return match[1]; 
-    }
-  }
-  if (post.sections) {
-    for (const sec of post.sections) {
-      if (sec.content) {
-        for (const para of sec.content) {
-          if (!para) continue;
-          const match = para.match(imgRegex);
-          if (match) return match[1];
-        }
-      }
-      if (sec.subheadings) {
-        for (const sub of sec.subheadings) {
-          if (sub.content) {
-            for (const para of sub.content) {
-              if (!para) continue;
-              const match = para.match(imgRegex);
-              if (match) return match[1];
-            }
-          }
-        }
-      }
-    }
-  }
   return null;
 };
 
@@ -60,7 +29,7 @@ async function getBlogPosts() {
     
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      const displayImage = extractFirstImage(data);
+      const displayImage = extractBlogCoverImage(data);
       
       // CRITICAL FIX: Sanitize Firebase objects before passing to Client Component
       let sanitizedData = { ...data };

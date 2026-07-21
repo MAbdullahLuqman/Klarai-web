@@ -50,6 +50,7 @@ const BLOG_JSON_EXAMPLE = {
   hero: {
     title: "Local SEO Checklist for Dentists",
     description: "Use this checklist to tighten your clinic visibility across Google, maps, service pages, reviews, and answer-engine results.",
+    coverImage: "",
     publishDate: "2026-07-20",
     readTime: "7 Min"
   },
@@ -283,6 +284,10 @@ function applyBlogJsonImport(payload = {}) {
   return {
     ...payload,
     quickAnswer,
+    hero: {
+      ...(payload.hero || {}),
+      coverImage: payload.hero?.coverImage || "",
+    },
     sections: internalLinks.length > 0 ? [...existingSections, relatedReadingSection] : existingSections,
     relatedPosts: [
       ...(Array.isArray(payload.relatedPosts) ? payload.relatedPosts : []),
@@ -300,7 +305,8 @@ function applyIndustryJsonImport(payload = {}) {
 
   return {
     ...payload,
-    imageUrl: payload.imageUrl || payload.hero?.image || "",
+    imageEnabled: Boolean(payload.imageUrl),
+    imageUrl: payload.imageUrl || "",
     meta: payload.meta || {
       title: payload.seoMeta?.title || payload.metaTitle || "",
       description: payload.seoMeta?.metaDescription || payload.metaDescription || "",
@@ -309,7 +315,7 @@ function applyIndustryJsonImport(payload = {}) {
       ...(payload.hero || {}),
       h1: payload.hero?.h1 || payload.hero?.title || payload.h1 || "",
       sub: payload.hero?.sub || payload.hero?.description || payload.subheadline || "",
-      image: payload.hero?.image || "",
+      image: "",
       cta: payload.hero?.cta || payload.toolBlock?.ctaText || "Get my free audit",
       ctaHref: payload.hero?.ctaHref || payload.toolBlock?.ctaLink || "/seoauditor",
     },
@@ -1169,9 +1175,10 @@ function IndustryBuilderView({ isEditing, pageId, initialData, refreshData, setV
     const base = initialData || {};
     return {
       slug: base.slug || '',
-      imageUrl: base.imageUrl || base.hero?.image || '',
+      imageEnabled: base.imageEnabled === true && Boolean(base.imageUrl),
+      imageUrl: base.imageEnabled === true ? base.imageUrl || '' : '',
       meta: base.meta || { title: '', description: '' },
-      hero: base.hero || { h1: '', sub: '', cta: 'Get my free audit', ctaHref: '/seoauditor' },
+      hero: { h1: '', sub: '', cta: 'Get my free audit', ctaHref: '/seoauditor', ...(base.hero || {}), image: '' },
       tldr: base.tldr || { text: '' },
       sections: parseArray(base.sections, { h2: '', paras: [''], sub: [], list: [] }),
       related: parseArray(base.related, { label: '', href: '' }),
@@ -1254,6 +1261,9 @@ function IndustryBuilderView({ isEditing, pageId, initialData, refreshData, setV
       const cleanedData = {
         ...formData,
         slug: targetSlug,
+        imageEnabled: Boolean(formData.imageUrl),
+        imageUrl: formData.imageUrl || "",
+        hero: { ...(formData.hero || {}), image: "" },
         sections: (formData.sections || [])
           .filter((section) => section.h2 || section.paras?.some(Boolean) || section.sub?.some((sub) => sub.h3 || sub.text) || section.list?.some(Boolean))
           .map((section) => ({
@@ -1321,7 +1331,15 @@ function IndustryBuilderView({ isEditing, pageId, initialData, refreshData, setV
             <input value={formData.slug} onChange={(event) => setFormData({ ...formData, slug: event.target.value })} disabled={isEditing} required placeholder="URL Slug, e.g. seo-for-dentists" className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-cyan-500 outline-none text-white disabled:opacity-50 rounded" />
             <input value={formData.meta?.title || ''} onChange={(event) => updateNested('meta', 'title', event.target.value)} placeholder="Meta title" className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-cyan-500 outline-none text-white rounded" />
             <textarea value={formData.meta?.description || ''} onChange={(event) => updateNested('meta', 'description', event.target.value)} placeholder="Meta description" className="w-full min-h-20 bg-[#111] border border-white/10 p-3 text-sm focus:border-cyan-500 outline-none text-white rounded" />
-            <input value={formData.imageUrl || ''} onChange={(event) => setFormData({ ...formData, imageUrl: event.target.value })} placeholder="Hub card image URL" className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-cyan-500 outline-none text-white rounded" />
+            <input
+              value={formData.imageUrl || ''}
+              onChange={(event) => {
+                const imageUrl = event.target.value;
+                setFormData({ ...formData, imageUrl, imageEnabled: Boolean(imageUrl.trim()) });
+              }}
+              placeholder="Optional industry image URL. Leave empty for no image."
+              className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-cyan-500 outline-none text-white rounded"
+            />
             <input value={formData.hero?.h1 || ''} onChange={(event) => updateNested('hero', 'h1', event.target.value)} required placeholder="Hero H1" className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-cyan-500 outline-none text-white font-bold rounded" />
             <textarea value={formData.hero?.sub || ''} onChange={(event) => updateNested('hero', 'sub', event.target.value)} placeholder="Hero subheading" className="w-full min-h-24 bg-[#111] border border-white/10 p-3 text-sm focus:border-cyan-500 outline-none text-white rounded" />
             <div className="grid gap-4 md:grid-cols-2">
@@ -1456,7 +1474,16 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
       industryTag: b.industryTag || 'none',   
       seoMeta: b.seoMeta || { title: '', metaDescription: '', canonicalUrl: '' },
       breadcrumbs: parseArray(b.breadcrumbs, { name: 'Home', url: '/' }),
-      hero: b.hero || { title: '', description: '', authorName: 'Abdullah Luqman', authorProfileUrl: '/about', publishDate: new Date().toISOString().split('T')[0], readTime: '5 Min' },
+      hero: {
+        title: '',
+        description: '',
+        coverImage: '',
+        authorName: 'Abdullah Luqman',
+        authorProfileUrl: '/about',
+        publishDate: new Date().toISOString().split('T')[0],
+        readTime: '5 Min',
+        ...(b.hero || {}),
+      },
       tldr: parseArray(b.tldr, ''),
       quickAnswer: b.quickAnswer || '',
       intro: parseArray(b.intro, ''),
@@ -1654,6 +1681,7 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
             <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">2. Hero Data</h3>
             <TipTapEditor label="H1 Headline (Linkable)" name="title" value={formData.hero?.title || ''} onChange={(e)=>handleChange(e, 'hero')} />
             <textarea name="description" placeholder="Hero Subtext / Hook" required value={formData.hero?.description || ''} onChange={(e)=>handleChange(e, 'hero')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded h-20" />
+            <input name="coverImage" placeholder="Optional cover image URL. Leave empty for no image." value={formData.hero?.coverImage || ''} onChange={(e)=>handleChange(e, 'hero')} className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-blue-500 outline-none text-white rounded" />
           </div>
 
           {/* === SECTION 2.5: TL;DR SUMMARY === */}
