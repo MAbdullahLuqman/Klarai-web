@@ -192,14 +192,13 @@ export default async function BlogPostPage({ params }) {
             </section>
           )}
 
-          {/* AEO SNIPPET */}
+          {/* MAIN BLOG QUESTION */}
           {post.quickAnswer && (
             <section className="bg-[#2f3438] text-white p-8 md:p-10 rounded-[1.1rem] shadow-xl border-l-[6px] border-[#e0b48b] relative overflow-hidden">
               <div className="absolute top-0 right-0 w-40 h-40 bg-[#6f8fa3]/20 blur-[50px] rounded-full pointer-events-none"></div>
-              <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-400 mb-4 relative z-10">AEO Snippet Target</h2>
-              <div className="text-xl font-medium leading-relaxed relative z-10">
-                <LiveEditableField docId={slug} fieldPath="quickAnswer" initialHtml={post.quickAnswer} />
-              </div>
+              <h2 className="text-xl font-medium leading-relaxed relative z-10">
+                <LiveEditableField docId={slug} fieldPath="quickAnswer" initialHtml={post.quickAnswer} isHeading={true} />
+              </h2>
             </section>
           )}
 

@@ -1,9 +1,17 @@
 import React from "react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
-import { doc } from "firebase/firestore";
+import { collection, doc } from "firebase/firestore";
 import { canonical } from "@/lib/seo-config";
-import { safeGetDoc } from "@/lib/firestore-safe";
+import { safeGetDoc, safeGetDocs } from "@/lib/firestore-safe";
+
+const DEFAULT_INDUSTRY_SLUGS = [
+  "seo-for-plumbers",
+  "seo-for-garages",
+  "aeo-for-local-business",
+  "seo-for-dentists",
+  "seo-for-accountants",
+];
 
 export const metadata = {
   title: "Industries We Serve | Klarai",
@@ -15,36 +23,41 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
-const INDUSTRY_SLUGS = [
-  "seo-for-plumbers",
-  "seo-for-garages",
-  "aeo-for-local-business",
-  "seo-for-dentists",
-  "seo-for-accountants",
-];
-
 export default async function IndustriesHubPage() {
-  const snaps = await Promise.all(
-    INDUSTRY_SLUGS.map((slug) => safeGetDoc(doc(db, "industry_pages", slug), `industry_pages/${slug}`))
+  const registrySnap = await safeGetDoc(doc(db, "_meta", "slugs"), "_meta/slugs");
+  const registrySlugs = registrySnap?.exists?.() ? registrySnap.data().industrySlugs || [] : [];
+  const registeredSlugs = Array.from(new Set([...DEFAULT_INDUSTRY_SLUGS, ...registrySlugs]));
+
+  const docSnaps = await Promise.all(
+    registeredSlugs.map((slug) => safeGetDoc(doc(db, "industry_pages", slug), `industry_pages/${slug}`))
   );
 
-  const niches = snaps
-    .filter((snap) => snap?.exists?.())
-    .map((snap) => {
-      const data = snap.data();
-      const slug = data.slug || snap.id;
-      return {
-        id: snap.id,
-        slug,
-        source: "industry",
-        niche: data.hero?.h1 || slug,
-        h1: data.hero?.h1 || slug,
-        subheadline: data.hero?.sub || data.tldr?.text?.slice(0, 200) || "",
-        service: "Industry hub",
-        imageUrl: data.imageUrl || data.hero?.image || "",
-        ...data,
-      };
-    })
+  const docsById = new Map();
+  docSnaps.forEach((docSnap) => {
+    if (docSnap?.exists?.()) docsById.set(docSnap.id, docSnap);
+  });
+
+  const collectionSnap = await safeGetDocs(collection(db, "industry_pages"), "industry_pages collection fallback");
+  collectionSnap?.forEach?.((docSnap) => {
+    docsById.set(docSnap.id, docSnap);
+  });
+
+  const niches = Array.from(docsById.values()).map((docSnap) => {
+    const data = docSnap.data();
+    const slug = data.slug || docSnap.id;
+    return {
+      id: docSnap.id,
+      slug,
+      source: "industry",
+      niche: data.hero?.h1 || slug,
+      h1: data.hero?.h1 || slug,
+      subheadline: data.hero?.sub || data.tldr?.text?.slice(0, 200) || "",
+      service: data.primaryService || data.service || "Industry hub",
+      imageUrl: data.imageUrl || data.hero?.image || "",
+      ...data,
+    };
+  })
+    .filter((item) => item.status !== "archived" && item.published !== false)
     .sort((a, b) => (a.niche || a.slug).localeCompare(b.niche || b.slug));
 
   return (
@@ -75,17 +88,15 @@ export default async function IndustriesHubPage() {
               <Link key={`${niche.source || "niche"}-${niche.id}`} href={niche.source === "industry" ? `/industries/${niche.slug}` : `/niche/${niche.slug}`} className="group block h-full">
                 <article className="flex h-full flex-col overflow-hidden rounded-[1.1rem] border border-black/8 bg-white shadow-[0_24px_80px_rgba(0,0,0,0.05)] transition hover:-translate-y-1 hover:border-[#ad5b2b]/42">
                   <div className="relative h-56 overflow-hidden bg-[#e9e1d4]">
-                    {niche.imageUrl ? (
-                      <img src={niche.imageUrl} alt={`${niche.niche} SEO and marketing`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
-                    ) : (
-                      <div className="grid h-full place-items-center text-[10px] font-black uppercase tracking-[0.2em] text-black/32">
-                        No image data
-                      </div>
+                    {niche.imageUrl && (
+                      <>
+                        <img src={niche.imageUrl} alt={`${niche.niche} SEO and marketing`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_35%,rgba(13,18,20,0.72)_100%)]" />
+                        <span className="absolute bottom-4 left-4 rounded-full border border-white/12 bg-[#151b1e]/86 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-white backdrop-blur-sm">
+                          {niche.service || "Growth systems"}
+                        </span>
+                      </>
                     )}
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_35%,rgba(13,18,20,0.72)_100%)]" />
-                    <span className="absolute bottom-4 left-4 rounded-full border border-white/12 bg-[#151b1e]/86 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-white backdrop-blur-sm">
-                      {niche.service || "Growth systems"}
-                    </span>
                   </div>
                   <div className="flex flex-1 flex-col p-7">
                     <h2 className="text-2xl font-black tracking-tight transition group-hover:text-[#ad5b2b]">

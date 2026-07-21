@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 
@@ -7,11 +7,6 @@ import StarterKit from '@tiptap/starter-kit';
 import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
 import { Link } from '@tiptap/extension-link';
 import { Image } from '@tiptap/extension-image';
-
-// Firebase imports to fetch dynamic URLs for AI Linking
-import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
-import { removedNicheSlugs } from '@/lib/seo-config';
 
 // ==========================================
 // FIX: MOVE EXTENSIONS OUTSIDE THE COMPONENT
@@ -28,16 +23,7 @@ const TIPTAP_EXTENSIONS = [
   TableCell.configure({ HTMLAttributes: { class: 'border border-white/20 p-2' } }),
 ];
 
-// Map of your site for Gemini to use for internal linking
-const SITE_MAP = [
-  "https://klarai.uk/services/seo-services - Core SEO Agency Services",
-  "https://klarai.uk/services/aeo-services - Answer Engine Optimization for AI Search",
-  "https://klarai.uk/services/web-development - High Performance Web Design"
-];
-
 export default function TipTapEditor({ label, value, onChange, name, placeholder }) {
-  const [isAiLoading, setIsAiLoading] = useState(false);
-
   const editor = useEditor({
     // Prevents Next.js SSR hydration mismatch errors
     immediatelyRender: false, 
@@ -67,59 +53,6 @@ export default function TipTapEditor({ label, value, onChange, name, placeholder
   }, [editor, value]);
 
   if (!editor) return null;
-
-  // --- GEMINI 1-CLICK DYNAMIC INTERNAL LINKING ---
-// --- GEMINI 1-CLICK DYNAMIC INTERNAL LINKING ---
-  const handleAiLink = async () => {
-    setIsAiLoading(true);
-    try {
-      let dynamicSiteMap = [...SITE_MAP];
-
-      try {
-        const blogsSnap = await getDocs(collection(db, 'blog_posts'));
-        blogsSnap.forEach(doc => {
-          const data = doc.data();
-          const title = data.seoMeta?.title || data.hero?.title || doc.id;
-          dynamicSiteMap.push(`https://klarai.uk/blog/${doc.id} - Blog Post: ${title}`);
-        });
-
-        const nichesSnap = await getDocs(collection(db, 'niche_pages'));
-        nichesSnap.forEach(doc => {
-          const data = doc.data();
-          if (removedNicheSlugs.has(data.slug || doc.id)) return;
-          const title = data.h1 || data.metaTitle || doc.id;
-          dynamicSiteMap.push(`https://klarai.uk/niche/${doc.id} - Niche Service: ${title}`);
-        });
-      } catch (dbError) {
-        console.warn("Failed to fetch dynamic links, falling back to core URLs.", dbError);
-      }
-
-      const currentHtml = editor.getHTML();
-      const response = await fetch('/api/ai-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: currentHtml, urls: dynamicSiteMap })
-      });
-
-      // 🚨 FIX: Parse the response JSON FIRST before throwing an error 🚨
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Now it will throw the REAL error from Google (e.g., "API Key Invalid", etc.)
-        throw new Error(data.details || data.error || "AI Request Failed");
-      }
-      
-      editor.commands.setContent(data.updatedText, false);
-      onChange({ target: { name, value: data.updatedText } });
-      
-    } catch (error) {
-      console.error(error);
-      // This will pop up a browser alert with the EXACT Google API error!
-      alert(`AI Auto-Link Failed:\n\n${error.message}`);
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
 
   const setLink = () => {
     const url = window.prompt('URL');
@@ -159,16 +92,6 @@ export default function TipTapEditor({ label, value, onChange, name, placeholder
 
           <button type="button" onClick={setLink} className={`px-2 py-1 text-[10px] uppercase font-bold rounded ${editor.isActive('link') ? 'bg-[#008dd8]/20 text-[#008dd8]' : 'text-gray-400 hover:bg-white/10'}`}>🔗 Link</button>
           <button type="button" onClick={addImage} className="px-2 py-1 text-[10px] uppercase font-bold text-gray-400 hover:bg-white/10 rounded">🖼️ Img</button>
-
-          {/* MAGIC AI LINK BUTTON */}
-          <button 
-            type="button" 
-            onClick={handleAiLink}
-            disabled={isAiLoading}
-            className="ml-2 px-3 py-1 text-[10px] uppercase font-black bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded shadow-md hover:opacity-90 disabled:opacity-50 transition-all flex items-center gap-1"
-          >
-            {isAiLoading ? 'Analyzing...' : '✨ Auto-Link'}
-          </button>
         </div>
       </div>
 

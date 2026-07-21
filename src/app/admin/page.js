@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { db } from "@/lib/firebase";
 import { doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import Link from 'next/link';
@@ -32,6 +32,7 @@ import SeoChecklist from '@/components/admin/SeoChecklist';
 import { prepareBlogPostForSave } from '@/lib/adminContentAdapters';
 import { INITIAL_HOME_CONTENT, SERVICE_URL_MAP, cleanAdminText } from '@/lib/adminConfig';
 import { useAdminContent } from '@/hooks/useAdminContent';
+import { addSlugToRegistry } from '@/lib/slugRegistry';
 
 const BLOG_JSON_EXAMPLE = {
   slug: "local-seo-checklist-for-dentists",
@@ -52,12 +53,9 @@ const BLOG_JSON_EXAMPLE = {
     publishDate: "2026-07-20",
     readTime: "7 Min"
   },
-  tldr: [
-    "Claim and fully complete your Google Business Profile before scaling content.",
-    "Build one strong service page for each revenue-driving treatment.",
-    "Use FAQs, reviews, internal links, and local proof to improve trust signals."
-  ],
-  quickAnswer: "Dental local SEO improves clinic visibility by aligning service pages, Google Business Profile data, reviews, internal links, and schema around high-intent treatment searches.",
+  tldr: [],
+  mainQuestion: "What should a local SEO checklist for dentists include?",
+  quickAnswer: "",
   intro: [
     "Most dental SEO failures are not caused by one missing tactic. They happen because the website, local profile, reviews, and content all tell Google slightly different stories.",
     "This checklist gives your team a repeatable structure for improving visibility without turning every page into generic SEO copy."
@@ -138,7 +136,7 @@ const BLOG_JSON_EXAMPLE = {
 
 const INDUSTRY_JSON_EXAMPLE = {
   slug: "seo-for-dentists",
-  imageUrl: "/images/hero-mountain.jpg",
+  imageUrl: "",
   meta: {
     title: "SEO for Dentists in the UK | Klarai",
     description: "SEO strategy for dental clinics that need more local visibility, booked consultations, and treatment enquiries."
@@ -268,7 +266,8 @@ const normalizeIndustryFaqs = (faqs = []) => (
 
 function applyBlogJsonImport(payload = {}) {
   const internalLinks = normalizeJsonLinks(payload.internalLinks);
-  if (internalLinks.length === 0) return payload;
+  const questionCandidate = stripSimpleHtml(payload.mainQuestion || payload.question || payload.quickAnswer || "");
+  const quickAnswer = questionCandidate.includes("?") ? questionCandidate : "";
 
   const existingSections = Array.isArray(payload.sections) ? payload.sections : [];
   const relatedReadingSection = {
@@ -283,7 +282,8 @@ function applyBlogJsonImport(payload = {}) {
 
   return {
     ...payload,
-    sections: [...existingSections, relatedReadingSection],
+    quickAnswer,
+    sections: internalLinks.length > 0 ? [...existingSections, relatedReadingSection] : existingSections,
     relatedPosts: [
       ...(Array.isArray(payload.relatedPosts) ? payload.relatedPosts : []),
       ...internalLinks.map((link) => ({ title: link.anchor, href: link.href })),
@@ -300,6 +300,7 @@ function applyIndustryJsonImport(payload = {}) {
 
   return {
     ...payload,
+    imageUrl: payload.imageUrl || payload.hero?.image || "",
     meta: payload.meta || {
       title: payload.seoMeta?.title || payload.metaTitle || "",
       description: payload.seoMeta?.metaDescription || payload.metaDescription || "",
@@ -308,6 +309,7 @@ function applyIndustryJsonImport(payload = {}) {
       ...(payload.hero || {}),
       h1: payload.hero?.h1 || payload.hero?.title || payload.h1 || "",
       sub: payload.hero?.sub || payload.hero?.description || payload.subheadline || "",
+      image: payload.hero?.image || "",
       cta: payload.hero?.cta || payload.toolBlock?.ctaText || "Get my free audit",
       ctaHref: payload.hero?.ctaHref || payload.toolBlock?.ctaLink || "/seoauditor",
     },
@@ -1265,6 +1267,7 @@ function IndustryBuilderView({ isEditing, pageId, initialData, refreshData, setV
         updatedAt: serverTimestamp(),
       };
       await setDoc(doc(db, 'industry_pages', targetSlug), cleanedData, { merge: true });
+      await addSlugToRegistry('industry_pages', targetSlug);
       setStatus(`Success: /industries/${targetSlug} is live.`);
       await refreshData();
       window.scrollTo(0, 0);
@@ -1609,7 +1612,7 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
         <form onSubmit={handleSubmit} className="space-y-8">
           <JsonImportPanel
             title="Import a blog or guide from JSON"
-            description="Copy this pattern, write your article in the same shape, paste it here, then import. The content lands in the form so you can review it before saving."
+            description="Use mainQuestion for the AEO snippet area. If mainQuestion is missing, that field stays empty. Keep tldr as an empty array unless you have strong summary bullets."
             example={BLOG_JSON_EXAMPLE}
             onImport={(payload) => setFormData((prev) => ({ ...prev, ...applyBlogJsonImport(payload) }))}
           />
@@ -1674,10 +1677,16 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
             </button>
           </div>
 
-          {/* === SECTION 3: AEO SNIPPET & INTRO PARAGRAPHS === */}
+          {/* === SECTION 3: MAIN QUESTION & INTRO PARAGRAPHS === */}
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">
-            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">3. AEO Snippet & Intro</h3>
-            <TipTapEditor label="AEO Quick Answer" name="quickAnswer" value={formData.quickAnswer || ''} onChange={handleChange} />
+            <h3 className="text-blue-400 uppercase text-[10px] font-bold tracking-widest">3. Main Blog Question & Intro</h3>
+            <TipTapEditor
+              label="Main Blog Question"
+              name="quickAnswer"
+              value={formData.quickAnswer || ''}
+              onChange={handleChange}
+              placeholder="Add the main question for this blog. Leave empty if you do not want the question box."
+            />
             
             <div className="pt-4 border-t border-white/10">
               <label className="text-[10px] text-gray-500 font-bold uppercase tracking-widest block mb-2">Intro Paragraphs</label>
