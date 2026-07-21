@@ -3,7 +3,6 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth"; // NEW: Importing Auth
 import { getAnalytics, isSupported } from "firebase/analytics";
 
-// Pulling safely from your hidden .env.local file
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,

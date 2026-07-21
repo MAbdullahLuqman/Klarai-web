@@ -1,33 +1,62 @@
 "use client";
-import React, { useCallback, useState, useEffect, Suspense, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
 
-// FIREBASE IMPORTS
-import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { Activity, AlertTriangle, ArrowRight, Check, Download, FileText, Gauge, Globe2, Mail, MapPin, Search, Sparkles, X } from "lucide-react";
+
+import { db } from "@/lib/firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 
 const auditPhases = [
-  "Initializing secure connection to target server",
-  "Bypassing cache & scraping DOM architecture",
-  "Evaluating Core Web Vitals & speed metrics",
-  "Extracting UK-specific localized schema",
-  "Analyzing Answer Engine Optimization (AEO) readiness",
-  "Scanning for critical technical vulnerabilities",
-  "Feeding entity data to Generative AI scoring engine",
-  "Compiling final Klarai intelligence report"
+  "Opening a secure connection to the target site",
+  "Reading page structure, metadata and indexable content",
+  "Checking technical SEO signals and speed data",
+  "Reviewing local search and UK visibility markers",
+  "Testing answer engine and AI overview readiness",
+  "Finding critical blockers and quick wins",
+  "Preparing the Klarai audit summary",
+  "Compiling the final visibility report",
+];
+
+const featureChecks = [
+  "Technical SEO structure",
+  "On-page metadata",
+  "Core Web Vitals signals",
+  "Local visibility gaps",
+  "Answer engine readiness",
+  "Priority fixes",
+];
+
+const methodSteps = [
+  ["01", "Audit", "Read the site the way crawlers, search engines and answer engines see it."],
+  ["02", "Architect", "Separate structural blockers from surface-level copy issues."],
+  ["03", "Prioritise", "Turn the findings into fixes that can improve visibility fastest."],
 ];
 
 const formatAuditUrl = (inputUrl) => {
   let formatted = inputUrl.trim();
-  if (!/^https?:\/\//i.test(formatted)) formatted = 'https://' + formatted;
+  if (!/^https?:\/\//i.test(formatted)) formatted = `https://${formatted}`;
   return formatted;
 };
 
+const renderTextSafely = (item) => {
+  if (typeof item === "string") return item;
+  return item?.gap || item?.issue || item?.description || item?.title || item?.win || JSON.stringify(item);
+};
+
+function AuditorFallback() {
+  return (
+    <div className="min-h-screen bg-[#f4efe4] px-5 pt-36 text-center text-[10px] font-black uppercase tracking-[0.2em] text-[#2f3438]/46">
+      Loading audit interface
+    </div>
+  );
+}
+
 export default function AuditorClient() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center font-bold text-gray-500 tracking-widest uppercase text-xs">Loading Core...</div>}>
+    <Suspense fallback={<AuditorFallback />}>
       <AuditorCore />
     </Suspense>
   );
@@ -35,21 +64,21 @@ export default function AuditorClient() {
 
 function AuditorCore() {
   const searchParams = useSearchParams();
-  const defaultUrl = searchParams.get('url') || '';
-  const autoStart = searchParams.get('auto') === 'true';
+  const defaultUrl = searchParams.get("url") || "";
+  const autoStart = searchParams.get("auto") === "true";
 
   const [url, setUrl] = useState(defaultUrl);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [auditComplete, setAuditComplete] = useState(false);
-  const [auditResult, setAuditResult] = useState(null); 
+  const [auditResult, setAuditResult] = useState(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+
   const hasTriggeredAuto = useRef(false);
   const reportRef = useRef(null);
-
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
-  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
 
   const executeAudit = useCallback(async (targetUrlString) => {
     const formattedUrl = formatAuditUrl(targetUrlString);
@@ -57,17 +86,17 @@ function AuditorCore() {
     setAuditComplete(false);
     setProgress(0);
     setPhaseIndex(0);
-    setAuditResult(null); 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setAuditResult(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     const progressInterval = setInterval(() => setProgress((prev) => (prev >= 98 ? 98 : prev + 1)), 300);
-    const phaseInterval = setInterval(() => setPhaseIndex((prev) => (prev >= auditPhases.length - 1 ? prev : prev + 1)), 3000); 
+    const phaseInterval = setInterval(() => setPhaseIndex((prev) => (prev >= auditPhases.length - 1 ? prev : prev + 1)), 3000);
 
     try {
-      const response = await fetch('https://klarai-seo-audit-tool-production.up.railway.app/free-audit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: formattedUrl })
+      const response = await fetch("https://klarai-seo-audit-tool-production.up.railway.app/free-audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: formattedUrl }),
       });
 
       if (!response.ok) throw new Error(`Server error: ${response.status}`);
@@ -75,9 +104,9 @@ function AuditorCore() {
       setAuditResult(auditData);
 
       try {
-        await addDoc(collection(db, 'scans'), { website: formattedUrl, scannedAt: serverTimestamp() });
+        await addDoc(collection(db, "scans"), { website: formattedUrl, scannedAt: serverTimestamp() });
       } catch (dbError) {
-        console.error("DB Error (Adblocker active?):", dbError);
+        console.error("DB Error:", dbError);
       }
 
       setProgress(100);
@@ -85,7 +114,7 @@ function AuditorCore() {
       setAuditComplete(true);
     } catch (error) {
       console.error("Audit Failed:", error);
-      alert("System overload or connection failed. Please try again.");
+      alert("The audit service could not complete the scan. Please try again.");
     } finally {
       clearInterval(progressInterval);
       clearInterval(phaseInterval);
@@ -93,9 +122,9 @@ function AuditorCore() {
     }
   }, []);
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    if (!url) return;
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+    if (!url.trim()) return;
     executeAudit(url);
   };
 
@@ -110,30 +139,29 @@ function AuditorCore() {
     window.print();
   };
 
-  const handleEmailSubmit = async (e) => {
-    e.preventDefault();
-    if (!userEmail) return;
-    
+  const handleEmailSubmit = async (event) => {
+    event.preventDefault();
+    if (!userEmail.trim()) return;
+
     setIsSubmittingLead(true);
     try {
-      await addDoc(collection(db, 'leads'), {
+      await addDoc(collection(db, "leads"), {
         email: userEmail,
-        website: formatUrl(url),
-        capturedAt: serverTimestamp()
+        website: formatAuditUrl(url),
+        capturedAt: serverTimestamp(),
       });
       setShowEmailModal(false);
-      setTimeout(() => downloadPDF(), 500); 
+      setTimeout(() => downloadPDF(), 500);
     } catch (error) {
       console.error("Error saving lead:", error);
-      alert("Please turn off Adblockers to save and download the report.");
+      alert("The report could not be unlocked. Please try again.");
     } finally {
       setIsSubmittingLead(false);
     }
   };
 
-  // Safe Extraction
   const rawScraped = auditResult?.scraped_data || {};
-  const scrapedData = rawScraped.seo_data || rawScraped; 
+  const scrapedData = rawScraped.seo_data || rawScraped;
   const aiData = auditResult?.ai_analysis || {};
   const perfData = auditResult?.performance_data || {};
   const summary = aiData.audit_summary || {};
@@ -143,295 +171,225 @@ function AuditorCore() {
   const localOps = aiData.local_uk_opportunities || [];
   const geoGaps = aiData.geo_ai_overview_gaps || [];
   const quickWins = aiData.quick_wins || [];
-
-  // Bulletproof renderer to prevent React crashes if API sends objects instead of strings
-  const renderTextSafely = (item) => {
-    if (typeof item === 'string') return item;
-    return item?.gap || item?.issue || item?.description || item?.title || JSON.stringify(item);
-  };
+  const reportUrl = rawScraped.url || formatAuditUrl(url || "example.co.uk");
 
   return (
-    <div className="bg-gray-50 text-gray-900 font-sans selection:bg-[#ad5b2b] selection:text-white min-h-screen flex flex-col">
+    <div className="min-h-screen bg-[#f4efe4] text-[#2f3438] selection:bg-[#ad5b2b] selection:text-white">
+      <section className="hide-on-print relative overflow-hidden px-5 pb-20 pt-34 sm:px-8 lg:px-12 lg:pb-24 lg:pt-40">
+        <div className="absolute inset-x-0 top-0 h-[520px] bg-[linear-gradient(180deg,#151b1e_0%,#2f3438_58%,rgba(47,52,56,0)_100%)]" />
+        <div className="absolute inset-x-0 top-0 h-[520px] bg-[url('/images/hero-mountain.jpg')] bg-cover bg-center opacity-24 mix-blend-luminosity" />
+        <div className="relative mx-auto grid max-w-[1480px] gap-10 lg:grid-cols-[1.04fr_0.72fr] lg:items-end">
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.7 }}>
+            <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#e0b48b] backdrop-blur-md">
+              <Sparkles size={14} />
+              Gemini-assisted SEO audit
+            </p>
+            <h1 className="max-w-5xl font-serif text-5xl font-medium leading-[0.98] text-white sm:text-7xl lg:text-8xl">
+              Free AI SEO audit for websites that need clarity.
+            </h1>
+            <p className="mt-7 max-w-2xl text-base font-medium leading-relaxed text-white/72 sm:text-lg">
+              Enter a URL and get a practical visibility report covering technical SEO, content structure, local signals and answer engine readiness.
+            </p>
+          </motion.div>
 
-      {/* TOOL HERO */}
-      <section className="hide-on-print w-full flex flex-col items-center pt-32 pb-16 px-4 sm:px-6 relative overflow-hidden bg-[#0A101D]">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] md:w-[40vw] md:h-[40vw] bg-[#008dd8]/10 blur-[100px] rounded-full pointer-events-none"></div>
-
-        <div className="max-w-[700px] w-full mx-auto relative z-10">
-          {!isAnalyzing && !auditComplete && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-4">
-              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-blue-900/30 border border-blue-500/30 text-[#00b4d8] text-[9px] font-black tracking-[0.2em] uppercase">
-                ⚡ Powered by Google Gemini
-              </span>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-white leading-[1.1]">
-                Free AI SEO Audit Tool <br/> <span className="text-[#008dd8]">for UK Websites</span>
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-400 font-medium max-w-lg mx-auto leading-relaxed">
-                Enter any website URL and Klarai&apos;s Gemini-powered SEO auditor analyses your site in 30 seconds.
-              </p>
-
-              <form onSubmit={handleFormSubmit} className="mt-8 relative max-w-xl mx-auto group w-full px-2">
-                <div className="absolute -inset-1 bg-[#008dd8] rounded-[1.5rem] blur opacity-20 transition duration-500"></div>
-                <div className="relative flex flex-col sm:flex-row items-center bg-gray-900 border border-gray-700 rounded-[1.25rem] p-1.5 focus-within:border-[#008dd8] transition-colors w-full">
-                  <div className="flex-1 w-full flex items-center px-4 py-2">
-                    <input 
-                      type="text" 
-                      placeholder="example.co.uk" 
-                      required
-                      value={url}
-                      onChange={(e) => setUrl(e.target.value)}
-                      className="w-full bg-transparent text-sm sm:text-base font-bold text-white placeholder-gray-500 outline-none"
-                    />
-                  </div>
-                  <button type="submit" className="w-full sm:w-auto bg-[#008dd8] text-white px-6 py-3 rounded-[1rem] font-black text-[10px] uppercase tracking-widest hover:bg-[#0077b6] transition-all">
-                    Run Free Audit
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          )}
-
-          {isAnalyzing && (
-            <div className="w-full max-w-2xl mx-auto bg-gray-900 rounded-[1.25rem] border border-gray-800 overflow-hidden animate-fade-in mt-6">
-              <div className="bg-[#0A101D] border-b border-gray-800 px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-400 text-[9px] font-mono uppercase tracking-widest ml-2">Target: {formatAuditUrl(url)}</span>
-                </div>
-                <span className="text-[#00b4d8] text-[9px] font-mono font-bold">{progress}%</span>
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.7, delay: 0.08 }} className="rounded-[1.15rem] border border-white/16 bg-[#f9f5ec] p-4 shadow-[0_30px_90px_rgba(14,20,24,0.24)] sm:p-5">
+            <form onSubmit={handleFormSubmit} className="rounded-[0.85rem] border border-black/8 bg-white p-3">
+              <label htmlFor="audit-url" className="mb-3 flex items-center gap-2 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-black/38">
+                <Globe2 size={14} />
+                Website URL
+              </label>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <input
+                  id="audit-url"
+                  type="text"
+                  placeholder="example.co.uk"
+                  required
+                  value={url}
+                  onChange={(event) => setUrl(event.target.value)}
+                  className="min-h-14 flex-1 rounded-md border border-black/10 bg-[#f9f5ec] px-4 text-base font-bold text-[#2f3438] outline-none transition placeholder:text-black/28 focus:border-[#ad5b2b]"
+                />
+                <button type="submit" disabled={isAnalyzing} className="inline-flex min-h-14 items-center justify-center gap-2 rounded-md bg-[#ad5b2b] px-6 text-sm font-black text-white transition hover:bg-[#8d4822] disabled:cursor-not-allowed disabled:opacity-60">
+                  {isAnalyzing ? "Auditing" : "Run Free Audit"}
+                  <ArrowRight size={17} />
+                </button>
               </div>
-              <div className="p-5 sm:p-6 space-y-3 font-mono text-[10px] sm:text-xs">
-                {auditPhases.map((phase, index) => {
-                  const isCompleted = index < phaseIndex;
-                  const isActive = index === phaseIndex;
-                  return (
-                    <div key={index} className={`flex items-start gap-3 transition-all duration-300 ${isCompleted ? 'text-gray-500' : isActive ? 'text-white' : 'text-gray-700 opacity-50'}`}>
-                      <span className={`${isActive ? 'animate-pulse font-semibold' : ''} leading-snug`}>{isCompleted ? '✓' : '>'} {phase}...</span>
-                    </div>
-                  );
-                })}
-              </div>
+            </form>
+
+            <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {featureChecks.map((item) => (
+                <div key={item} className="flex min-h-16 items-center gap-2 rounded-md border border-black/8 bg-[#f4efe4] px-3 text-xs font-bold leading-snug text-[#2f3438]/72">
+                  <Check size={14} className="shrink-0 text-[#ad5b2b]" />
+                  {item}
+                </div>
+              ))}
             </div>
-          )}
+          </motion.div>
         </div>
       </section>
 
-      {/* RESULTS DASHBOARD */}
-      {auditComplete && auditResult && (
-        <section className="w-full bg-gray-50 py-12 px-4 sm:px-6">
-          <div id="seo-audit-report" ref={reportRef} className="w-full max-w-[1000px] mx-auto animate-fade-in relative z-10 space-y-5 pb-10">
-             
-             {/* TOP HEADER */}
-             <div className="bg-[#0A101D] rounded-2xl border border-gray-800 p-6 relative overflow-hidden break-inside-avoid">
-               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#008dd8] to-[#00b4d8]"></div>
-               <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-3">
-                 <div>
-                   <span className="inline-block py-1 px-3 rounded-full bg-gray-800 border border-gray-700 text-[#00b4d8] text-[8px] font-black tracking-[0.2em] uppercase mb-2">Intelligence Report</span>
-                   <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white line-clamp-1">{rawScraped.url || formatUrl(url)}</h2>
-                 </div>
-                 
-                 <div className="hide-on-print flex flex-col items-start md:items-end gap-2 mt-2 md:mt-0">
-                    <button onClick={() => setShowEmailModal(true)} className="bg-[#008dd8] text-white px-4 py-2 rounded flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-[#0077b6] transition-all">
-                      Download PDF
-                    </button>
-                 </div>
-               </div>
-             </div>
-
-             {/* SCORES & VERDICT */}
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 break-inside-avoid">
-                <div className="md:col-span-1 grid grid-cols-2 md:grid-cols-1 gap-3">
-                  <div className="bg-white p-5 rounded-2xl border border-gray-200 flex flex-col justify-center">
-                    <h3 className="text-gray-400 font-bold text-[9px] uppercase tracking-widest mb-1">Performance</h3>
-                    <div className="text-4xl font-black text-gray-900 leading-none mb-1">{perfData?.score || 'N/A'}</div>
-                    <p className="text-[9px] text-gray-500 font-medium">Core Web Vitals</p>
+      {isAnalyzing && (
+        <section className="hide-on-print px-5 pb-18 sm:px-8 lg:px-12">
+          <div className="mx-auto max-w-[980px] rounded-[1.15rem] border border-black/8 bg-[#151b1e] p-5 text-white shadow-[0_30px_90px_rgba(14,20,24,0.18)] sm:p-7">
+            <div className="mb-6 flex flex-col justify-between gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-center">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#e0b48b]">Audit in progress</p>
+                <p className="mt-2 break-all text-sm font-semibold text-white/62">{formatAuditUrl(url)}</p>
+              </div>
+              <div className="text-left sm:text-right">
+                <p className="font-serif text-5xl font-medium text-white">{progress}%</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#6f8fa3]">Processing</p>
+              </div>
+            </div>
+            <div className="mb-6 h-2 overflow-hidden rounded-full bg-white/10">
+              <div className="h-full rounded-full bg-[#ad5b2b] transition-all duration-300" style={{ width: `${progress}%` }} />
+            </div>
+            <div className="grid gap-3 font-mono text-xs">
+              {auditPhases.map((phase, index) => {
+                const isCompleted = index < phaseIndex;
+                const isActive = index === phaseIndex;
+                return (
+                  <div key={phase} className={`flex items-start gap-3 rounded-md border px-4 py-3 transition ${isCompleted ? "border-white/8 bg-white/5 text-white/42" : isActive ? "border-[#ad5b2b]/40 bg-[#ad5b2b]/10 text-white" : "border-white/8 text-white/28"}`}>
+                    <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border ${isCompleted ? "border-[#6f8fa3] text-[#6f8fa3]" : isActive ? "border-[#e0b48b] text-[#e0b48b]" : "border-white/16"}`}>
+                      {isCompleted ? <Check size={12} /> : <Activity size={12} className={isActive ? "animate-pulse" : ""} />}
+                    </span>
+                    <span className="leading-relaxed">{phase}</span>
                   </div>
-                  <div className="bg-[#0A101D] p-5 rounded-2xl border border-gray-800 flex flex-col justify-center relative overflow-hidden">
-                    <h3 className="text-gray-400 font-bold text-[9px] uppercase tracking-widest mb-1 relative z-10">AEO Readiness</h3>
-                    <div className="text-4xl font-black text-[#00b4d8] leading-none mb-1 relative z-10">{aiData?.aeo_readiness_score || 'N/A'}</div>
-                    <p className="text-[9px] text-gray-400 font-medium relative z-10">AI Model visibility</p>
-                  </div>
-                </div>
-
-                <div className="md:col-span-2 bg-white rounded-2xl border border-gray-200 p-6 flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-lg font-black text-gray-900 mb-3 flex items-center gap-2"><span className="text-[#008dd8]">✨</span> AI Executive Verdict</h3>
-                    <p className="text-sm text-gray-700 font-medium italic leading-relaxed bg-blue-50 p-4 rounded-xl border border-blue-100">
-                      &quot;{summary?.verdict || "Analysis completed. Review the metrics below."}&quot;
-                    </p>
-                  </div>
-                </div>
-             </div>
-
-             {/* INTELLIGENCE LISTS */}
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white border border-gray-200 p-6 rounded-2xl break-inside-avoid">
-                  <h3 className="text-base font-black text-gray-900 mb-4 flex items-center gap-2"><span className="text-red-500">❌</span> Critical Fixes Required</h3>
-                  {criticalFixes.length > 0 ? (
-                    <ul className="space-y-3">
-                      {criticalFixes.map((fix, i) => (
-                        <li key={i} className="flex items-start gap-3 text-gray-700 font-medium text-xs sm:text-sm leading-relaxed border-b border-gray-50 pb-3 last:border-0 last:pb-0">
-                          <span className="text-red-500 shrink-0 mt-0.5">•</span> {renderTextSafely(fix)}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="text-green-600 text-xs font-bold bg-green-50 p-3 rounded-lg">No critical errors detected.</div>
-                  )}
-                </div>
-
-                <div className="bg-white border border-gray-200 p-6 rounded-2xl break-inside-avoid">
-                  <h3 className="text-base font-black text-gray-900 mb-4 flex items-center gap-2"><span className="text-[#008dd8]">📍</span> UK Local Opportunities</h3>
-                  {localOps.length > 0 ? (
-                    <ul className="space-y-3">
-                      {localOps.map((op, i) => (
-                        <li key={i} className="flex items-start gap-3 text-gray-700 font-medium text-xs sm:text-sm leading-relaxed border-b border-gray-50 pb-3 last:border-0 last:pb-0">
-                          <span className="text-[#008dd8] shrink-0 mt-0.5">•</span> {renderTextSafely(op)}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="text-gray-500 text-xs font-medium italic">No local opportunities found.</div>
-                  )}
-                </div>
-             </div>
-
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white border border-gray-200 p-6 rounded-2xl break-inside-avoid">
-                  <h3 className="text-base font-black text-gray-900 mb-4 flex items-center gap-2"><span className="text-green-500">✅</span> Quick Wins</h3>
-                  {quickWins.length > 0 ? (
-                    <ul className="space-y-3">
-                      {quickWins.map((winObj, i) => (
-                        <li key={i} className="bg-green-50 p-4 rounded-xl border border-green-100 flex flex-col gap-2">
-                          <strong className="text-gray-900 text-xs sm:text-sm">{winObj.win || JSON.stringify(winObj)}</strong>
-                          <div className="flex gap-2 text-[9px] font-bold mt-1 uppercase tracking-widest">
-                            {winObj.effort && <span className="bg-green-100 text-green-700 px-2 py-1 rounded">Effort: {winObj.effort}</span>}
-                            {winObj.expected_impact && <span className="bg-blue-50 text-[#008dd8] px-2 py-1 rounded">Impact: {winObj.expected_impact}</span>}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="text-gray-500 text-xs font-medium italic">No quick wins identified.</div>
-                  )}
-                </div>
-                
-                {/* GEO AI OVERVIEW GAPS FIX - Rendered perfectly safe */}
-                <div className="bg-white border border-gray-200 p-6 rounded-2xl break-inside-avoid">
-                  <h3 className="text-base font-black text-gray-900 mb-4 flex items-center gap-2"><span className="text-orange-500">⚠️</span> Geo-AI Overview Gaps</h3>
-                  {geoGaps.length > 0 ? (
-                    <ul className="space-y-3">
-                      {geoGaps.map((gap, i) => (
-                        <li key={i} className="flex items-start gap-3 text-gray-700 font-medium text-xs sm:text-sm leading-relaxed border-b border-gray-50 pb-3 last:border-0 last:pb-0">
-                          <span className="text-orange-500 shrink-0 mt-0.5">•</span> {renderTextSafely(gap)}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="text-gray-500 text-xs font-medium italic">No AI geo-gaps found.</div>
-                  )}
-                </div>
-             </div>
-
-             {/* ON-PAGE ARCHITECTURE */}
-             <div className="bg-white rounded-2xl border border-gray-200 p-6 break-inside-avoid">
-                <div className="mb-6 border-b border-gray-100 pb-4 flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-black text-gray-900">On-Page Architecture</h3>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[#008dd8] text-[9px] font-black uppercase tracking-widest block">Word Count</span>
-                    <span className="text-gray-900 font-black text-xl">{content.word_count || 0}</span>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="text-[9px] font-black text-[#008dd8] uppercase tracking-widest">Page Title</p>
-                        {scrapedData.title ? <span className="text-[8px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">Found</span> : <span className="text-[8px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">Missing</span>}
-                      </div>
-                      <p className={`text-sm font-medium leading-snug break-words ${scrapedData.title ? 'text-gray-900' : 'text-red-500 italic'}`}>{scrapedData.title || "No title tag found."}</p>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="text-[9px] font-black text-[#008dd8] uppercase tracking-widest">Meta Description</p>
-                        {scrapedData.meta_description ? <span className="text-[8px] font-bold text-green-600 bg-green-100 px-1.5 py-0.5 rounded">Found</span> : <span className="text-[8px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">Missing</span>}
-                      </div>
-                      <p className={`text-xs font-medium leading-relaxed line-clamp-3 break-words ${scrapedData.meta_description ? 'text-gray-700' : 'text-red-500 italic'}`}>{scrapedData.meta_description || "No meta description found."}</p>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 sm:col-span-2">
-                    <p className="text-[9px] font-black text-[#008dd8] uppercase tracking-widest mb-3">Heading Structure</p>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className={`p-3 rounded-lg border flex flex-col items-center text-center ${headings.h1_count === 0 ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'}`}>
-                        <span className="text-gray-400 font-bold text-[8px] uppercase tracking-widest mb-1">H1</span>
-                        <span className={`text-xl font-black ${headings.h1_count === 0 ? 'text-red-600' : 'text-gray-900'}`}>{headings.h1_count || 0}</span>
-                      </div>
-                      <div className="bg-white p-3 rounded-lg border border-gray-200 flex flex-col items-center text-center">
-                        <span className="text-gray-400 font-bold text-[8px] uppercase tracking-widest mb-1">H2</span>
-                        <span className="text-xl font-black text-gray-900">{headings.h2_count || 0}</span>
-                      </div>
-                      <div className="bg-white p-3 rounded-lg border border-gray-200 flex flex-col items-center text-center">
-                        <span className="text-gray-400 font-bold text-[8px] uppercase tracking-widest mb-1">H3</span>
-                        <span className="text-xl font-black text-gray-900">{headings.h3_count || 0}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-             </div>
-
-             {/* BOTTOM CTA STRIP */}
-             <div className="hide-on-print mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-gray-200 text-center sm:text-left">
-                <div>
-                  <h4 className="text-base font-black text-gray-900">Fix these issues.</h4>
-                  <p className="text-xs font-medium text-gray-500">Book a strategy call to review this audit.</p>
-                </div>
-                <div className="flex gap-3 w-full sm:w-auto">
-                  <button onClick={() => setAuditComplete(false)} className="w-full sm:w-auto text-gray-900 font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 border border-gray-200 px-5 py-2.5 rounded-lg transition-all">New Scan</button>
-                  <Link href="/free-audit" className="w-full sm:w-auto bg-[#0A101D] text-white font-black text-[10px] uppercase tracking-widest hover:bg-[#008dd8] px-5 py-2.5 rounded-lg transition-all">Contact Us</Link>
-                </div>
-             </div>
-
+                );
+              })}
+            </div>
           </div>
         </section>
       )}
 
-      {/* EDUCATIONAL LANDING PAGE */}
-      <div className="hide-on-print">
-        {!isAnalyzing && !auditComplete && (
-          <section className="w-full bg-white py-20 px-6 border-t border-gray-200 text-center">
-             <h2 className="text-3xl font-black text-gray-900 mb-4">AI SEO Audits for UK Businesses</h2>
-             <p className="text-gray-500 max-w-2xl mx-auto">Run a full technical sweep to ensure your website is properly structured to capture traffic from Google and Generative AI systems.</p>
-          </section>
-        )}
-      </div>
+      {auditComplete && auditResult && (
+        <section className="bg-[#f4efe4] px-5 pb-20 sm:px-8 lg:px-12">
+          <div id="seo-audit-report" ref={reportRef} className="mx-auto max-w-[1120px] space-y-5 pb-10">
+            <div className="break-inside-avoid overflow-hidden rounded-[1.15rem] border border-black/8 bg-[#151b1e] text-white shadow-[0_30px_90px_rgba(14,20,24,0.16)]">
+              <div className="h-1.5 bg-[#ad5b2b]" />
+              <div className="flex flex-col justify-between gap-5 p-6 md:flex-row md:items-end">
+                <div>
+                  <p className="mb-3 inline-flex rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#e0b48b]">Visibility report</p>
+                  <h2 className="break-all font-serif text-3xl font-medium leading-tight sm:text-5xl">{reportUrl}</h2>
+                </div>
+                <button onClick={() => setShowEmailModal(true)} className="hide-on-print inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#ad5b2b] px-5 text-xs font-black text-white transition hover:bg-[#8d4822]">
+                  <Download size={16} />
+                  Download PDF
+                </button>
+              </div>
+            </div>
 
-      {/* EMAIL MODAL */}
+            <div className="grid grid-cols-1 gap-5 break-inside-avoid md:grid-cols-3">
+              <ScorePanel icon={<Gauge size={19} />} label="Performance" value={perfData?.score || "N/A"} detail="Core Web Vitals signal" />
+              <ScorePanel icon={<Sparkles size={19} />} label="AEO readiness" value={aiData?.aeo_readiness_score || "N/A"} detail="AI answer visibility" dark />
+              <div className="rounded-[1.15rem] border border-black/8 bg-white p-6 md:col-span-1">
+                <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#ad5b2b]">Executive verdict</p>
+                <p className="text-sm font-semibold leading-relaxed text-[#2f3438]/74">{summary?.verdict || "Analysis completed. Review the priority fixes and page architecture below."}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <FindingPanel icon={<AlertTriangle size={18} />} title="Critical Fixes Required" items={criticalFixes} empty="No critical errors detected." accent="text-[#ad5b2b]" />
+              <FindingPanel icon={<MapPin size={18} />} title="UK Local Opportunities" items={localOps} empty="No local opportunities found." accent="text-[#6f8fa3]" />
+              <QuickWinsPanel items={quickWins} />
+              <FindingPanel icon={<Search size={18} />} title="Geo-AI Overview Gaps" items={geoGaps} empty="No AI overview gaps found." accent="text-[#ad5b2b]" />
+            </div>
+
+            <div className="break-inside-avoid rounded-[1.15rem] border border-black/8 bg-white p-6 shadow-[0_20px_70px_rgba(0,0,0,0.04)]">
+              <div className="mb-6 flex flex-col justify-between gap-4 border-b border-black/8 pb-5 sm:flex-row sm:items-center">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ad5b2b]">On-page architecture</p>
+                  <h3 className="mt-2 font-serif text-3xl font-medium text-[#2f3438]">Indexable structure and metadata.</h3>
+                </div>
+                <div className="rounded-md border border-black/8 bg-[#f9f5ec] px-5 py-3 text-right">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/36">Word count</p>
+                  <p className="font-serif text-4xl font-medium text-[#2f3438]">{content.word_count || 0}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <MetaPanel label="Page Title" value={scrapedData.title} missing="No title tag found." />
+                <MetaPanel label="Meta Description" value={scrapedData.meta_description} missing="No meta description found." />
+                <div className="rounded-[0.9rem] border border-black/8 bg-[#f9f5ec] p-5 sm:col-span-2">
+                  <p className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#ad5b2b]">Heading structure</p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <HeadingCount label="H1" value={headings.h1_count || 0} warning={headings.h1_count === 0} />
+                    <HeadingCount label="H2" value={headings.h2_count || 0} />
+                    <HeadingCount label="H3" value={headings.h3_count || 0} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="hide-on-print flex flex-col items-center justify-between gap-4 rounded-[1.15rem] border border-black/8 bg-[#f9f5ec] p-5 text-center sm:flex-row sm:text-left">
+              <div>
+                <h4 className="font-serif text-3xl font-medium text-[#2f3438]">Turn the audit into fixes.</h4>
+                <p className="mt-1 text-sm font-semibold text-[#2f3438]/58">Klarai can review the report and prioritise the work that matters first.</p>
+              </div>
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                <button onClick={() => setAuditComplete(false)} className="min-h-12 rounded-md border border-[#ad5b2b] px-5 text-sm font-black text-[#9b542a] transition hover:bg-white">
+                  New Scan
+                </button>
+                <Link href="/contact" className="inline-flex min-h-12 items-center justify-center rounded-md bg-[#2f3438] px-5 text-sm font-black text-white transition hover:bg-[#ad5b2b]">
+                  Contact Klarai
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {!isAnalyzing && !auditComplete && (
+        <section className="hide-on-print border-t border-black/8 bg-[#f4efe4] px-5 py-20 sm:px-8 lg:px-12">
+          <div className="mx-auto grid max-w-[1480px] gap-10 lg:grid-cols-[0.8fr_1fr]">
+            <div>
+              <p className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#ad5b2b]">How it works</p>
+              <h2 className="font-serif text-5xl font-medium leading-[0.98] text-[#2f3438] sm:text-7xl">Visibility is not a mystery report.</h2>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {methodSteps.map(([num, title, text]) => (
+                <article key={title} className="rounded-[1.1rem] border border-black/8 bg-white p-6 shadow-[0_20px_70px_rgba(0,0,0,0.04)]">
+                  <p className="mb-8 text-3xl font-black text-[#ad5b2b]">{num}</p>
+                  <h3 className="font-serif text-3xl font-medium text-[#2f3438]">{title}</h3>
+                  <p className="mt-4 text-sm font-semibold leading-relaxed text-[#2f3438]/62">{text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {showEmailModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 hide-on-print">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl relative">
-            <button onClick={() => setShowEmailModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900">✕</button>
-            <div className="text-center mb-6">
-              <span className="text-3xl mb-2 block">📄</span>
-              <h3 className="text-xl font-black text-gray-900 mb-2">Get your full audit report</h3>
-              <p className="text-sm text-gray-500 font-medium">Enter your email to instantly download the PDF report.</p>
+        <div className="hide-on-print fixed inset-0 z-[100] flex items-center justify-center bg-[#151b1e]/72 p-4 backdrop-blur-sm">
+          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ ease: [0.22, 1, 0.36, 1], duration: 0.25 }} className="relative w-full max-w-md rounded-[1.15rem] border border-black/8 bg-[#f9f5ec] p-7 shadow-[0_30px_100px_rgba(0,0,0,0.3)]">
+            <button onClick={() => setShowEmailModal(false)} className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full border border-black/8 bg-white text-[#2f3438]/58 transition hover:text-[#ad5b2b]" aria-label="Close download form">
+              <X size={16} />
+            </button>
+            <div className="mb-6">
+              <div className="mb-5 grid h-12 w-12 place-items-center rounded-md bg-[#ad5b2b] text-white">
+                <FileText size={20} />
+              </div>
+              <h3 className="font-serif text-4xl font-medium leading-tight text-[#2f3438]">Get the full audit report.</h3>
+              <p className="mt-3 text-sm font-semibold leading-relaxed text-[#2f3438]/58">Enter your email to download the PDF version of this audit.</p>
             </div>
             <form onSubmit={handleEmailSubmit} className="space-y-4">
-              <input type="email" required placeholder="name@company.com" value={userEmail} onChange={(e) => setUserEmail(e.target.value)} className="w-full bg-gray-50 border border-gray-200 text-gray-900 px-4 py-3 rounded-xl font-medium focus:outline-none focus:border-[#008dd8]"/>
-              <button type="submit" disabled={isSubmittingLead} className="w-full bg-[#008dd8] text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#0077b6] transition-all disabled:opacity-50">
-                {isSubmittingLead ? 'Unlocking...' : 'Unlock & Download PDF'}
+              <label htmlFor="report-email" className="sr-only">Email address</label>
+              <div className="flex min-h-14 items-center gap-3 rounded-md border border-black/10 bg-white px-4 focus-within:border-[#ad5b2b]">
+                <Mail size={17} className="text-[#ad5b2b]" />
+                <input id="report-email" type="email" required placeholder="name@company.com" value={userEmail} onChange={(event) => setUserEmail(event.target.value)} className="w-full bg-transparent text-sm font-bold text-[#2f3438] outline-none placeholder:text-black/28" />
+              </div>
+              <button type="submit" disabled={isSubmittingLead} className="inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-md bg-[#ad5b2b] px-6 text-sm font-black text-white transition hover:bg-[#8d4822] disabled:opacity-50">
+                {isSubmittingLead ? "Preparing report" : "Unlock and Download PDF"}
+                <Download size={16} />
               </button>
             </form>
           </motion.div>
         </div>
       )}
 
-      {/* GLOBAL PRINT CSS: This makes the Browser PDF look absolutely perfect */}
       <style jsx global>{`
         @media print {
           body {
-            background-color: #f9fafb !important;
+            background-color: #f4efe4 !important;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
           }
@@ -452,6 +410,89 @@ function AuditorCore() {
           }
         }
       `}</style>
+    </div>
+  );
+}
+
+function ScorePanel({ icon, label, value, detail, dark = false }) {
+  return (
+    <div className={`rounded-[1.15rem] border p-6 ${dark ? "border-white/10 bg-[#151b1e] text-white" : "border-black/8 bg-white text-[#2f3438]"}`}>
+      <div className={`mb-5 grid h-10 w-10 place-items-center rounded-md ${dark ? "bg-[#6f8fa3]/16 text-[#6f8fa3]" : "bg-[#ad5b2b]/10 text-[#ad5b2b]"}`}>{icon}</div>
+      <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${dark ? "text-white/40" : "text-black/36"}`}>{label}</p>
+      <p className="mt-2 font-serif text-5xl font-medium">{value}</p>
+      <p className={`mt-2 text-xs font-bold ${dark ? "text-white/42" : "text-[#2f3438]/50"}`}>{detail}</p>
+    </div>
+  );
+}
+
+function FindingPanel({ icon, title, items, empty, accent }) {
+  return (
+    <div className="break-inside-avoid rounded-[1.15rem] border border-black/8 bg-white p-6 shadow-[0_20px_70px_rgba(0,0,0,0.04)]">
+      <h3 className="mb-5 flex items-center gap-2 font-serif text-3xl font-medium text-[#2f3438]">
+        <span className={accent}>{icon}</span>
+        {title}
+      </h3>
+      {items.length > 0 ? (
+        <ul className="space-y-3">
+          {items.map((item, index) => (
+            <li key={index} className="flex items-start gap-3 border-b border-black/6 pb-3 text-sm font-semibold leading-relaxed text-[#2f3438]/70 last:border-0 last:pb-0">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#ad5b2b]" />
+              {renderTextSafely(item)}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="rounded-md border border-black/8 bg-[#f9f5ec] p-4 text-sm font-bold text-[#2f3438]/58">{empty}</div>
+      )}
+    </div>
+  );
+}
+
+function QuickWinsPanel({ items }) {
+  return (
+    <div className="break-inside-avoid rounded-[1.15rem] border border-black/8 bg-white p-6 shadow-[0_20px_70px_rgba(0,0,0,0.04)]">
+      <h3 className="mb-5 flex items-center gap-2 font-serif text-3xl font-medium text-[#2f3438]">
+        <Check size={18} className="text-[#6f8fa3]" />
+        Quick Wins
+      </h3>
+      {items.length > 0 ? (
+        <ul className="space-y-3">
+          {items.map((item, index) => (
+            <li key={index} className="rounded-[0.85rem] border border-black/8 bg-[#f9f5ec] p-4">
+              <strong className="block text-sm leading-relaxed text-[#2f3438]">{renderTextSafely(item)}</strong>
+              {(item?.effort || item?.expected_impact) && (
+                <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-[0.16em]">
+                  {item.effort && <span className="rounded-full bg-white px-3 py-1 text-[#2f3438]/58">Effort: {item.effort}</span>}
+                  {item.expected_impact && <span className="rounded-full bg-[#6f8fa3]/12 px-3 py-1 text-[#557488]">Impact: {item.expected_impact}</span>}
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="rounded-md border border-black/8 bg-[#f9f5ec] p-4 text-sm font-bold text-[#2f3438]/58">No quick wins identified.</div>
+      )}
+    </div>
+  );
+}
+
+function MetaPanel({ label, value, missing }) {
+  return (
+    <div className="rounded-[0.9rem] border border-black/8 bg-[#f9f5ec] p-5">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ad5b2b]">{label}</p>
+        <span className={`rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.16em] ${value ? "bg-[#6f8fa3]/12 text-[#557488]" : "bg-[#ad5b2b]/12 text-[#9b542a]"}`}>{value ? "Found" : "Missing"}</span>
+      </div>
+      <p className={`break-words text-sm font-semibold leading-relaxed ${value ? "text-[#2f3438]/72" : "text-[#9b542a]"}`}>{value || missing}</p>
+    </div>
+  );
+}
+
+function HeadingCount({ label, value, warning = false }) {
+  return (
+    <div className={`rounded-md border p-4 text-center ${warning ? "border-[#ad5b2b]/35 bg-[#ad5b2b]/8" : "border-black/8 bg-white"}`}>
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/34">{label}</p>
+      <p className={`mt-2 font-serif text-4xl font-medium ${warning ? "text-[#ad5b2b]" : "text-[#2f3438]"}`}>{value}</p>
     </div>
   );
 }

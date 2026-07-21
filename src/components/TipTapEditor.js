@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 
@@ -53,10 +53,18 @@ export default function TipTapEditor({ label, value, onChange, name, placeholder
     editorProps: {
       attributes: {
         // Tailwind classes for the live editing canvas
-        class: 'prose prose-invert max-w-none focus:outline-none min-h-[120px] p-4 text-gray-200 text-sm leading-relaxed',
+        class: 'prose max-w-none focus:outline-none min-h-[120px] p-4 text-[#182235] text-sm leading-relaxed',
       },
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+    const nextValue = value || '';
+    if (editor.getHTML() !== nextValue) {
+      editor.commands.setContent(nextValue, false);
+    }
+  }, [editor, value]);
 
   if (!editor) return null;
 

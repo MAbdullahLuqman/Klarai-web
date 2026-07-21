@@ -1,15 +1,18 @@
 import { readFileSync } from "node:fs";
+import { config } from "dotenv";
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, arrayUnion, serverTimestamp } from "firebase/firestore";
 
+config({ path: ".env.local" });
+
 const firebaseConfig = {
-  apiKey: "AIzaSyBuSGwTcIXiOF2vO8Xuv5I0CbYvHt5vrA0",
-  authDomain: "klarai-database.firebaseapp.com",
-  projectId: "klarai-database",
-  storageBucket: "klarai-database.firebasestorage.app",
-  messagingSenderId: "35670944637",
-  appId: "1:35670944637:web:f96c735e3565ca5fd63a14",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 const email = process.env.KLARAI_ADMIN_EMAIL;

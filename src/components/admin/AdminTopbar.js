@@ -2,17 +2,22 @@
 
 import React from "react";
 import Link from "next/link";
-import { ExternalLink, LogOut } from "lucide-react";
+import { ExternalLink, LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 
-export default function AdminTopbar({ title = "Content OS", subtitle, activeView, onChangeView, onLogout }) {
+export default function AdminTopbar({ title = "Content OS", subtitle, activeView, onChangeView, onLogout, isSidebarOpen = true, onToggleSidebar }) {
   return (
-    <header className="sticky top-0 z-20 flex min-h-20 shrink-0 flex-col gap-3 border-b bg-background/90 px-4 py-4 backdrop-blur md:flex-row md:items-center md:justify-between md:px-8">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Klarai Admin</p>
-        <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground">{title}</h1>
-        {subtitle && <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{subtitle}</p>}
+    <header className="sticky top-0 z-20 flex min-h-20 shrink-0 flex-col gap-3 border-b bg-card/95 px-4 py-4 shadow-sm backdrop-blur md:flex-row md:items-center md:justify-between md:px-8">
+      <div className="flex items-start gap-3">
+        <Button type="button" variant="outline" size="icon" onClick={onToggleSidebar} className="hidden shrink-0 md:inline-flex" aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}>
+          {isSidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+        </Button>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#1769aa]">Klarai Admin</p>
+          <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground">{title}</h1>
+          {subtitle && <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{subtitle}</p>}
+        </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Select

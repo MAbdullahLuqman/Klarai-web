@@ -1,10 +1,8 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { db, auth } from "@/lib/firebase"; 
-import { doc, setDoc, getDoc, collection, getDocs, deleteDoc, serverTimestamp } from "firebase/firestore";
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { useMemo, useState } from "react";
+import { db } from "@/lib/firebase";
+import { doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import Link from 'next/link';
-import { mergeServicePageContent, servicePageContent } from '@/lib/service-page-content';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,236 +25,349 @@ import CaseStudyManager from '@/components/admin/CaseStudyManager';
 import SectionContentHub from '@/components/admin/SectionContentHub';
 import AdminSettings from '@/components/admin/AdminSettings';
 import DownloadAssetEditor from '@/components/admin/DownloadAssetEditor';
+import JsonImportPanel from '@/components/admin/JsonImportPanel';
 import SlugLockControl from '@/components/admin/SlugLockControl';
 import RoutePreviewCard from '@/components/admin/RoutePreviewCard';
 import SeoChecklist from '@/components/admin/SeoChecklist';
 import { prepareBlogPostForSave } from '@/lib/adminContentAdapters';
+import { INITIAL_HOME_CONTENT, SERVICE_URL_MAP, cleanAdminText } from '@/lib/adminConfig';
+import { useAdminContent } from '@/hooks/useAdminContent';
 
-// --- SERVICE URL MAP FOR LLMS.TXT ---
-const SERVICE_URL_MAP = {
-  seo: '/services/seo-services',
-  aeo: '/services/aeo-services',
-  web: '/services/web-development'
-};
-
-const cleanAdminText = (value) => String(value || "").replace(/<[^>]*>/g, "").trim();
-
-// --- ORIGINAL BASE SCHEMA ---
-const generateBaseSchema = (serviceName, keyword) => ({
-  meta: { title: `${keyword} Services in the UK | Klarai`, description: `Expert ${keyword} services for UK businesses. More patients, more calls, more revenue. Book a free audit today.` },
-  hero: { visible: true, h1: `${keyword} for Ambitious Brands in the UK`, sub: "More traffic. More calls. More revenue. Stop guessing and start scaling.", trust: "UK-based team | 50+ businesses helped | No long-term contracts", btn1Text: "Get Your Free Audit →", btn1Link: "/#audit", btn2Text: "See How It Works ↓", btn2Link: "#what-is" },
-  definition: { visible: true, h2: `What Is ${serviceName} — And Why It Matters for UK Businesses`, para: `${serviceName} is the mathematical alignment of your digital architecture with search engine algorithms. It ensures that when your customers search for your services, your business appears first.`, bullets: "Captures high-intent local traffic\nBuilds long-term brand authority\nOutperforms paid ads in ROI" },
-  included: { visible: true, h2: `What's Included in Our ${serviceName} Package`, items: "Keyword Research & Strategy: We find the exact terms your buyers are searching for.\nTechnical Optimisation: We make your site lightning fast and perfectly readable by bots.\nMonthly Reporting: Transparent, plain-English reports on your growth." },
-  process: { visible: true, h2: `How Our ${serviceName} Process Works`, steps: "Free Audit & Discovery: We analyze your current architecture and competitors.\nStrategy & Roadmap: We build a bespoke 6-month growth plan.\nImplementation: Our engineers and writers execute the strategy flawlessly.\nReporting & Refinement: We track rankings and optimize for maximum ROI." },
-  results: { visible: true, h2: "Real Results for UK Businesses", caseStudy: "UK Private Dental Clinic | +340% organic traffic in 4 months | Generated £40k+ in new patient bookings", quote: '"Klarai completely transformed our lead generation. We had to hire more staff just to handle the calls."', author: "Dr. Sarah J. - Clinic Director" },
-  pricing: { visible: true, h2: `Transparent ${serviceName} Pricing — No Hidden Fees`, starter: "Starter|£499/mo|/#audit|Basic Keyword Strategy, Monthly Audit, Standard Reporting", growth: "Growth|£899/mo|/#audit|Advanced AEO/SEO, Content Creation, Backlink Building, Priority Support", premium: "Premium|£1,499/mo|/#audit|Full Domination, AI Entity Mapping, Technical Overhaul, Dedicated Account Manager" },
-  faq: { visible: true, h2: `Frequently Asked Questions About ${serviceName} in the UK`, qas: "How long does it take to see results?|Typically, you will see initial movement within 3-6 months, with compounding ROI after 6-12 months.\nDo I need to sign a long-term contract?|No. We believe in earning your business every single month. No hidden lock-ins." },
-  cta: { visible: true, h2: "Ready to Grow Your Business? Let's Talk.", text: "Stop losing customers to your competitors. Get your free, comprehensive technical audit today.", btnText: "Book a Free Consultation", btnLink: "mailto:founder@klarai.uk" }
-});
-
-const INITIAL_DATA = {
-  seo: servicePageContent.seo || generateBaseSchema("Search Engine Optimisation", "Next-Gen SEO"),
-  aeo: servicePageContent.aeo || generateBaseSchema("Answer Engine Optimisation", "AEO"),
-  web: servicePageContent.web || generateBaseSchema("Web Design & Development", "High-Converting Web Design"),
-  footer: { trademark: `© ${new Date().getFullYear()} Klarai™ All Rights Reserved.`, privacyText: "Privacy Policy", termsText: "Terms & Conditions" }
-};
-
-const INITIAL_HOME_CONTENT = {
-  eyebrow: "3D visibility systems for ambitious brands",
-  headline: "Grow what\ndeserves to\nbe seen.",
-  intro: "Klarai designs search, answer-engine, and WebGL experiences that make trust visible before the first conversation.",
-  projects: [
-    {
-      name: "Pitchside.ai",
-      type: "AI sports tracking",
-      accent: "#ccff00",
-      line: "A dark performance system for owning every movement on the pitch.",
-      href: "/portfolio",
-      metrics: ["Spatial AI", "Zero wearables", "Highlight data"],
-    },
-    {
-      name: "Atelier",
-      type: "Architecture studio",
-      accent: "#d7ae35",
-      line: "A calm editorial presence for spaces designed to outlast fashion.",
-      href: "/portfolio",
-      metrics: ["Editorial", "Spatial", "Premium"],
-    },
+const BLOG_JSON_EXAMPLE = {
+  slug: "local-seo-checklist-for-dentists",
+  status: "draft",
+  postType: "guide",
+  primaryService: "seo",
+  industry: "dentists",
+  serviceTag: "seo",
+  industryTag: "dentists",
+  seoMeta: {
+    title: "Local SEO Checklist for Dentists | Klarai",
+    metaDescription: "A practical local SEO checklist for dental clinics that want better rankings, more calls, and more booked appointments.",
+    canonicalUrl: "/blog/local-seo-checklist-for-dentists"
+  },
+  hero: {
+    title: "Local SEO Checklist for Dentists",
+    description: "Use this checklist to tighten your clinic visibility across Google, maps, service pages, reviews, and answer-engine results.",
+    publishDate: "2026-07-20",
+    readTime: "7 Min"
+  },
+  tldr: [
+    "Claim and fully complete your Google Business Profile before scaling content.",
+    "Build one strong service page for each revenue-driving treatment.",
+    "Use FAQs, reviews, internal links, and local proof to improve trust signals."
   ],
+  quickAnswer: "Dental local SEO improves clinic visibility by aligning service pages, Google Business Profile data, reviews, internal links, and schema around high-intent treatment searches.",
+  intro: [
+    "Most dental SEO failures are not caused by one missing tactic. They happen because the website, local profile, reviews, and content all tell Google slightly different stories.",
+    "This checklist gives your team a repeatable structure for improving visibility without turning every page into generic SEO copy."
+  ],
+  sections: [
+    {
+      id: "google-business-profile",
+      heading: "Google Business Profile Setup",
+      contentType: "default",
+      content: [
+        "Your profile should list the exact clinic name, address, phone number, opening hours, services, and booking link.",
+        "Add treatment-specific services and keep photo uploads current so the profile looks active and trustworthy."
+      ],
+      list: ["Use the same NAP details everywhere", "Add services for major treatments", "Reply to reviews with natural language"],
+      subheadings: [
+        {
+          title: "Review Signals",
+          content: ["Ask patients for specific reviews that mention the treatment, location, and outcome in natural language."]
+        }
+      ],
+      comparison: null
+    },
+    {
+      id: "service-pages",
+      heading: "Build Treatment Pages That Match Search Intent",
+      contentType: "default",
+      content: [
+        "Each important treatment needs a dedicated page with clear pricing guidance, FAQs, proof, and a booking path.",
+        "Avoid thin duplicate pages. Each page should answer real patient questions before asking for the enquiry."
+      ],
+      list: [],
+      subheadings: [],
+      comparison: null
+    }
+  ],
+  toolBlock: {
+    title: "Free Dental SEO Audit",
+    description: "Find the visibility gaps stopping your clinic from getting more calls.",
+    ctaText: "Start Audit",
+    ctaLink: "/free-audit"
+  },
+  downloadAsset: {
+    enabled: true,
+    title: "Download the dental SEO checklist",
+    description: "Use the same structure internally when reviewing clinic visibility.",
+    buttonText: "Download checklist",
+    fileUrl: "",
+    leadGateEnabled: false,
+    leadGateFormTitle: ""
+  },
+  internalLinks: [
+    { anchor: "SEO services", href: "/services/seo-services" },
+    { anchor: "SEO for dentists", href: "/industries/seo-for-dentists" },
+    { anchor: "free SEO audit", href: "/free-audit" }
+  ],
+  relatedCaseStudies: [],
+  relatedPosts: [
+    { title: "SEO for dentists", href: "/industries/seo-for-dentists" }
+  ],
+  relatedServices: ["seo"],
+  faqs: [
+    {
+      question: "How long does dental SEO take?",
+      answer: "Most clinics need three to six months to see stable movement, depending on competition, site quality, review strength, and local authority."
+    },
+    {
+      question: "Do dentists need separate pages for every treatment?",
+      answer: "Yes for commercial treatments. Separate pages help match patient intent and make it easier to rank for high-value searches."
+    }
+  ],
+  authorInfo: {
+    name: "Abdullah Luqman",
+    role: "Lead Architect",
+    bio: "Architecting digital systems for absolute scale.",
+    profileUrl: "/about"
+  }
 };
+
+const INDUSTRY_JSON_EXAMPLE = {
+  slug: "seo-for-dentists",
+  imageUrl: "/images/hero-mountain.jpg",
+  meta: {
+    title: "SEO for Dentists in the UK | Klarai",
+    description: "SEO strategy for dental clinics that need more local visibility, booked consultations, and treatment enquiries."
+  },
+  hero: {
+    h1: "SEO for Dentists",
+    sub: "A search visibility system for clinics that want more booked consultations from high-intent local searches.",
+    cta: "Get my free audit",
+    ctaHref: "/seoauditor"
+  },
+  tldr: {
+    text: "Dental SEO helps clinics rank for treatment, emergency, and local intent searches by improving technical health, service pages, Google Business Profile strength, reviews, and trust signals."
+  },
+  sections: [
+    {
+      h2: "Why Dental Clinics Need Industry-Specific SEO",
+      paras: [
+        "Dental search is local, competitive, and trust-heavy. Patients compare clinics quickly, so rankings alone are not enough.",
+        "Your SEO system needs treatment pages, local proof, clear conversion paths, and strong technical foundations."
+      ],
+      sub: [
+        {
+          h3: "Treatment Intent",
+          text: "Pages should separate emergency dentistry, implants, Invisalign, whitening, and routine checkups so each searcher lands on a relevant answer."
+        }
+      ],
+      list: ["Improve local rankings", "Increase booked consultations", "Build trust before the first call"]
+    },
+    {
+      h2: "What Klarai Builds",
+      paras: [
+        "We build a structured visibility system around your services, locations, clinical proof, FAQs, reviews, and technical health."
+      ],
+      sub: [],
+      list: ["Technical audit", "Service page architecture", "Internal links", "Schema and FAQ improvements"]
+    }
+  ],
+  related: [
+    { label: "Dental SEO checklist", href: "/blog/local-seo-checklist-for-dentists" },
+    { label: "SEO services", href: "/services/seo-services" }
+  ],
+  internalLinks: [
+    { anchor: "Dental SEO checklist", href: "/blog/local-seo-checklist-for-dentists" },
+    { anchor: "SEO services", href: "/services/seo-services" },
+    { anchor: "free SEO audit", href: "/free-audit" }
+  ],
+  faqs: [
+    {
+      q: "Can SEO help a dental clinic get more bookings?",
+      a: "Yes. SEO can increase qualified calls and bookings when service pages, local listings, reviews, and conversion paths are aligned."
+    },
+    {
+      q: "What should a dental SEO campaign include?",
+      a: "It should include technical SEO, Google Business Profile improvements, treatment pages, local content, internal links, schema, and reporting."
+    }
+  ],
+  cta: {
+    heading: "Find the gaps costing your clinic patients",
+    sub: "Get a practical audit of your search visibility, local profile, and treatment pages.",
+    primary: "Get my free audit",
+    primaryHref: "/seoauditor",
+    secondary: "Talk to us",
+    secondaryHref: "/contact"
+  }
+};
+
+const normalizeJsonLinks = (links = []) => (
+  Array.isArray(links)
+    ? links
+        .map((link) => ({
+          anchor: link.anchor || link.label || link.title || "",
+          href: link.href || link.url || "",
+        }))
+        .filter((link) => link.anchor && link.href)
+    : []
+);
+
+const escapeHtml = (value = "") => String(value)
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;");
+
+const buildInternalLinkHtml = (link) => `<a href="${escapeHtml(link.href)}">${escapeHtml(link.anchor)}</a>`;
+
+const stripSimpleHtml = (value = "") => String(value).replace(/<[^>]*>/g, "").trim();
+
+const normalizeTextArray = (value) => {
+  if (Array.isArray(value)) return value.map(stripSimpleHtml).filter(Boolean);
+  const text = stripSimpleHtml(value || "");
+  return text ? [text] : [];
+};
+
+const normalizeIndustrySections = (sections = []) => (
+  Array.isArray(sections)
+    ? sections
+        .map((section) => ({
+          h2: stripSimpleHtml(section.h2 || section.heading || section.title || ""),
+          paras: normalizeTextArray(section.paras || section.content),
+          sub: Array.isArray(section.sub)
+            ? section.sub.map((sub) => ({
+                h3: stripSimpleHtml(sub.h3 || sub.title || ""),
+                text: normalizeTextArray(sub.text || sub.content).join("\n\n"),
+              })).filter((sub) => sub.h3 || sub.text)
+            : Array.isArray(section.subheadings)
+              ? section.subheadings.map((sub) => ({
+                  h3: stripSimpleHtml(sub.title || sub.h3 || ""),
+                  text: normalizeTextArray(sub.content || sub.text).join("\n\n"),
+                })).filter((sub) => sub.h3 || sub.text)
+              : [],
+          list: normalizeTextArray(section.list),
+        }))
+        .filter((section) => section.h2 || section.paras.length || section.sub.length || section.list.length)
+    : []
+);
+
+const normalizeIndustryFaqs = (faqs = []) => (
+  Array.isArray(faqs)
+    ? faqs
+        .map((faq) => ({
+          q: stripSimpleHtml(faq.q || faq.question || ""),
+          a: stripSimpleHtml(faq.a || faq.answer || ""),
+        }))
+        .filter((faq) => faq.q || faq.a)
+    : []
+);
+
+function applyBlogJsonImport(payload = {}) {
+  const internalLinks = normalizeJsonLinks(payload.internalLinks);
+  if (internalLinks.length === 0) return payload;
+
+  const existingSections = Array.isArray(payload.sections) ? payload.sections : [];
+  const relatedReadingSection = {
+    id: "related-reading",
+    heading: "Related reading",
+    contentType: "default",
+    content: internalLinks.map((link) => buildInternalLinkHtml(link)),
+    list: [],
+    subheadings: [],
+    comparison: null,
+  };
+
+  return {
+    ...payload,
+    sections: [...existingSections, relatedReadingSection],
+    relatedPosts: [
+      ...(Array.isArray(payload.relatedPosts) ? payload.relatedPosts : []),
+      ...internalLinks.map((link) => ({ title: link.anchor, href: link.href })),
+    ],
+  };
+}
+
+function applyIndustryJsonImport(payload = {}) {
+  const internalLinks = normalizeJsonLinks(payload.internalLinks);
+  const related = [
+    ...(Array.isArray(payload.related) ? payload.related : []),
+    ...internalLinks.map((link) => ({ label: link.anchor, href: link.href })),
+  ];
+
+  return {
+    ...payload,
+    meta: payload.meta || {
+      title: payload.seoMeta?.title || payload.metaTitle || "",
+      description: payload.seoMeta?.metaDescription || payload.metaDescription || "",
+    },
+    hero: {
+      ...(payload.hero || {}),
+      h1: payload.hero?.h1 || payload.hero?.title || payload.h1 || "",
+      sub: payload.hero?.sub || payload.hero?.description || payload.subheadline || "",
+      cta: payload.hero?.cta || payload.toolBlock?.ctaText || "Get my free audit",
+      ctaHref: payload.hero?.ctaHref || payload.toolBlock?.ctaLink || "/seoauditor",
+    },
+    tldr: payload.tldr && !Array.isArray(payload.tldr)
+      ? payload.tldr
+      : { text: normalizeTextArray(payload.tldr).join(" ") },
+    sections: normalizeIndustrySections(payload.sections),
+    related,
+    faqs: normalizeIndustryFaqs(payload.faqs),
+    cta: payload.cta || {
+      heading: payload.toolBlock?.title || "",
+      sub: payload.toolBlock?.description || "",
+      primary: payload.toolBlock?.ctaText || "Get my free audit",
+      primaryHref: payload.toolBlock?.ctaLink || "/seoauditor",
+      secondary: "Talk to us",
+      secondaryHref: "/contact",
+    },
+  };
+}
 
 // ==========================================
 // COMPONENT: MAIN ADMIN DASHBOARD WRAPPER
 // ==========================================
 export default function AdminDashboard() {
-  const [user, setUser] = useState(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-
-  const [viewMode, setViewMode] = useState("dashboard"); 
-  const [isDataLoading, setIsDataLoading] = useState(true);
-
-  const [activeTab, setActiveTab] = useState("seo");
-  const [content, setContent] = useState(INITIAL_DATA);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const [nichePagesList, setNichePagesList] = useState({});
-  const [blogPagesList, setBlogPagesList] = useState({});
-  const [industryPagesList, setIndustryPagesList] = useState({});
-  const [staticPagesList, setStaticPagesList] = useState({});
-  const [caseStudiesList, setCaseStudiesList] = useState({});
-  const [activeNicheId, setActiveNicheId] = useState(null);
-  const [activeBlogId, setActiveBlogId] = useState(null);
-  const [activeIndustryId, setActiveIndustryId] = useState(null);
-  const [activeStaticPageId, setActiveStaticPageId] = useState(null);
-
-  const fetchAllLiveContent = useCallback(async () => {
-    setIsDataLoading(true);
-    const pages = ["aeo", "seo", "web", "footer"];
-    let liveData = { ...INITIAL_DATA };
-    try {
-      for (let p of pages) {
-        const docRef = doc(db, "pages", p);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          liveData[p] = mergeServicePageContent(p, docSnap.data());
-        }
-      }
-      setContent(liveData);
-    } catch (error) {} 
-    
-    try {
-      const nicheQuery = await getDocs(collection(db, "niche_pages"));
-      let fetchedNiches = {};
-      nicheQuery.forEach(doc => { fetchedNiches[doc.id] = doc.data(); });
-      setNichePagesList(fetchedNiches);
-    } catch (error) {}
-
-    try {
-      const blogQuery = await getDocs(collection(db, "blog_posts"));
-      let fetchedBlogs = {};
-      blogQuery.forEach(doc => { fetchedBlogs[doc.id] = doc.data(); });
-      setBlogPagesList(fetchedBlogs);
-    } catch (error) {}
-
-    try {
-      const industryQuery = await getDocs(collection(db, "industry_pages"));
-      let fetchedIndustries = {};
-      industryQuery.forEach(doc => { fetchedIndustries[doc.id] = doc.data(); });
-      setIndustryPagesList(fetchedIndustries);
-    } catch (error) {}
-
-    try {
-      const staticQuery = await getDocs(collection(db, "static_pages"));
-      let fetchedStatic = {};
-      staticQuery.forEach(doc => { fetchedStatic[doc.id] = doc.data(); });
-      setStaticPagesList(fetchedStatic);
-    } catch (error) {}
-
-    try {
-      const caseStudiesQuery = await getDocs(collection(db, "case_studies"));
-      let fetchedCaseStudies = {};
-      caseStudiesQuery.forEach(doc => { fetchedCaseStudies[doc.id] = doc.data(); });
-      setCaseStudiesList(fetchedCaseStudies);
-    } catch (error) {}
-
-    setIsDataLoading(false);
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setIsAuthLoading(false);
-      if (currentUser) fetchAllLiveContent();
-      else setIsDataLoading(false);
-    });
-    return () => unsubscribe();
-  }, [fetchAllLiveContent]);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoginError("");
-    setIsLoggingIn(true);
-    try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-    } catch (error) {
-      console.error("Admin login failed:", error?.code, error?.message);
-      const messages = {
-        "auth/invalid-credential": "Invalid email or password.",
-        "auth/user-not-found": "No Firebase Auth user exists for this email.",
-        "auth/wrong-password": "Wrong password for this admin email.",
-        "auth/invalid-email": "Enter a valid admin email address.",
-        "auth/too-many-requests": "Too many failed attempts. Wait a few minutes or reset the password.",
-        "auth/operation-not-allowed": "Email/password login is disabled in Firebase Authentication.",
-        "auth/unauthorized-domain": "This domain is not authorized in Firebase Authentication settings.",
-        "auth/api-key-not-valid.-please-pass-a-valid-api-key.": "Firebase API key is invalid or missing.",
-      };
-      setLoginError(messages[error?.code] || `Login failed: ${error?.code || error?.message || "unknown error"}`);
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try { await signOut(auth); } catch (error) { console.error("Logout Error:", error); }
-  };
-
-  const handleNestedChange = (section, field, value) => {
-    setContent(prev => ({ ...prev, [activeTab]: { ...prev[activeTab], [section]: { ...prev[activeTab]?.[section], [field]: value } } }));
-  };
-  const handleFlatChange = (field, value) => {
-    setContent(prev => ({ ...prev, [activeTab]: { ...prev[activeTab], [field]: value } }));
-  };
-  
-  const handleSaveToFirebase = async () => {
-    setIsSaving(true);
-    try {
-      const dataToSave = content[activeTab];
-      const docRef = doc(db, "pages", activeTab);
-      await setDoc(docRef, dataToSave, { merge: true });
-      alert(`Success! ${activeTab.toUpperCase()} content synced to Firebase live database.`);
-    } catch (error) { alert("Failed to save. Check your Firebase connection."); } 
-    finally { setIsSaving(false); }
-  };
-
-  const allAdminCollections = {
-    pages: content,
-    niche_pages: nichePagesList,
-    blog_posts: blogPagesList,
-    industry_pages: industryPagesList,
-    static_pages: staticPagesList,
-    case_studies: caseStudiesList,
-  };
-
-  const adminCounts = {
-    dashboard: Object.keys(blogPagesList).length + Object.keys(industryPagesList).length + Object.keys(caseStudiesList).length,
-    contentLibrary: Object.values(allAdminCollections).reduce((total, docs) => total + Object.keys(docs || {}).length, 0),
-    servicesHub: 3,
-    industriesHub: Object.keys(industryPagesList).length,
-    blogGuidesHub: Object.keys(blogPagesList).length,
-    blogPosts: Object.keys(blogPagesList).length,
-    guides: Object.values(blogPagesList).filter((post) => ["guide", "checklist", "keyword-list"].includes(post.postType)).length,
-    industries: Object.keys(industryPagesList).length,
-    caseStudies: Object.keys(caseStudiesList).length,
-    drafts: [
-      ...Object.values(blogPagesList),
-      ...Object.values(industryPagesList),
-      ...Object.values(staticPagesList),
-      ...Object.values(caseStudiesList),
-    ].filter((item) => item?.status === "draft").length,
-  };
-
-  const handleLibraryEdit = (item) => {
-    if (item.collection === "blog_posts") { setActiveBlogId(item.id); setViewMode("blogEdit"); }
-    else if (item.collection === "industry_pages") { setActiveIndustryId(item.id); setViewMode("industryEdit"); }
-    else if (item.collection === "niche_pages") { setActiveNicheId(item.id); setViewMode("nicheEdit"); }
-    else if (item.collection === "static_pages") { setActiveStaticPageId(item.id); setViewMode("staticEdit"); }
-    else if (item.collection === "case_studies") { setViewMode("caseStudies"); }
-    else if (item.collection === "pages") { setActiveTab(item.id); setViewMode("core"); }
-  };
+  const {
+    user,
+    isAuthLoading,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    loginError,
+    isLoggingIn,
+    handleLogin,
+    handleLogout,
+    viewMode,
+    setViewMode,
+    isDataLoading,
+    activeTab,
+    setActiveTab,
+    content,
+    isSaving,
+    handleNestedChange,
+    handleFlatChange,
+    handleSaveToFirebase,
+    nichePagesList,
+    blogPagesList,
+    industryPagesList,
+    staticPagesList,
+    activeNicheId,
+    activeBlogId,
+    setActiveBlogId,
+    activeIndustryId,
+    setActiveIndustryId,
+    activeStaticPageId,
+    allAdminCollections,
+    adminCounts,
+    handleLibraryEdit,
+    fetchAllLiveContent,
+  } = useAdminContent();
 
   const serviceHubItems = useMemo(() => (
     ["seo", "aeo", "web"].map((id) => {
@@ -1195,6 +1306,13 @@ function IndustryBuilderView({ isEditing, pageId, initialData, refreshData, setV
         {status && <div className={`mb-8 p-4 border text-xs tracking-widest uppercase font-bold rounded ${status.includes('Success') ? 'border-green-500/50 bg-green-500/10 text-green-400' : 'border-red-500/50 bg-red-500/10 text-red-400'}`}>{status}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          <JsonImportPanel
+            title="Import an industry page from JSON"
+            description="Copy the example, replace the copy with your industry content, paste it back, and import it into this form before publishing."
+            example={INDUSTRY_JSON_EXAMPLE}
+            onImport={(payload) => setFormData((prev) => ({ ...prev, ...applyIndustryJsonImport(payload) }))}
+          />
+
           <section className="space-y-4 bg-[#0a0a0a] border border-white/10 p-6 rounded-lg">
             <h3 className="text-cyan-400 uppercase tracking-widest text-[10px] font-bold">1. URL, Metadata & Hero</h3>
             <input value={formData.slug} onChange={(event) => setFormData({ ...formData, slug: event.target.value })} disabled={isEditing} required placeholder="URL Slug, e.g. seo-for-dentists" className="w-full bg-[#111] border border-white/10 p-3 text-sm focus:border-cyan-500 outline-none text-white disabled:opacity-50 rounded" />
@@ -1489,6 +1607,12 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          <JsonImportPanel
+            title="Import a blog or guide from JSON"
+            description="Copy this pattern, write your article in the same shape, paste it here, then import. The content lands in the form so you can review it before saving."
+            example={BLOG_JSON_EXAMPLE}
+            onImport={(payload) => setFormData((prev) => ({ ...prev, ...applyBlogJsonImport(payload) }))}
+          />
           
           {/* === SECTION 1: URL & METADATA === */}
           <div className="p-6 bg-[#0a0a0a] border border-white/10 rounded-lg space-y-4">

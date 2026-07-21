@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import AdminSidebar from "./AdminSidebar";
 import AdminTopbar from "./AdminTopbar";
 
@@ -41,9 +41,18 @@ const subtitles = {
 };
 
 export default function AdminShell({ activeView, onChangeView, onLogout, counts, children }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
   return (
     <div className="admin-theme flex min-h-screen bg-background text-foreground selection:bg-primary selection:text-primary-foreground">
-      <AdminSidebar activeView={activeView} onChangeView={onChangeView} counts={counts} onLogout={onLogout} />
+      <AdminSidebar
+        activeView={activeView}
+        onChangeView={onChangeView}
+        counts={counts}
+        onLogout={onLogout}
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen((value) => !value)}
+      />
       <main className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
         <AdminTopbar
           title={titles[activeView] || "Content OS"}
@@ -51,6 +60,8 @@ export default function AdminShell({ activeView, onChangeView, onLogout, counts,
           activeView={activeView}
           onChangeView={onChangeView}
           onLogout={onLogout}
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen((value) => !value)}
         />
         <div className="min-h-0 flex-1 overflow-y-auto bg-background">{children}</div>
       </main>
