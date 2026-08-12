@@ -4,6 +4,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { canonical } from "@/lib/seo-config";
 import { safeGetDocs } from "@/lib/firestore-safe";
+import { defaultCaseStudies } from "@/lib/case-study-content";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +17,9 @@ export const metadata = {
 async function getPublishedCaseStudies() {
   const q = query(collection(db, "case_studies"), where("status", "==", "published"));
   const snap = await safeGetDocs(q, "case_studies index");
-  if (!snap) return [];
-  return snap.docs.map((item) => ({ id: item.id, ...item.data() }));
+  const firebaseStudies = snap ? snap.docs.map((item) => ({ id: item.id, ...item.data() })) : [];
+  const defaults = Object.entries(defaultCaseStudies).map(([id, study]) => ({ id, ...study }));
+  return Object.values(Object.fromEntries([...defaults, ...firebaseStudies].map((study) => [study.slug || study.id, study])));
 }
 
 export default async function CaseStudiesPage() {

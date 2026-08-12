@@ -822,7 +822,7 @@ function LeadsView() {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {activeTab === 'leads' && leads.length === 0 && (
-                    <tr><td colSpan="5" className="py-12 text-center text-gray-500 text-xs tracking-widest uppercase">No leads captured yet.</td></tr>
+                    <tr><td colSpan="6" className="py-12 text-center text-gray-500 text-xs tracking-widest uppercase">No leads captured yet.</td></tr>
                   )}
                   {activeTab === 'scans' && scans.length === 0 && (
                     <tr><td colSpan="2" className="py-12 text-center text-gray-500 text-xs tracking-widest uppercase">No scans run yet.</td></tr>

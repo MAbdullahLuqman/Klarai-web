@@ -1,12 +1,14 @@
 import { SITE_URL } from "@/lib/seo-config";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { defaultCaseStudySlugs } from "@/lib/case-study-content";
 
 const staticRoutes = [
   "",
   "/about",
   "/contact",
   "/portfolio",
+  "/case-studies",
   "/seoauditor",
   "/industries",
   "/services",
@@ -67,7 +69,7 @@ export default async function sitemap() {
       changeFrequency: "monthly",
       priority: 0.6,
     })),
-    ...caseStudySlugs.map((s) => ({
+    ...Array.from(new Set([...defaultCaseStudySlugs, ...caseStudySlugs])).map((s) => ({
       url: `${SITE_URL}/case-studies/${s}`,
       lastModified: now,
       changeFrequency: "monthly",

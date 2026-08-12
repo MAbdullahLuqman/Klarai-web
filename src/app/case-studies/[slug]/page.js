@@ -5,13 +5,14 @@ import { doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { breadcrumbSchema, canonical, SITE_URL } from "@/lib/seo-config";
 import { safeGetDoc } from "@/lib/firestore-safe";
+import { defaultCaseStudies } from "@/lib/case-study-content";
 
 export const dynamic = "force-dynamic";
 
 async function getCaseStudy(slug) {
   const snap = await safeGetDoc(doc(db, "case_studies", slug), `case_studies/${slug}`);
-  if (!snap?.exists?.()) return null;
-  return { id: snap.id, slug, ...snap.data() };
+  if (snap?.exists?.()) return { id: snap.id, slug, ...snap.data() };
+  return defaultCaseStudies[slug] ? { id: slug, ...defaultCaseStudies[slug] } : null;
 }
 
 export async function generateMetadata({ params }) {

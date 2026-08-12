@@ -57,7 +57,7 @@ export default function ContactForm() {
         <p className="mt-2 text-sm font-semibold leading-relaxed text-black/48">Most people finish this in under a minute.</p>
       </div>
 
-      <input tabIndex="-1" autoComplete="off" value={form.company} onChange={(event) => update("company", event.target.value)} className="hidden" />
+      <input tabIndex={-1} autoComplete="off" value={form.company} onChange={(event) => update("company", event.target.value)} className="hidden" />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">

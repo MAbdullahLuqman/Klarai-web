@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 const platformLinks = [
   ["Services", "/services"],
   ["Industries", "/industries"],
+  ["Case Studies", "/case-studies"],
   ["Portfolio", "/portfolio"],
   ["About", "/about"],
   ["Blog", "/blog"],
@@ -18,6 +19,9 @@ const serviceLinks = [
   ["Technical SEO", "/services/seo-services"],
   ["AEO/GEO", "/services/aeo-services"],
   ["Web Development", "/services/web-development"],
+  ["Technical SEO Audit", "/services/technical-seo-audit"],
+  ["SEO Content Writing", "/services/seo-content-writing-services"],
+  ["White Label SEO", "/services/white-label-seo-agency"],
 ];
 
 export default function GlobalFooter() {
