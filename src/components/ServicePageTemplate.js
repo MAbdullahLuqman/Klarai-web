@@ -204,7 +204,7 @@ export default function ServicePageTemplate({ data }) {
                 <div className="relative z-10">
                   <h2 className="text-5xl md:text-6xl font-black tracking-tighter mb-6">{data?.cta?.h2}</h2>
                   <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto font-medium" dangerouslySetInnerHTML={{ __html: data?.cta?.text || '' }} />
-                  <Link href={data?.cta?.btnLink || "mailto:founder@klarai.uk"} className="inline-block bg-white text-gray-900 px-12 py-5 rounded-2xl font-black text-xl hover:scale-105 shadow-[0_15px_30px_rgba(255,255,255,0.2)] transition-all active:scale-95 uppercase tracking-widest">
+                  <Link href={data?.cta?.btnLink || "mailto:abdullah@klarai.uk"} className="inline-block bg-white text-gray-900 px-12 py-5 rounded-2xl font-black text-xl hover:scale-105 shadow-[0_15px_30px_rgba(255,255,255,0.2)] transition-all active:scale-95 uppercase tracking-widest">
                     {data?.cta?.btnText || "Contact Us"}
                   </Link>
                 </div>

@@ -22,14 +22,14 @@ export default function ContactPage() {
             Talk to Klarai about search visibility.
           </h1>
           <p className="mt-7 max-w-2xl text-lg font-medium leading-relaxed text-black/58">
-            Send the site, the goal, and what is blocking growth. We will reply with the shortest useful next step.
+            Send your name and email. We will reply with the shortest useful next step.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <a
-              href="mailto:hello@klarai.uk?subject=Klarai%20project%20enquiry"
+              href="mailto:abdullah@klarai.uk?subject=Klarai%20project%20enquiry"
               className="rounded-md bg-[#ad5b2b] px-7 py-4 text-center text-sm font-black text-white transition hover:bg-[#8d4822]"
             >
-              Email hello@klarai.uk
+              Email abdullah@klarai.uk
             </a>
             <Link
               href="/seoauditor"
@@ -39,9 +39,9 @@ export default function ContactPage() {
             </Link>
           </div>
           <div className="mt-10 grid gap-3 text-sm font-bold text-black/54 sm:grid-cols-3">
-            <div className="rounded-md border border-black/8 bg-white/60 p-4">Short form</div>
+            <div className="rounded-md border border-black/8 bg-white/60 p-4">Name</div>
+            <div className="rounded-md border border-black/8 bg-white/60 p-4">Email</div>
             <div className="rounded-md border border-black/8 bg-white/60 p-4">No hard sell</div>
-            <div className="rounded-md border border-black/8 bg-white/60 p-4">Clear next step</div>
           </div>
         </div>
 

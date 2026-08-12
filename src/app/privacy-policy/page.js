@@ -27,7 +27,7 @@ const sections = [
   ],
   [
     "Contact us",
-    "If you have questions about this privacy policy or our privacy practices, contact us at founder@klarai.uk.",
+    "If you have questions about this privacy policy or our privacy practices, contact us at abdullah@klarai.uk.",
   ],
 ];
 
