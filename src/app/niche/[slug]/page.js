@@ -99,7 +99,7 @@ export default async function NicheLandingPage({ params }) {
           <section className="text-left border-b border-gray-200 pb-10">
             <h1 className="text-4xl md:text-[2.8rem] leading-[1.1] font-black tracking-tighter text-[#0A101D] mb-4">{page.h1 || 'High-Performance Architecture'}</h1>
             <p className="text-lg md:text-xl text-gray-700 font-bold mb-8 max-w-2xl leading-relaxed">{page.subheadline || 'Data-driven growth and scaling for your sector.'}</p>
-            <Link href="/free-audit" className="inline-flex bg-[#0A101D] text-white px-8 py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-[#008dd8] transition-all shadow-[0_8px_20px_rgba(10,16,29,0.2)] active:scale-95 mb-6">
+            <Link href="/seoauditor" className="inline-flex bg-[#0A101D] text-white px-8 py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-[#008dd8] transition-all shadow-[0_8px_20px_rgba(10,16,29,0.2)] active:scale-95 mb-6">
               Get Your Free Audit
             </Link>
             <p className="text-[11px] font-mono uppercase tracking-widest text-gray-500 font-bold">{page.trustLine || 'No Contracts · Results-Focused · Data-Driven'}</p>
@@ -266,7 +266,7 @@ export default async function NicheLandingPage({ params }) {
                     </ul>
                   </div>
                 </div>
-                <Link href="/free-audit" className="inline-block bg-white text-[#0A101D] px-10 py-5 rounded-full font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition-all shadow-[0_10px_30px_rgba(255,255,255,0.1)] active:scale-95 mb-10 w-full md:w-auto">
+                <Link href="/seoauditor" className="inline-block bg-white text-[#0A101D] px-10 py-5 rounded-full font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition-all shadow-[0_10px_30px_rgba(255,255,255,0.1)] active:scale-95 mb-10 w-full md:w-auto">
                   Initiate System Audit
                 </Link>
                 {page.authorName && (

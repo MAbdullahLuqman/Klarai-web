@@ -19,11 +19,17 @@ export const RESERVED_SLUGS = new Set([
   "login",
   "dashboard",
   "seoauditor",
-  "free-audit",
   "seo-result",
 ]);
 
-export const ALLOWED_SERVICE_SLUGS = new Set(["seo-services", "aeo-services", "web-development"]);
+export const ALLOWED_SERVICE_SLUGS = new Set([
+  "seo-services",
+  "aeo-services",
+  "web-development",
+  "technical-seo-audit",
+  "seo-content-writing-services",
+  "white-label-seo-agency",
+]);
 
 export function slugify(value = "") {
   return String(value)

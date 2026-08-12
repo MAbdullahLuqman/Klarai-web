@@ -577,7 +577,7 @@ const CTASection = () => {
           <Link href="/seoauditor" className="w-full sm:w-auto inline-flex justify-center items-center bg-[#008dd8] text-white px-8 py-4 rounded-[2rem] font-black uppercase tracking-widest text-[11px] hover:bg-[#0077b6] transition-all shadow-lg shadow-[#008dd8]/20 active:scale-95">
             Get a Free Audit
           </Link>
-          <Link href="/free-audit" className="w-full sm:w-auto inline-flex justify-center items-center bg-white text-[#0A101D] px-8 py-4 rounded-[2rem] font-black uppercase tracking-widest text-[11px] hover:bg-gray-200 transition-all active:scale-95">
+          <Link href="/contact" className="w-full sm:w-auto inline-flex justify-center items-center bg-white text-[#0A101D] px-8 py-4 rounded-[2rem] font-black uppercase tracking-widest text-[11px] hover:bg-gray-200 transition-all active:scale-95">
             Contact Engineers
           </Link>
         </motion.div>

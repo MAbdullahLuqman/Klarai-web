@@ -344,7 +344,7 @@ export default async function ServiceLayout({ serviceId }) {
             <SectionEyebrow light>Next step</SectionEyebrow>
             <h2 className="font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{page.cta?.h2}</h2>
             <p className="mx-auto mt-7 max-w-2xl text-lg font-medium leading-relaxed text-white/62" dangerouslySetInnerHTML={{ __html: page.cta?.text || "" }} />
-            <Link href={page.cta?.btnLink || "/free-audit"} className="mt-9 inline-flex rounded-md bg-[#ad5b2b] px-8 py-4 text-sm font-black text-white transition hover:bg-[#8d4822]">
+            <Link href={page.cta?.btnLink || "/seoauditor"} className="mt-9 inline-flex rounded-md bg-[#ad5b2b] px-8 py-4 text-sm font-black text-white transition hover:bg-[#8d4822]">
               {page.cta?.btnText}
             </Link>
             {page.cta?.secondaryText && (

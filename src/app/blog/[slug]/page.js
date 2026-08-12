@@ -194,9 +194,8 @@ export default async function BlogPostPage({ params }) {
 
           {/* MAIN BLOG QUESTION */}
           {post.quickAnswer && (
-            <section className="bg-[#2f3438] text-white p-8 md:p-10 rounded-[1.1rem] shadow-xl border-l-[6px] border-[#e0b48b] relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-[#6f8fa3]/20 blur-[50px] rounded-full pointer-events-none"></div>
-              <h2 className="text-xl font-medium leading-relaxed relative z-10">
+            <section className="pt-8 scroll-mt-32">
+              <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-[#0A101D]">
                 <LiveEditableField docId={slug} fieldPath="quickAnswer" initialHtml={post.quickAnswer} isHeading={true} />
               </h2>
             </section>
@@ -377,7 +376,7 @@ export default async function BlogPostPage({ params }) {
             </ul>
             
             <div className="mt-10 pt-8 border-t border-gray-100">
-               <Link href="/free-audit" className="flex items-center justify-center gap-2 w-full bg-[#ccff00] text-[#0A101D] py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-[#b3e600] transition-all shadow-md">
+               <Link href="/seoauditor" className="flex items-center justify-center gap-2 w-full bg-[#ccff00] text-[#0A101D] py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-[#b3e600] transition-all shadow-md">
                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                  Initiate Sequence
                </Link>

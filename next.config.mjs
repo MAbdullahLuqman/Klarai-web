@@ -15,7 +15,6 @@ const nextConfig = {
 
   async redirects() {
     return [
-      { source: '/free-sudit', destination: '/free-audit', permanent: true },
       { source: '/niche/seo-for-pest-control', destination: '/services/seo-services', permanent: true },
       { source: '/niche/seo-for-will-writers-uk', destination: '/services/seo-services', permanent: true },
       { source: '/niche/seo-for-custom-tuning-garages-uk', destination: '/industries/seo-for-garages', permanent: true },

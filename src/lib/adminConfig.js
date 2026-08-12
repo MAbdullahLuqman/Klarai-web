@@ -4,6 +4,9 @@ export const SERVICE_URL_MAP = {
   seo: "/services/seo-services",
   aeo: "/services/aeo-services",
   web: "/services/web-development",
+  technicalAudit: "/services/technical-seo-audit",
+  contentWriting: "/services/seo-content-writing-services",
+  whiteLabel: "/services/white-label-seo-agency",
 };
 
 export const cleanAdminText = (value) => String(value || "").replace(/<[^>]*>/g, "").trim();
@@ -24,6 +27,9 @@ export const INITIAL_DATA = {
   seo: servicePageContent.seo || generateBaseSchema("Search Engine Optimisation", "Next-Gen SEO"),
   aeo: servicePageContent.aeo || generateBaseSchema("Answer Engine Optimisation", "AEO"),
   web: servicePageContent.web || generateBaseSchema("Web Design & Development", "High-Converting Web Design"),
+  technicalAudit: servicePageContent.technicalAudit || generateBaseSchema("Technical SEO Audit", "Technical SEO Audit"),
+  contentWriting: servicePageContent.contentWriting || generateBaseSchema("SEO Content Writing", "SEO Content Writing"),
+  whiteLabel: servicePageContent.whiteLabel || generateBaseSchema("White Label SEO", "White Label SEO"),
   footer: { trademark: `(c) ${new Date().getFullYear()} Klarai(TM) All Rights Reserved.`, privacyText: "Privacy Policy", termsText: "Terms & Conditions" },
 };
 

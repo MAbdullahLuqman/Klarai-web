@@ -122,7 +122,7 @@ export default async function IndustriesHubPage() {
         <h2 className="mx-auto max-w-3xl font-serif text-5xl font-medium leading-[0.98] sm:text-7xl">
           Do not see your industry?
         </h2>
-        <Link href="/free-audit" className="mt-9 inline-flex rounded-md bg-white px-7 py-4 text-sm font-black text-[#2f3438] transition hover:bg-[#e0b48b]">
+        <Link href="/seoauditor" className="mt-9 inline-flex rounded-md bg-white px-7 py-4 text-sm font-black text-[#2f3438] transition hover:bg-[#e0b48b]">
           Request custom audit
         </Link>
       </section>

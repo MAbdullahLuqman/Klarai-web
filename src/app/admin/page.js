@@ -96,7 +96,7 @@ const BLOG_JSON_EXAMPLE = {
     title: "Free Dental SEO Audit",
     description: "Find the visibility gaps stopping your clinic from getting more calls.",
     ctaText: "Start Audit",
-    ctaLink: "/free-audit"
+    ctaLink: "/seoauditor"
   },
   downloadAsset: {
     enabled: true,
@@ -110,7 +110,7 @@ const BLOG_JSON_EXAMPLE = {
   internalLinks: [
     { anchor: "SEO services", href: "/services/seo-services" },
     { anchor: "SEO for dentists", href: "/industries/seo-for-dentists" },
-    { anchor: "free SEO audit", href: "/free-audit" }
+    { anchor: "free SEO audit", href: "/seoauditor" }
   ],
   relatedCaseStudies: [],
   relatedPosts: [
@@ -182,7 +182,7 @@ const INDUSTRY_JSON_EXAMPLE = {
   internalLinks: [
     { anchor: "Dental SEO checklist", href: "/blog/local-seo-checklist-for-dentists" },
     { anchor: "SEO services", href: "/services/seo-services" },
-    { anchor: "free SEO audit", href: "/free-audit" }
+    { anchor: "free SEO audit", href: "/seoauditor" }
   ],
   faqs: [
     {
@@ -378,7 +378,7 @@ export default function AdminDashboard() {
   } = useAdminContent();
 
   const serviceHubItems = useMemo(() => (
-    ["seo", "aeo", "web"].map((id) => {
+    Object.keys(SERVICE_URL_MAP).map((id) => {
       const page = content[id] || {};
       return {
         id,
@@ -817,6 +817,7 @@ function LeadsView() {
                       </>
                     )}
                     <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Target Website</th>
+                    {activeTab === 'leads' && <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-gray-500">Message</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -837,7 +838,10 @@ function LeadsView() {
                       </td>
                       <td className="py-4 px-6">
                         {lead.goal ? (
-                          <span className="inline-block px-3 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[9px] uppercase tracking-widest rounded-full font-bold">Goal: {lead.goal}</span>
+                          <div className="flex flex-col gap-2">
+                            <span className="inline-block w-fit px-3 py-1 bg-blue-600/20 text-blue-400 border border-blue-500/30 text-[9px] uppercase tracking-widest rounded-full font-bold">{lead.goal}</span>
+                            {lead.source && <span className="text-[10px] uppercase tracking-widest text-gray-600">{lead.source.replaceAll('_', ' ')}</span>}
+                          </div>
                         ) : (
                           <span className="inline-block px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] uppercase tracking-widest rounded-full font-bold">PDF Download</span>
                         )}
@@ -847,6 +851,7 @@ function LeadsView() {
                           <a href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#3b82f6] hover:underline transition-colors">{lead.website}</a>
                         ) : <span className="text-gray-600 italic">N/A</span>}
                       </td>
+                      <td className="max-w-xs whitespace-normal py-4 px-6 text-sm font-medium leading-relaxed text-gray-400">{lead.message || <span className="text-gray-700 italic">No message</span>}</td>
                     </tr>
                   ))}
 
@@ -1490,7 +1495,7 @@ function BlogBuilderView({ isEditing, pageId, initialData, refreshData, setViewM
       sections: parseArray(b.sections, { 
         id: 'section-1', heading: '', contentType: 'default', content: [''], list: [], subheadings: [], comparison: null 
       }),
-      toolBlock: b.toolBlock || { title: 'Free System Audit', description: 'Find out exactly where your digital architecture is failing.', ctaText: 'Start Audit', ctaLink: '/free-audit' },
+      toolBlock: b.toolBlock || { title: 'Free System Audit', description: 'Find out exactly where your digital architecture is failing.', ctaText: 'Start Audit', ctaLink: '/seoauditor' },
       downloadAsset: b.downloadAsset || { enabled: false },
       relatedCaseStudies: b.relatedCaseStudies || [],
       relatedPosts: b.relatedPosts || [],

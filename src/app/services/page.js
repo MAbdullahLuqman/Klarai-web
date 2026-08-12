@@ -37,6 +37,27 @@ const serviceCards = [
     fallbackTitle: "High-Converting Web Development",
     fallbackSub: "Build fast, modern sites that rank from day one and turn visitors into enquiries.",
   },
+  {
+    id: "technicalAudit",
+    path: "/services/technical-seo-audit",
+    tag: "Technical audits",
+    fallbackTitle: "Technical SEO Audit",
+    fallbackSub: "Find crawl, indexation, rendering and performance issues, then turn them into a fix plan.",
+  },
+  {
+    id: "contentWriting",
+    path: "/services/seo-content-writing-services",
+    tag: "Content systems",
+    fallbackTitle: "SEO Content Writing Services",
+    fallbackSub: "Plan and write useful pages around search intent, expert input, internal links and lead paths.",
+  },
+  {
+    id: "whiteLabel",
+    path: "/services/white-label-seo-agency",
+    tag: "Agency delivery",
+    fallbackTitle: "White Label SEO Agency",
+    fallbackSub: "Confidential SEO delivery support for agencies that need reliable technical and content work.",
+  },
 ];
 
 const process = [
@@ -74,7 +95,7 @@ export default async function ServicesHubPage() {
           </div>
           <div className="rounded-[1.2rem] border border-black/8 bg-white/76 p-7 shadow-[0_24px_80px_rgba(0,0,0,0.06)] backdrop-blur-sm">
             <p className="text-lg font-medium leading-relaxed text-black/58">
-              Most agencies separate SEO, AI search and web design. Klarai connects them into one architecture: pages that can be crawled, cited and trusted by real buyers.
+              Most agencies separate SEO, AI search, content, audits and web design. Klarai connects them into one architecture: pages that can be crawled, cited and trusted by real buyers.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Link href="/seoauditor" className="rounded-md bg-[#ad5b2b] px-6 py-3.5 text-center text-sm font-black text-white transition hover:bg-[#8d4822]">
@@ -89,7 +110,7 @@ export default async function ServicesHubPage() {
       </section>
 
       <section className="px-5 pb-24 sm:px-8 lg:px-12">
-        <div className="mx-auto grid max-w-[1480px] gap-5 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-[1480px] gap-5 md:grid-cols-2 xl:grid-cols-3">
           {services.map((service, index) => (
             <Link
               key={service.id}

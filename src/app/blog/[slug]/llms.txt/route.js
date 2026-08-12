@@ -109,7 +109,7 @@ export async function GET(request, { params }) {
     if (data.toolBlock && data.toolBlock.title) {
       mdContent += `## Recommended System Action: ${data.toolBlock.title}\n`;
       mdContent += `${data.toolBlock.description}\n`;
-      mdContent += `Initiate Sequence here: ${canonical(data.toolBlock.ctaLink || '/free-audit')}\n\n`;
+      mdContent += `Initiate Sequence here: ${canonical(data.toolBlock.ctaLink || '/seoauditor')}\n\n`;
     }
 
     // Return the response configured exactly for AI consumption with Canonical human-link

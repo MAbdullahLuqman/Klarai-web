@@ -57,7 +57,7 @@ export function useAdminContent() {
     const liveData = { ...INITIAL_DATA };
 
     await Promise.all(
-      ["aeo", "seo", "web", "footer"].map(async (pageId) => {
+      ["aeo", "seo", "web", "technicalAudit", "contentWriting", "whiteLabel", "footer"].map(async (pageId) => {
         try {
           const docSnap = await getDoc(doc(db, "pages", pageId));
           if (docSnap.exists()) {
@@ -162,7 +162,7 @@ export function useAdminContent() {
   const adminCounts = useMemo(() => ({
     dashboard: Object.keys(blogPagesList).length + Object.keys(industryPagesList).length + Object.keys(caseStudiesList).length,
     contentLibrary: Object.values(allAdminCollections).reduce((total, docs) => total + Object.keys(docs || {}).length, 0),
-    servicesHub: 3,
+    servicesHub: Object.keys(content).filter((key) => key !== "footer").length,
     industriesHub: Object.keys(industryPagesList).length,
     blogGuidesHub: Object.keys(blogPagesList).length,
     blogPosts: Object.keys(blogPagesList).length,
@@ -175,7 +175,7 @@ export function useAdminContent() {
       ...Object.values(staticPagesList),
       ...Object.values(caseStudiesList),
     ].filter((item) => item?.status === "draft").length,
-  }), [allAdminCollections, blogPagesList, caseStudiesList, industryPagesList, staticPagesList]);
+  }), [allAdminCollections, blogPagesList, caseStudiesList, content, industryPagesList, staticPagesList]);
 
   const handleLibraryEdit = (item) => {
     if (item.collection === "blog_posts") {

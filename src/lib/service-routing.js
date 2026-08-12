@@ -14,6 +14,21 @@ export const SERVICE_ROUTES = {
     label: "High-Converting Web Development",
     path: "/services/web-development",
   },
+  "technical-seo-audit": {
+    id: "technicalAudit",
+    label: "Technical SEO Audit",
+    path: "/services/technical-seo-audit",
+  },
+  "seo-content-writing-services": {
+    id: "contentWriting",
+    label: "SEO Content Writing Services",
+    path: "/services/seo-content-writing-services",
+  },
+  "white-label-seo-agency": {
+    id: "whiteLabel",
+    label: "White Label SEO Agency",
+    path: "/services/white-label-seo-agency",
+  },
 };
 
 export const SERVICE_ID_TO_SLUG = Object.fromEntries(

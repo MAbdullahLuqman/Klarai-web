@@ -51,7 +51,7 @@ export async function GET() {
     }
 
     mdContent += `---\n`;
-    mdContent += `**Contact & Audits:** We offer deep technical analysis and system audits. Visit [Klarai Free Audit](${canonical('/free-audit')}) to initiate a sequence.`;
+    mdContent += `**Contact & Audits:** We offer deep technical analysis and system audits. Visit [Klarai Free Audit](${canonical('/seoauditor')}) to initiate a sequence.`;
 
     return new Response(mdContent.trim(), {
       headers: {

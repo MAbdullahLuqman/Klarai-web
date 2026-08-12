@@ -6,7 +6,6 @@ All redirects are enforced via `next.config.mjs` (`async redirects()`), returnin
 
 | From | To | Status | Reason |
 | --- | --- | --- | --- |
-| `/free-sudit` | `/free-audit` | 301 | Typo folder removed. |
 | `/niche/seo-for-pest-control` | `/services/seo-services` | 301 | Thin niche page consolidated into core SEO service. |
 | `/niche/seo-for-will-writers-uk` | `/services/seo-services` | 301 | Thin niche page consolidated into core SEO service. |
 | `/niche/seo-for-custom-tuning-garages-uk` | `/industries/seo-for-garages` | 301 | Consolidated into new garage industry hub. |

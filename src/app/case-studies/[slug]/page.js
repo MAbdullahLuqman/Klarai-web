@@ -192,7 +192,7 @@ export default async function CaseStudyDetailPage({ params }) {
         <section className="mx-auto mt-12 max-w-[980px] rounded-[1.35rem] bg-[#2f3438] px-7 py-14 text-center text-white sm:px-10">
           <h2 className="font-serif text-4xl font-medium leading-tight sm:text-6xl">{study.cta.heading}</h2>
           {study.cta.sub && <p className="mx-auto mt-5 max-w-2xl text-base font-medium leading-relaxed text-white/72">{study.cta.sub}</p>}
-          <Link href={study.cta.buttonHref || "/free-audit"} className="mt-8 inline-flex rounded-md bg-[#ad5b2b] px-7 py-4 text-sm font-black text-white hover:bg-[#8d4822]">
+          <Link href={study.cta.buttonHref || "/seoauditor"} className="mt-8 inline-flex rounded-md bg-[#ad5b2b] px-7 py-4 text-sm font-black text-white hover:bg-[#8d4822]">
             {study.cta.buttonText || "Start with a free audit"}
           </Link>
         </section>

@@ -4,7 +4,6 @@ const redirects = {
   "/aeo-services": "/services/aeo-services",
   "/seo-services": "/services/seo-services",
   "/web-development": "/services/web-development",
-  "/free-sudit": "/free-audit",
 };
 
 export function proxy(request) {
@@ -22,6 +21,5 @@ export const config = {
     "/aeo-services",
     "/seo-services",
     "/web-development",
-    "/free-sudit",
   ],
 };

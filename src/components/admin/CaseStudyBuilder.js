@@ -41,7 +41,7 @@ const emptyStudy = {
   testimonial: { quote: "", name: "", role: "", company: "", imageUrl: "" },
   body: "",
   faqs: [{ q: "", a: "" }],
-  cta: { heading: "", sub: "", buttonText: "Start with a free audit", buttonHref: "/free-audit" },
+  cta: { heading: "", sub: "", buttonText: "Start with a free audit", buttonHref: "/seoauditor" },
   relatedServices: [],
   relatedIndustries: [],
   relatedBlogPosts: [],

@@ -11,7 +11,7 @@ export const servicePageContent = {
       sub:
         "Be the answer AI gives, not the link buried beneath it. We structure your content so ChatGPT, Gemini, Perplexity and Google AI Overviews cite your business at the moment your customers are deciding.",
       btn1Text: "Run my free AI visibility audit",
-      btn1Link: "/free-audit",
+      btn1Link: "/seoauditor",
       btn2Text: "Talk to us",
       btn2Link: "/contact",
     },
@@ -78,7 +78,7 @@ export const servicePageContent = {
       text:
         "Run our free audit and we will show you exactly where you appear in AI answers, where you do not, and what to fix first.",
       btnText: "Run my free audit",
-      btnLink: "/free-audit",
+      btnLink: "/seoauditor",
       secondaryText: "Talk to us",
       secondaryLink: "/contact",
     },
@@ -95,7 +95,7 @@ export const servicePageContent = {
       sub:
         "The foundations that make you findable. We fix the architecture, content and technical health that decide whether you rank, then build the visibility that turns searches into real enquiries.",
       btn1Text: "Get my free SEO audit",
-      btn1Link: "/free-audit",
+      btn1Link: "/seoauditor",
       btn2Text: "Talk to us",
       btn2Link: "/contact",
     },
@@ -162,7 +162,7 @@ export const servicePageContent = {
       text:
         "Run the free audit and see your technical health, your content gaps, and the quickest wins available to you right now.",
       btnText: "Get my free SEO audit",
-      btnLink: "/free-audit",
+      btnLink: "/seoauditor",
       secondaryText: "Talk to us",
       secondaryLink: "/contact",
     },
@@ -179,7 +179,7 @@ export const servicePageContent = {
       sub:
         "A website that looks sharp and actually performs. We build fast, modern sites engineered to rank from launch and turn visitors into enquiries, not just impress them.",
       btn1Text: "Get a free site audit",
-      btn1Link: "/free-audit",
+      btn1Link: "/seoauditor",
       btn2Text: "Talk to us",
       btn2Link: "/contact",
     },
@@ -246,9 +246,273 @@ export const servicePageContent = {
       text:
         "Run a free audit and we will show you the speed, structure and SEO gaps holding your website back right now.",
       btnText: "Get a free site audit",
-      btnLink: "/free-audit",
+      btnLink: "/seoauditor",
       secondaryText: "Talk to us",
       secondaryLink: "/contact",
+    },
+  },
+  technicalAudit: {
+    meta: {
+      title: "Technical SEO Audit Service With a Clear Fix Plan | Klarai",
+      description:
+        "Find crawl, indexation, rendering, and performance problems with a technical SEO audit that includes evidence, priorities, and clear fixes.",
+    },
+    hero: {
+      visible: true,
+      h1: "Technical SEO Audit Service That Turns Issues Into a Fix Plan",
+      sub:
+        "Your site can look fine and still be difficult for Google to crawl, render, or index. We find the technical problems that matter, prove which ones are real, and turn them into a fix plan your team can act on.",
+      btn1Text: "Run the free SEO audit",
+      btn1Link: "/seoauditor",
+      btn2Text: "Book a technical review",
+      btn2Link: "/contact",
+    },
+    tldr: {
+      visible: true,
+      h2: "TL;DR",
+      text:
+        "Start with a free automated scan when you need a quick first view. Choose a consultant-led technical SEO audit when crawl, indexation, rendering, migration or performance issues need manual investigation. Every important finding should include evidence, affected URLs, likely impact, a recommended fix, an owner, and a validation test. A long export from an audit tool is not a strategy.",
+    },
+    problem: {
+      visible: true,
+      h2: "The problem, and how we solve it",
+      paras: [
+        "Technical SEO issues often hide beneath a site that looks normal to users. Content may keep improving while the pages that should bring leads are blocked by crawl controls, weak internal links, broken redirects, conflicting canonicals, JavaScript rendering issues, or slow templates.",
+        "A scanner can flag hundreds of possible issues in seconds. The useful work is deciding which warnings are genuine, which pages they affect, whether they create a meaningful risk, and what should be fixed first.",
+        "Klarai reviews how search engines discover, access, render, understand and index the site. The output is not a tool dump. It is a prioritised issue register with evidence, owners, recommended fixes and validation steps.",
+      ],
+    },
+    definition: {
+      visible: true,
+      h2: "What is a technical SEO audit service?",
+      para:
+        "A technical SEO audit service reviews the systems beneath the copy: status codes, crawl controls, canonical signals, internal links, JavaScript rendering, sitemaps, page performance, structured data and measurement. The goal is to prove what is blocking visibility and define the cleanest fix.",
+      bullets:
+        "Crawl access, status codes and blocked resources\nIndexation, canonical signals and duplicate URLs\nJavaScript rendering, server HTML and metadata\nCore Web Vitals, structured data and analytics gaps",
+    },
+    included: {
+      visible: true,
+      h2: "What the Klarai technical SEO audit covers",
+      items:
+        "Crawl access and status codes: We check whether important URLs can be reached, whether internal links are crawlable, and whether the server returns the correct status.\nIndexation and canonical signals: We compare the pages you want indexed with the pages search engines appear to select, then look for conflicting signals.\nJavaScript rendering and server HTML: For Next.js and other JavaScript websites, we compare the initial response with the rendered page.\nSitemaps and robots controls: We check whether sitemaps contain canonical, indexable URLs and whether robots rules match the intended crawl policy.\nArchitecture and internal links: We review depth, orphaned pages, repeated navigation, contextual links, breadcrumbs and page importance.\nPerformance and structured data: We review slow templates, layout instability, delayed interaction and markup that does not match the visible page.",
+    },
+    audience: {
+      visible: true,
+      h2: "When you need this",
+      text:
+        "Use this audit when search traffic dropped after a redesign, important pages are not indexed, rankings stalled despite stronger content, a JavaScript site shows different content to crawlers, a migration is approaching, or reports show many errors but nobody knows what matters.",
+    },
+    process: {
+      visible: true,
+      h2: "How the audit works",
+      steps:
+        "Scope and access: We define the website areas, templates, markets, recent changes and known concerns.\nCrawl and evidence collection: We collect technical signals from the live site, search data, analytics, performance tools and platform settings.\nManual verification: Important warnings are reproduced and checked so false positives are removed.\nPrioritisation and fix notes: Each verified issue receives a priority, owner, recommendation and validation step.\nWalkthrough: Your team gets the reasoning, tradeoffs and recommended order of work.\nFix validation: After implementation, affected templates and URL samples are checked again.",
+    },
+    engagement: {
+      visible: true,
+      h2: "Audit only or audit with implementation",
+      text:
+        "Choose an audit only when your internal team has the time and technical ability to apply the fixes. Choose implementation support when the problem crosses SEO and development, the team lacks capacity, or release validation matters. Diagnosis and development are related, but they remain separate deliverables.",
+    },
+    pricing: { visible: false },
+    results: {
+      visible: true,
+      h2: "What you receive",
+      text:
+        "You receive an executive summary, a technical issue register, affected URL samples, evidence and reproduction steps, priority scoring, recommended fixes, suggested owners, validation tests, a review call, and an optional implementation scope.",
+      note: "The honest promise: you will understand which technical problems are verified, which pages they affect, what to fix first, and how to confirm the work was completed correctly.",
+    },
+    faq: {
+      visible: true,
+      h2: "Frequently asked questions",
+      qas:
+        "What is included in a technical SEO audit service?|A useful service reviews crawl access, indexation, status codes, canonicals, rendering, sitemaps, robots controls, architecture, internal links, performance, structured data and measurement.\nWhat is the difference between a free scan and a manual audit?|A free scan detects common signals quickly. A manual audit investigates context, verifies important warnings, connects them to affected pages, and prioritises fixes around business impact.\nWhat access do you need?|Access depends on the problem. A deeper audit may use Search Console, analytics, CMS access, performance data and technical documentation.\nWill Klarai fix the problems it finds?|Implementation support can be scoped for approved fixes. The audit separates diagnosis from development so ownership, cost and validation remain clear.\nCan you audit a Next.js or JavaScript website?|Yes. The review can cover rendered HTML, routing, metadata, status codes, canonicals, internal links, sitemaps, hydration behaviour and public/private route boundaries.\nCan a technical audit guarantee higher rankings?|No. It can remove verified technical barriers and improve the foundation, but it cannot control competitors, search systems, authority or content quality.",
+    },
+    cta: {
+      visible: true,
+      h2: "Find the problems worth fixing first",
+      text:
+        "Run the free audit for a quick first view. If the results point to a deeper crawl, indexation, rendering or migration problem, book a technical review.",
+      btnText: "Run the free SEO audit",
+      btnLink: "/seoauditor",
+      secondaryText: "Book a technical review",
+      secondaryLink: "/contact",
+    },
+  },
+  contentWriting: {
+    meta: {
+      title: "SEO Content Writing Services Built for Leads | Klarai",
+      description:
+        "SEO content writing services built around search intent, expert input, internal links, and conversion paths. Request a content opportunity review.",
+    },
+    hero: {
+      visible: true,
+      h1: "SEO Content Writing Services Built Around Search Intent and Leads",
+      sub:
+        "Publishing more articles is easy. Publishing the right page, for the right search, with evidence your buyers trust is much harder. Klarai plans and writes pages around intent, expertise, internal links and the next useful action.",
+      btn1Text: "Request a content opportunity review",
+      btn1Link: "/contact",
+      btn2Text: "Book a strategy call",
+      btn2Link: "/contact",
+    },
+    tldr: {
+      visible: true,
+      h2: "TL;DR",
+      text:
+        "Every page needs one clear reason to exist and one main search intent. Good SEO content starts with website architecture, not word count. Subject expertise, customer language and reliable sources shape the outline before drafting begins. Sometimes the right recommendation is to update, merge or remove a page instead of publishing another one.",
+    },
+    problem: {
+      visible: true,
+      h2: "The problem, and how we solve it",
+      paras: [
+        "Traffic is useful, but it is not the final outcome. A SaaS founder needs the right buyers to discover the product, understand the problem it solves, compare it fairly and take a meaningful next step. A local service business needs calls for services it actually provides.",
+        "A polished article can still become expensive clutter if nobody has decided who it is for, what decision it supports, whether an existing page already owns the intent, and what original knowledge or evidence the page adds.",
+        "Klarai combines search research, subject knowledge, planning, writing, editing, page optimisation, internal linking and performance review so each page has a defined job in the wider site architecture.",
+      ],
+    },
+    definition: {
+      visible: true,
+      h2: "What are SEO content writing services?",
+      para:
+        "SEO content writing services combine search research, intent mapping, expert input, drafting, editing, metadata, internal links and performance review. The purpose is to create the best page for a real question or buying decision, then make it easy to find, understand and trust.",
+      bullets:
+        "One primary intent and one clear page role\nExpert input before drafting\nNatural internal links to related decisions\nMetadata, structure and CTA matched to the reader",
+    },
+    included: {
+      visible: true,
+      h2: "What Klarai's SEO content writing service includes",
+      items:
+        "Search result review: We inspect current results, page formats, buyer questions and visible gaps.\nKeyword and intent mapping: Related queries are grouped by shared purpose, not dumped into a list.\nPage ownership check: Existing URLs are reviewed for overlap before a new page is recommended.\nExpert input: Product knowledge, customer language, examples and limitations are collected before drafting.\nOutline approval: The page structure, answer points, sources and CTA path are agreed first.\nDrafting and review: Copy is checked for accuracy, usefulness, flow, unsupported claims and brand fit.\nInternal links and metadata: Parent, child, proof and next-step pages are connected with natural anchors.\nMeasurement plan: Each page gets a review window and success signals tied to its job.",
+    },
+    audience: {
+      visible: true,
+      h2: "Who this is for",
+      text:
+        "This service fits SaaS teams that need content tied to product and pipeline, service businesses that need focused commercial pages and useful guides, marketing teams with expertise but limited writing capacity, agencies that need researched content, and websites with outdated or overlapping pages that need consolidation.",
+    },
+    process: {
+      visible: true,
+      h2: "How the Klarai content process works",
+      steps:
+        "Search and business research: We review results, buyer language, commercial value, competitors and existing site data.\nIntent and page ownership: Every planned page gets one main job and one place in the architecture.\nOutline and evidence plan: Each section is mapped to a reader question, expert input, source, example or asset.\nDraft and editorial review: The draft is checked for accuracy, usefulness, flow, unsupported claims and brand fit.\nPublish, link and measure: The final page receives metadata, internal links, clean formatting and an agreed CTA.\nRefresh, merge or expand: Content is reviewed with evidence after publication.",
+    },
+    engagement: {
+      visible: true,
+      h2: "Publish, update, merge or stop",
+      text:
+        "A new page is not always the right answer. We may recommend publishing a distinct page, updating an existing URL, merging weak overlapping pages, or not creating content when the topic lacks relevance, evidence or a useful reader outcome.",
+    },
+    pricing: { visible: false },
+    results: {
+      visible: true,
+      h2: "Content prepared for Google and AI search",
+      text:
+        "Klarai prepares content with descriptive titles and H1s, direct answers near the top, logical H2 and H3 sections, short useful paragraphs, tables and checklists where comparison matters, named sources, original examples, clear entities, internal links and structured data only when it matches visible content.",
+      note: "Clear writing helps both people and retrieval systems. AI search optimisation is not permission to make pages sound mechanical.",
+    },
+    faq: {
+      visible: true,
+      h2: "Frequently asked questions",
+      qas:
+        "What is included in SEO content writing services?|A complete service can include search research, intent mapping, existing page review, expert input, outlining, writing, editing, source checks, metadata, internal links, CMS formatting and performance review.\nDo you research keywords and current search results?|Yes. The content plan considers result types, page formats, buyer questions, related searches, commercial relevance and existing pages.\nWho provides the subject knowledge?|The client or a named expert provides the knowledge only they possess. Klarai organises that input, checks sources, identifies gaps and turns it into clear content.\nDo you write landing pages as well as articles?|Yes. Commercial landing pages, service pages, buyer guides, comparisons, technical articles, case studies and content updates can be scoped.\nCan you update existing content instead of creating a new page?|Yes. Updating or merging existing pages is often better when a URL already has relevant signals or when several pages overlap.\nHow do you avoid keyword cannibalisation?|Each URL receives a primary intent and role. Existing pages are reviewed before a new URL is recommended.\nCan you guarantee rankings or AI citations?|No. Klarai can improve research, structure, technical access, clarity, originality and evidence, but no provider controls rankings or external answer systems.",
+    },
+    cta: {
+      visible: true,
+      h2: "See which content opportunities are worth pursuing",
+      text:
+        "Bring your current pages, keyword data or next campaign idea. We will help you decide which topics deserve a new page, which belong on an existing URL, and which are unlikely to support the business.",
+      btnText: "Request a content opportunity review",
+      btnLink: "/contact",
+      secondaryText: "Run the free SEO audit",
+      secondaryLink: "/seoauditor",
+    },
+  },
+  whiteLabel: {
+    meta: {
+      title: "White Label SEO Agency for Reliable Client Delivery | Klarai",
+      description:
+        "White label SEO support for agencies that need technical audits, content, search planning, and clear deliverables within their client process.",
+    },
+    hero: {
+      visible: true,
+      h1: "White Label SEO Agency for Work Your Clients Can Trust",
+      sub:
+        "Your client asked for SEO and your team owns the relationship, but delivery capacity is tight. Klarai can support agreed technical, content and search projects inside your agency process with clear scope, review points and responsibilities.",
+      btn1Text: "Book a confidential partner fit call",
+      btn1Link: "/contact",
+      btn2Text: "Request a sample scope",
+      btn2Link: "/contact",
+    },
+    tldr: {
+      visible: true,
+      h2: "TL;DR",
+      text:
+        "A white label SEO partner completes agreed work within another agency's client process. Start with one small paid project before moving important client accounts. Judge a partner by scope clarity, evidence, quality checks, communication and ownership rather than a huge service menu. Klarai is best positioned as a focused technical and content partner, not a high-volume fulfilment factory.",
+    },
+    problem: {
+      visible: true,
+      h2: "The problem, and how we solve it",
+      paras: [
+        "Saying yes to SEO work without the right delivery support risks rushed work, missed deadlines and awkward client conversations. White label support works only when the responsibilities are visible and the review path is clear.",
+        "Your agency should keep control of the client relationship, accounts, data, approvals and final delivery unless another arrangement is agreed. Klarai works behind or alongside that process based on the agreed scope.",
+        "Before work starts, both teams define the input, output, reviewer, due date and acceptance criteria. That makes the work dependable instead of mysterious.",
+      ],
+    },
+    definition: {
+      visible: true,
+      h2: "What is a white label SEO agency?",
+      para:
+        "A white label SEO agency completes search work for another agency within an agreed delivery process. The hiring agency remains responsible for its client relationship and presents approved work under its own service arrangement.",
+      bullets:
+        "Clear scope, access and approval rules\nDefined client communication boundaries\nTechnical and content deliverables your team can review\nConfidential support without hidden responsibility",
+    },
+    included: {
+      visible: true,
+      h2: "What Klarai can deliver within an agency partnership",
+      items:
+        "Technical SEO audits: Prioritised issue registers with evidence and validation steps.\nSearch Console analysis: Query, page, country and opportunity analysis with business context.\nKeyword and intent mapping: Keyword clusters with page ownership and intent notes.\nCommercial page planning: Page briefs, structure, evidence gaps and CTA paths.\nSEO content writing: Reviewed page or article drafts based on approved briefs and expert input.\nContent updates: Revised copy and update notes for existing pages.\nOn-page optimisation: Metadata, headings, copy improvements, links and notes.\nInternal linking plans: Source pages, destinations, anchors and rationale.\nMigration planning: Redirect and validation plans before and after launch.\nNext.js SEO reviews: Rendering, routing, metadata, status and discovery findings.\nReporting commentary: Plain-English summaries of work, signals, blockers and next actions.",
+    },
+    audience: {
+      visible: true,
+      h2: "Who this partnership is for",
+      text:
+        "Klarai may fit web agencies that need search support after a build, development agencies that need technical SEO guidance, PPC agencies whose clients ask for organic search support, small SEO teams with a temporary capacity gap, and agencies that need focused content or technical deliverables.",
+    },
+    process: {
+      visible: true,
+      h2: "How white label delivery works",
+      steps:
+        "Scope and access: The agency shares context, desired outcome, constraints and access required for the work.\nBrand, tone and reporting setup: Approved templates, terminology, spelling, formatting and reporting expectations are recorded.\nWork plan and acceptance criteria: Every deliverable gets an owner, due date, input, review point and definition of complete.\nInternal review before client delivery: Klarai completes quality checks, then the partner agency reviews the work before it reaches the end client.\nFeedback and measurement: Feedback is recorded against the agreed scope and implementation ownership remains visible.",
+    },
+    engagement: {
+      visible: true,
+      h2: "Three ways agencies use Klarai",
+      text:
+        "Start with one defined project to test fit. Add overflow help during a busy period when strategy is already owned. Expand into ongoing support only after the first project proves quality, communication and review fit.",
+    },
+    pricing: { visible: false },
+    results: {
+      visible: true,
+      h2: "How work is checked before delivery",
+      text:
+        "The quality check covers whether the work answers the agreed brief, claims are supported and current, URLs and sources work, search intent matches the page type, technical findings are manually verified where needed, client details are handled correctly, limitations are stated and the next action is clear to the agency reviewer.",
+      note: "The partner agency reviews and approves client delivery unless a different process is agreed in writing.",
+    },
+    faq: {
+      visible: true,
+      h2: "Frequently asked questions",
+      qas:
+        "Will Klarai speak directly to our clients?|The default is no direct client contact without the partner agency's approval and a defined purpose.\nCan the work use our templates and brand voice?|Yes, where approved template and guidance are supplied as part of the brief. The agency should still review final work before client delivery.\nWho owns Search Console, analytics and reports?|The client or partner agency should retain ownership of accounts and data. Klarai receives only the access required for agreed work.\nCan we start with one audit or article?|Yes. A defined paid project is the recommended way to test quality, communication and review fit before committing more client work.\nWhat services can be delivered white label?|Possible areas include technical audits, search analysis, keyword mapping, page planning, content writing, on-page optimisation, internal linking, migration planning, JavaScript SEO reviews and reporting commentary.\nHow are scope changes handled?|The new request is compared with the accepted brief. Small corrections may fit the revision process; new research, pages, meetings or implementation work is scoped separately.\nCan Klarai implement technical fixes?|Implementation can be considered separately. The scope must define code access, responsibility, testing, deployment and validation.\nWhat information is needed to start?|Client context, target outcome, requested deliverable, relevant URLs, required access, deadline, brand guidance, reviewer and definition of complete.",
+    },
+    cta: {
+      visible: true,
+      h2: "Start with one defined project",
+      text:
+        "A small paid project with a clear brief, output, reviewer and acceptance criteria reveals more about fit than a long sales presentation.",
+      btnText: "Book a confidential partner fit call",
+      btnLink: "/contact",
+      secondaryText: "Explore technical audits",
+      secondaryLink: "/services/technical-seo-audit",
     },
   },
 };
