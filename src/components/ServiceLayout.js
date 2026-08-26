@@ -75,6 +75,7 @@ export default async function ServiceLayout({ serviceId }) {
   const includedItems = parseDelimitedList(page.included?.items, ":");
   const processSteps = parseDelimitedList(page.process?.steps, ":");
   const faqs = parseDelimitedList(page.faq?.qas, "|");
+  const contentSections = Array.isArray(page.sections) ? page.sections : [];
   const caseStudyParts = page.results?.caseStudy ? page.results.caseStudy.split("|").map((part) => part.trim()) : [];
   const faqSchema = faqs.length > 0 ? {
     "@context": "https://schema.org",
@@ -287,6 +288,38 @@ export default async function ServiceLayout({ serviceId }) {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+      )}
+
+      {contentSections.length > 0 && (
+        <section className="bg-[#f9f5ec] px-5 py-24 sm:px-8 lg:px-12">
+          <div className="mx-auto space-y-20 max-w-[1480px]">
+            {contentSections.map((section, index) => (
+              <article key={section.id || index} id={section.id || undefined} className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr]">
+                <div>
+                  <SectionEyebrow>Service guide</SectionEyebrow>
+                  <h2 className="sticky top-32 font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl" dangerouslySetInnerHTML={{ __html: section.heading || "" }} />
+                </div>
+                <div className="space-y-8">
+                  <div className="space-y-6 text-lg font-medium leading-relaxed text-black/62">
+                    {(section.content || []).filter(Boolean).map((paragraph, paragraphIndex) => (
+                      <p key={paragraphIndex} dangerouslySetInnerHTML={{ __html: paragraph }} />
+                    ))}
+                  </div>
+                  {(section.subheadings || []).filter((subheading) => subheading.title || subheading.content?.length).map((subheading, subIndex) => (
+                    <div key={subIndex} className="rounded-[1.1rem] border border-black/8 bg-white p-7 shadow-[0_20px_70px_rgba(0,0,0,0.04)]">
+                      {subheading.title && <h3 className="text-3xl font-black tracking-tight" dangerouslySetInnerHTML={{ __html: subheading.title }} />}
+                      <div className="mt-4 space-y-4 text-base font-medium leading-relaxed text-black/54">
+                        {(subheading.content || []).filter(Boolean).map((paragraph, paragraphIndex) => (
+                          <p key={paragraphIndex} dangerouslySetInnerHTML={{ __html: paragraph }} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
           </div>
         </section>
       )}

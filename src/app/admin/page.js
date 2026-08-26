@@ -360,6 +360,7 @@ export default function AdminDashboard() {
     isSaving,
     handleNestedChange,
     handleFlatChange,
+    handleServiceJsonImport,
     handleSaveToFirebase,
     nichePagesList,
     blogPagesList,
@@ -415,6 +416,50 @@ export default function AdminDashboard() {
       industry: post.industry,
     }))
   ), [blogPagesList]);
+
+  const updateServiceSections = (sections) => handleFlatChange("sections", sections);
+
+  const updateServiceSection = (index, field, value) => {
+    const sections = [...(content[activeTab]?.sections || [])];
+    sections[index] = { ...sections[index], [field]: value };
+    updateServiceSections(sections);
+  };
+
+  const updateServiceSectionArray = (sectionIndex, field, itemIndex, value) => {
+    const sections = [...(content[activeTab]?.sections || [])];
+    const items = [...(sections[sectionIndex]?.[field] || [])];
+    items[itemIndex] = value;
+    sections[sectionIndex] = { ...sections[sectionIndex], [field]: items };
+    updateServiceSections(sections);
+  };
+
+  const updateServiceSubheading = (sectionIndex, subIndex, field, value, contentIndex) => {
+    const sections = [...(content[activeTab]?.sections || [])];
+    const subheadings = [...(sections[sectionIndex]?.subheadings || [])];
+    const subheading = { ...(subheadings[subIndex] || {}) };
+    if (field === "content") {
+      if (contentIndex === undefined && Array.isArray(value)) {
+        subheading.content = value;
+      } else {
+        const contentItems = [...(subheading.content || [])];
+        contentItems[contentIndex] = value;
+        subheading.content = contentItems;
+      }
+    } else {
+      subheading[field] = value;
+    }
+    subheadings[subIndex] = subheading;
+    sections[sectionIndex] = { ...sections[sectionIndex], subheadings };
+    updateServiceSections(sections);
+  };
+
+  const moveServiceSection = (index, direction) => {
+    const sections = [...(content[activeTab]?.sections || [])];
+    const nextIndex = direction === "up" ? index - 1 : index + 1;
+    if (nextIndex < 0 || nextIndex >= sections.length) return;
+    [sections[index], sections[nextIndex]] = [sections[nextIndex], sections[index]];
+    updateServiceSections(sections);
+  };
 
   const renderSectionHeader = (sectionKey, title) => {
     const isVisible = content[activeTab][sectionKey]?.visible !== false;
@@ -609,6 +654,75 @@ export default function AdminDashboard() {
               <div className="max-w-4xl mx-auto space-y-8 pb-32">
                   {activeTab !== "footer" ? (
                     <>
+                      <JsonImportPanel
+                        title="Import service JSON"
+                        description="Paste a service page object, or an object with this service key, then review and save."
+                        example={content[activeTab] || {}}
+                        onImport={handleServiceJsonImport}
+                      />
+
+                      <section className="bg-[#0a0a0a] p-6 rounded-2xl border border-white/10 shadow-xl space-y-6">
+                        <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                          <h3 className="text-sm font-bold tracking-widest uppercase text-gray-400">Custom Content Sections</h3>
+                          <button
+                            type="button"
+                            onClick={() => updateServiceSections([...(content[activeTab]?.sections || []), { id: `section-${(content[activeTab]?.sections || []).length + 1}`, heading: "", content: [""], subheadings: [] }])}
+                            className="text-[10px] bg-white/10 px-3 py-2 rounded text-white uppercase tracking-widest font-bold hover:bg-white/20"
+                          >
+                            + Add H2 Section
+                          </button>
+                        </div>
+
+                        {(content[activeTab]?.sections || []).map((section, sectionIndex) => (
+                          <div key={sectionIndex} className="p-5 bg-[#111] border border-white/10 rounded-xl shadow-lg space-y-4 relative">
+                            <div className="absolute top-4 right-4 flex gap-2">
+                              <button type="button" onClick={() => moveServiceSection(sectionIndex, "up")} disabled={sectionIndex === 0} className="text-gray-400 hover:text-white disabled:opacity-30">↑</button>
+                              <button type="button" onClick={() => moveServiceSection(sectionIndex, "down")} disabled={sectionIndex === (content[activeTab]?.sections || []).length - 1} className="text-gray-400 hover:text-white disabled:opacity-30">↓</button>
+                              <button type="button" onClick={() => updateServiceSections((content[activeTab]?.sections || []).filter((_, index) => index !== sectionIndex))} className="text-red-500 ml-4 hover:text-red-400 font-bold text-xs uppercase">Delete</button>
+                            </div>
+
+                            <div className="w-3/4 space-y-2">
+                              <input placeholder="Anchor ID (technical-seo)" value={section.id || ""} onChange={(event) => updateServiceSection(sectionIndex, "id", event.target.value)} className="w-1/3 bg-transparent border-b border-white/10 p-2 text-sm focus:border-blue-500 outline-none text-gray-400" />
+                              <TipTapEditor label="H2 Heading" name={`service-section-${sectionIndex}-heading`} value={section.heading || ""} onChange={(event) => updateServiceSection(sectionIndex, "heading", event.target.value)} />
+                            </div>
+
+                            <div className="space-y-4 border-l-2 border-white/10 pl-4">
+                              <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Paragraphs</label>
+                              {(section.content || []).map((paragraph, paragraphIndex) => (
+                                <div key={paragraphIndex} className="flex gap-2 items-start mb-2">
+                                  <div className="flex-1"><TipTapEditor name={`service-section-${sectionIndex}-para-${paragraphIndex}`} value={paragraph} onChange={(event) => updateServiceSectionArray(sectionIndex, "content", paragraphIndex, event.target.value)} /></div>
+                                  <button type="button" onClick={() => updateServiceSection(sectionIndex, "content", (section.content || []).filter((_, index) => index !== paragraphIndex))} className="bg-red-500/10 text-red-500 h-[42px] px-3 rounded hover:bg-red-500/20">✕</button>
+                                </div>
+                              ))}
+                              <button type="button" onClick={() => updateServiceSection(sectionIndex, "content", [...(section.content || []), ""])} className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">+ Add Paragraph</button>
+                            </div>
+
+                            <div className="space-y-6 border-l-2 border-purple-500/30 pl-4 mt-8">
+                              <div className="flex justify-between items-center">
+                                <label className="text-[10px] uppercase tracking-widest text-purple-400 font-bold">H3 Subheadings</label>
+                                <button type="button" onClick={() => updateServiceSection(sectionIndex, "subheadings", [...(section.subheadings || []), { title: "", content: [""] }])} className="text-[10px] bg-purple-500/20 text-purple-400 px-2 py-1 rounded font-bold uppercase tracking-widest">+ Add H3</button>
+                              </div>
+
+                              {(section.subheadings || []).map((subheading, subIndex) => (
+                                <div key={subIndex} className="bg-black/50 p-4 border border-white/5 rounded space-y-4 relative">
+                                  <button type="button" onClick={() => updateServiceSection(sectionIndex, "subheadings", (section.subheadings || []).filter((_, index) => index !== subIndex))} className="absolute top-4 right-4 text-red-500 hover:text-red-400 text-xs font-bold uppercase">✕ Remove H3</button>
+                                  <div className="w-3/4">
+                                    <TipTapEditor label="H3 Title" name={`service-section-${sectionIndex}-sub-${subIndex}-title`} value={subheading.title || ""} onChange={(event) => updateServiceSubheading(sectionIndex, subIndex, "title", event.target.value)} />
+                                  </div>
+                                  {(subheading.content || []).map((paragraph, paragraphIndex) => (
+                                    <div key={paragraphIndex} className="flex gap-2 items-start mb-2">
+                                      <div className="flex-1"><TipTapEditor name={`service-section-${sectionIndex}-sub-${subIndex}-para-${paragraphIndex}`} value={paragraph} onChange={(event) => updateServiceSubheading(sectionIndex, subIndex, "content", event.target.value, paragraphIndex)} /></div>
+                                      <button type="button" onClick={() => updateServiceSubheading(sectionIndex, subIndex, "content", (subheading.content || []).filter((_, index) => index !== paragraphIndex))} className="bg-red-500/10 text-red-500 h-[42px] px-3 rounded hover:bg-red-500/20">✕</button>
+                                    </div>
+                                  ))}
+                                  <button type="button" onClick={() => updateServiceSubheading(sectionIndex, subIndex, "content", [...(subheading.content || []), ""])} className="text-[10px] text-purple-500 font-bold uppercase tracking-widest">+ Add H3 Paragraph</button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </section>
+
                       <section className="bg-[#0a0a0a] p-6 rounded-2xl border border-white/10 shadow-xl">
                           <h3 className="text-sm font-bold tracking-widest uppercase text-gray-400 mb-6">Meta Data & SEO</h3>
                           <div className="space-y-4">

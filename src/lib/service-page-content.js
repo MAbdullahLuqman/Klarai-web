@@ -520,8 +520,8 @@ export const servicePageContent = {
 export function mergeServicePageContent(serviceId, databasePage = {}) {
   const sourcePage = servicePageContent[serviceId] || {};
   const mergedPage = {
-    ...databasePage,
     ...sourcePage,
+    ...databasePage,
   };
 
   for (const key of Object.keys(sourcePage)) {
@@ -534,8 +534,8 @@ export function mergeServicePageContent(serviceId, databasePage = {}) {
       !Array.isArray(databasePage[key])
     ) {
       mergedPage[key] = {
-        ...databasePage[key],
         ...sourcePage[key],
+        ...databasePage[key],
       };
     }
   }

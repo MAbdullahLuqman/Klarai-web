@@ -138,6 +138,15 @@ export function useAdminContent() {
     setContent((prev) => ({ ...prev, [activeTab]: { ...prev[activeTab], [field]: value } }));
   };
 
+  const handleServiceJsonImport = (payload) => {
+    const page = payload?.[activeTab] || payload;
+    if (!page || Array.isArray(page) || typeof page !== "object") return;
+    setContent((prev) => ({
+      ...prev,
+      [activeTab]: mergeServicePageContent(activeTab, page),
+    }));
+  };
+
   const handleSaveToFirebase = async () => {
     setIsSaving(true);
     try {
@@ -218,6 +227,7 @@ export function useAdminContent() {
     isSaving,
     handleNestedChange,
     handleFlatChange,
+    handleServiceJsonImport,
     handleSaveToFirebase,
     nichePagesList,
     blogPagesList,
