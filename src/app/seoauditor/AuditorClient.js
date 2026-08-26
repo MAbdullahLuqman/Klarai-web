@@ -55,6 +55,137 @@ const questionWords = ["who", "what", "where", "when", "why", "how", "which", "c
 const transitions = ["because", "therefore", "for example", "however", "in addition", "according to", "specifically", "in summary", "notably"];
 const authorityHosts = ["wikipedia.org", "nih.gov", "who.int", "reuters.com", "bbc.co.uk", "bbc.com", "schema.org", "google.com", "developer.mozilla.org", "w3.org", "gov.uk"];
 
+const AUDIT_CONTENT = [
+  {
+    title: "Get a useful first look at your website",
+    paragraphs: [
+      "A website can lose search visibility for reasons that are difficult to spot from the page itself.",
+      "Google may be unable to reach an important page. A canonical may point to the wrong URL. The title may not explain the service. Important content may be missing from the initial HTML. Structured data may be incomplete or invalid.",
+      "The website can look fine to a visitor while sending unclear information to search engines and AI systems.",
+      "The KLARAI SEO auditor gives you a quick first view of those problems. It scans the URL you submit, reviews the information available during the scan and organises the findings into a report you can understand.",
+      "You get the issues, the reason they matter and a clearer idea of what to fix first.",
+    ],
+  },
+  {
+    title: "What is a free SEO audit?",
+    paragraphs: [
+      "A free SEO audit is an automated review of a website or web page.",
+      "It checks common technical, content and search visibility signals that may affect how the page is crawled, understood and presented in search results.",
+      "The audit does not guarantee a ranking. It does not make changes to your website. It gives you a starting point based on the information the tool can access during the scan.",
+      "A full professional audit goes deeper. It may include Search Console, analytics, backlink data, a complete website crawl, competitor research and manual review.",
+      "Use this free SEO audit tool to find visible problems before paying for deeper work.",
+    ],
+  },
+  {
+    title: "What the KLARAI SEO auditor checks",
+    subsections: [
+      ["Technical SEO access", "Search engines need to access and interpret the correct version of your pages.", "The audit reviews available technical signals connected to crawling, indexing, canonicals, redirects, robots instructions, sitemaps, broken links and mobile access.", "It also checks whether the submitted page returns a usable response and whether important information is available to search systems.", "A technical warning does not always mean the website is broken. The report gives you a place to investigate."],
+      ["Titles and meta descriptions", "Your title and description help search engines and potential visitors understand the page.", "The audit checks whether these elements exist, whether they are clear and whether they describe the page accurately.", "Missing, duplicated or vague metadata can make it harder for a page to compete and earn clicks."],
+      ["Heading structure", "Headings organise the page for readers and search systems.", "The SEO auditor checks the main heading and supporting heading structure. It looks for missing headings, unclear order and pages trying to cover too many topics at once.", "A heading should explain the section. It should not exist only to hold a keyword."],
+      ["Page content", "Thin or unclear content gives search engines little information to work with.", "The audit reviews the visible page copy, topic coverage and answer clarity. It can identify areas where the page may need a clearer introduction, stronger service information, useful definitions or better answers to customer concerns.", "The tool does not judge business accuracy. Product claims, prices, results and technical details still need human review."],
+      ["Internal links", "Internal links connect related pages and show which parts of a website matter.", "The audit checks the links it can find on the submitted page. It may flag broken destinations, weak link text or important pages that appear disconnected.", "A complete internal linking review requires a wider crawl of the website. The instant audit provides an initial view."],
+      ["Page speed and mobile signals", "Slow pages can create a poor experience, especially on mobile devices.", "The report reviews available performance and mobile signals. This may include page loading concerns, layout problems and Core Web Vitals information when it is available during the scan.", "Performance can change by device, location, connection and server conditions. Use the result as a warning to investigate, not as a permanent measurement."],
+      ["Structured data and schema", "Structured data helps search engines identify organisations, services, articles, products, people, breadcrumbs and other page information.", "The audit checks for visible schema markup and common implementation problems.", "Schema does not guarantee a rich result, ranking or AI citation. It gives search systems clearer information about the page."],
+      ["Local SEO signals", "Local businesses need consistent service, location and contact information.", "The audit reviews visible local business information on the website. This can include the business name, address, phone details, service areas, location pages and relevant local schema.", "A complete local SEO audit should also include the Google Business Profile, reviews, citations and map performance."],
+      ["AI search readiness", "AI assistants and generated search results need accessible and clearly written information.", "The free AI SEO audit reviews signals connected to crawler access, page structure, direct answers, entity information, structured data and content clarity.", "This can show whether the page is easier or harder for retrieval systems to interpret.", "The audit cannot guarantee that ChatGPT, Gemini, Perplexity or Google AI Overviews will cite the website. Citation depends on the question, available sources, platform, model, location and date."],
+    ],
+  },
+  {
+    title: "How the free SEO audit works",
+    subsections: [
+      ["Enter your website URL", "Paste the full address of the page you want to check.", "Use a public URL that can be accessed without a password or account."],
+      ["Start the scan", "KLARAI reads the page and reviews the technical, content, local and AI search signals available during the scan.", "Most reports are prepared in about 30 seconds. Larger or slower websites may take longer."],
+      ["Read the findings", "The report explains the problems it detects and why they may matter.", "Start with issues that affect crawling, indexing or the correct page version. Content improvements come after search engines can access the page properly."],
+      ["Decide what to fix", "You can use the report yourself, share it with your developer or send it to KLARAI for a human review.", "Running the audit does not commit you to a contract."],
+    ],
+  },
+  {
+    title: "What your SEO audit score means",
+    paragraphs: [
+      "An audit score is a diagnostic summary. It is not a score used by Google.",
+      "A high score does not guarantee strong rankings. A low score does not mean the whole website needs rebuilding.",
+      "The result helps compare the page against the checks included in the tool. The individual findings matter more than the final number.",
+      "A website can pass many technical checks and still struggle because its service pages are weak, its competition is stronger or few external sources mention the business.",
+      "A website can also have several warnings while ranking well because it has useful content, strong authority and a clear match with the search.",
+      "Read the score as a starting point. Read the findings before making changes.",
+    ],
+  },
+  {
+    title: "When to run an SEO audit",
+    paragraphs: [
+      "Run an audit after launching a new website or important page.",
+      "Use it before and after a redesign, platform change, domain move or URL migration.",
+      "Run it when impressions or clicks fall without a clear reason.",
+      "Use it when an important page is not being indexed or ranks for the wrong searches.",
+      "Check the website before hiring an SEO provider so you have a clearer idea of the work required.",
+      "You can also audit a public competitor page to compare page structure, metadata and visible search signals. The report will only use information available publicly.",
+    ],
+  },
+  {
+    title: "Who this free SEO audit tool is for",
+    subsections: [
+      ["Business owners", "Use the report to understand why a website may be difficult to find and what to discuss with an agency or developer.", "You do not need technical SEO knowledge to start."],
+      ["Marketing teams", "Check new landing pages, content updates, service pages and campaign URLs before promotion begins.", "The audit can catch basic mistakes before they affect a larger campaign."],
+      ["Developers", "Review metadata, rendering, canonical tags, schema, mobile access and technical signals after a deployment.", "The report can support testing, but it should not replace normal development checks."],
+      ["Agencies and freelancers", "Use the SEO auditor for an initial client review, prospect research or page quality check.", "A full client audit should still include manual work, access to first party data and clear evidence."],
+      ["SaaS and technology companies", "Check product pages, feature pages, use cases, comparison pages and JavaScript rendering.", "The AI search section can also identify areas where company and product information needs clearer structure."],
+      ["Local service businesses", "Review service pages, location information, local schema and the content customers see before making contact.", "Local rankings also depend on Google Business Profile, reviews, proximity and external business information."],
+    ],
+  },
+  {
+    title: "Free automated audit or human SEO audit",
+    paragraphs: [
+      "The free tool is designed for speed.",
+      "It can find visible technical issues, weak page signals, missing metadata, schema problems and AI search readiness concerns.",
+      "A human audit adds business context.",
+      "A specialist can review Search Console queries, conversion data, competitors, backlinks, content overlap, website structure and the commercial value of each recommendation.",
+      "The automated report may tell you that a page is missing content. A human review decides what content belongs there, which search it should target and whether another page already covers the topic.",
+      "Start with the free scan. Move to a human audit when the findings affect an important service, migration or traffic problem.",
+    ],
+  },
+  {
+    title: "What to fix first",
+    paragraphs: [
+      "Crawling and indexing problems usually come first. Search engines cannot rank a page they cannot access or choose to index.",
+      "Correct the preferred domain, canonical tags, redirect problems and blocked pages.",
+      "Then improve titles, headings, service information and internal links.",
+      "Review schema after the main page information is accurate.",
+      "Performance work should focus on real user problems, not chasing a perfect score.",
+      "Content should be written for the customer while making the topic clear to search systems.",
+      "Avoid changing everything at once. Record the date of each important update and monitor what happens afterwards.",
+    ],
+  },
+  {
+    title: "Limits of an automated SEO audit",
+    paragraphs: [
+      "Automated tools can scan quickly and apply the same checks consistently.",
+      "They can also produce false positives.",
+      "A tool may flag a short page that already answers its search well. It may miss a business detail that is obvious to an experienced reader. It cannot confirm whether every company claim is accurate.",
+      "The free audit does not have access to private Search Console, analytics, sales or customer data unless you provide that information through a separate process.",
+      "It also cannot promise that a fix will improve rankings.",
+      "Use automated findings as evidence to inspect. Do not apply every recommendation without checking the page and its purpose.",
+    ],
+  },
+];
+
+const AUDIT_FAQS = [
+  ["Is the KLARAI SEO audit completely free?", "Yes. You can run the instant audit without creating an account or entering card details."],
+  ["How long does the SEO audit take?", "Most audits are prepared in about 30 seconds. The exact time depends on the website response and the information available during the scan."],
+  ["What does the SEO auditor check?", "The tool checks available technical SEO, page content, metadata, headings, internal links, performance, structured data, local signals and AI search readiness."],
+  ["Does the audit check the whole website?", "The instant audit begins with the URL you submit and the information available from that page and its visible website signals. A complete website audit requires a full crawl and access to tools such as Google Search Console and analytics."],
+  ["What is an AI SEO audit?", "An AI SEO audit checks traditional SEO signals and information connected to AI search access and understanding. This can include crawler access, structured data, direct answers, entity clarity and whether important content is available in the page response."],
+  ["Can this tool guarantee better Google rankings?", "No. No audit tool can guarantee rankings. The report identifies problems and possible improvements. Rankings also depend on competition, relevance, authority, user needs and other factors outside the tool."],
+  ["Is the SEO score used by Google?", "No. The score is created by the audit tool to summarise its own checks. Google does not use the KLARAI audit score."],
+  ["Can I use the SEO auditor for a competitor website?", "Yes. You can scan a publicly accessible competitor page. You will only see information the tool can access publicly."],
+  ["Does the audit check backlinks?", "The instant report focuses on technical, page, local and AI search signals. A proper backlink audit requires external link data and comparison with relevant competitors."],
+  ["Does the audit check Core Web Vitals?", "The report reviews available performance signals. For final performance decisions, confirm the results using field data and tools designed specifically for Core Web Vitals."],
+  ["Does the audit check AI visibility?", "The audit checks readiness signals connected to AI search access and content understanding. It does not prove that a brand currently appears in every AI answer. A full AI visibility audit requires saved prompt testing across selected platforms."],
+  ["Can the tool replace a professional SEO audit?", "No. It provides a quick first view. A professional audit adds complete crawling, private performance data, competitor research, business context and manual decisions."],
+  ["What should I do after receiving the report?", "Start with crawling, indexing, canonical and redirect problems. Then review content, internal links, schema, local information and performance warnings. Ask a developer or SEO specialist to confirm changes that could affect the whole website."],
+  ["How often should I audit my website?", "Run an audit after important website changes, migrations, redesigns or unexplained traffic drops. Websites publishing frequently may benefit from regular checks."],
+  ["Can KLARAI fix the problems in my report?", "Yes. KLARAI can review the findings, confirm which issues matter and prepare or implement an agreed fix plan. There is no requirement to purchase a service after using the free tool."],
+];
+
 function AuditorFallback() {
   return (
     <div className="min-h-screen bg-[#f4efe4] px-5 pt-36 text-center text-[10px] font-black uppercase tracking-[0.2em] text-[#2f3438]/46">
@@ -122,33 +253,27 @@ function AuditorCore() {
 
   return (
     <main className="min-h-screen bg-[#f4efe4] text-[#2f3438] selection:bg-[#ad5b2b] selection:text-white">
-      <section className="hide-on-print relative overflow-hidden px-5 pb-16 pt-34 sm:px-8 lg:px-12 lg:pt-40">
-        <div className="absolute inset-x-0 top-0 h-[560px] bg-[linear-gradient(180deg,#151b1e_0%,#2f3438_62%,rgba(47,52,56,0)_100%)]" />
-        <div className="absolute inset-x-0 top-0 h-[560px] bg-[url('/images/hero-mountain.jpg')] bg-cover bg-center opacity-20 mix-blend-luminosity" />
-        <div className="relative mx-auto max-w-[1240px]">
-          <header className="grid gap-8 lg:grid-cols-[1fr_0.75fr] lg:items-end">
+      <section className="hide-on-print relative overflow-hidden bg-[#20272b] px-5 pb-20 pt-32 text-white sm:px-8 lg:px-12 lg:pt-36">
+        <div className="absolute inset-0 bg-[url('/images/hero-mountain.jpg')] bg-cover bg-center opacity-16 mix-blend-luminosity" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,27,30,0.96)_0%,rgba(32,39,43,0.9)_48%,rgba(32,39,43,0.72)_100%)]" />
+        <div className="relative mx-auto grid max-w-[1480px] gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <header>
             <div>
-              <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#e0b48b] backdrop-blur-md">
+              <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#e0b48b] backdrop-blur-md">
                 <Activity size={14} />
-                SEO AEO GEO audit console
+                Free AI SEO audit tool
               </p>
-              <h1 className="max-w-4xl font-serif text-5xl font-medium leading-[0.98] text-white sm:text-7xl">
-                Audit any page for search and AI visibility.
+              <h1 className="max-w-4xl font-serif text-5xl font-medium leading-[0.98] text-white sm:text-7xl lg:text-8xl">
+                Free AI SEO audit tool for clear website fixes
               </h1>
-              <p className="mt-6 max-w-2xl text-base font-medium leading-relaxed text-white/68">
-                Paste a URL or raw HTML and get a rule-based read on classic SEO, answer-engine readiness and generative-engine citability.
+              <p className="mt-7 max-w-2xl text-lg font-medium leading-relaxed text-white/72">
+                Enter any public website URL. KLARAI checks technical SEO, page content, local signals, structured data and AI search readiness, then returns a plain English report in about 30 seconds.
               </p>
-            </div>
-            <div className="flex flex-wrap gap-2 lg:justify-end">
-              {Object.values(CATEGORY_META).map((category) => (
-                <span key={category.label} className="rounded-md border border-white/16 bg-white/10 px-3 py-2 text-xs font-black tracking-widest text-white/82">
-                  {category.label}
-                </span>
-              ))}
+              <p className="mt-4 max-w-2xl text-sm font-black uppercase tracking-[0.16em] text-white/46">No account. No credit card. Plain English fixes.</p>
             </div>
           </header>
 
-          <form onSubmit={submitAudit} className="mt-8 rounded-[1.15rem] border border-white/16 bg-[#f9f5ec] p-4 shadow-[0_30px_90px_rgba(14,20,24,0.24)] sm:p-6">
+          <form id="audit-tool" onSubmit={submitAudit} className="rounded-[1.15rem] border border-white/18 bg-[#f9f5ec] p-4 text-[#2f3438] shadow-[0_34px_110px_rgba(0,0,0,0.32)] sm:p-6 lg:p-7">
             <div className="flex flex-wrap gap-2">
               {[
                 { id: "url", label: "Fetch URL", icon: Globe },
@@ -170,14 +295,14 @@ function AuditorCore() {
               })}
             </div>
 
-            <div className="mt-5 grid gap-4 lg:grid-cols-[1.45fr_0.85fr]">
+            <div className="mt-6 grid gap-4">
               {mode === "url" ? (
                 <label>
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/38">Target URL</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/38">Audit URL</span>
                   <input
                     value={url}
                     onChange={(event) => setUrl(event.target.value)}
-                    placeholder="example.co.uk"
+                    placeholder="https://example.co.uk"
                     className="mt-2 min-h-14 w-full rounded-md border border-black/10 bg-white px-4 text-base font-bold outline-none transition placeholder:text-black/28 focus:border-[#ad5b2b]"
                   />
                 </label>
@@ -193,7 +318,7 @@ function AuditorCore() {
                   />
                 </label>
               )}
-              <div className="flex flex-col justify-between gap-4">
+              <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
                 <label>
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/38">Primary keyword optional</span>
                   <input
@@ -203,9 +328,9 @@ function AuditorCore() {
                     className="mt-2 min-h-14 w-full rounded-md border border-black/10 bg-white px-4 text-base font-bold outline-none transition placeholder:text-black/28 focus:border-[#ad5b2b]"
                   />
                 </label>
-                <button type="submit" disabled={loading} className="inline-flex min-h-14 items-center justify-center gap-2 rounded-md bg-[#ad5b2b] px-6 text-sm font-black text-white transition hover:bg-[#8d4822] disabled:cursor-not-allowed disabled:opacity-60">
+                <button type="submit" disabled={loading} className="inline-flex min-h-14 items-center justify-center gap-2 rounded-md bg-[#ad5b2b] px-6 text-sm font-black text-white transition hover:bg-[#8d4822] disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-[220px]">
                   {loading ? <Loader2 size={17} className="animate-spin" /> : <Gauge size={17} />}
-                  {loading ? "Auditing" : "Run audit"}
+                  {loading ? "Auditing" : "Run free SEO audit"}
                 </button>
               </div>
             </div>
@@ -216,23 +341,39 @@ function AuditorCore() {
                 {error}
               </p>
             )}
+            <p className="mt-5 border-t border-black/8 pt-4 text-[10px] font-black uppercase tracking-[0.18em] text-black/38">Powered by Gemini. Built for business owners, marketers, developers and agencies.</p>
           </form>
         </div>
       </section>
 
       {!result && !loading && (
-        <section className="hide-on-print px-5 pb-20 sm:px-8 lg:px-12">
-          <div className="mx-auto grid max-w-[1240px] gap-4 md:grid-cols-3">
-            {Object.values(CATEGORY_META).map((category) => {
-              const Icon = category.icon;
-              return (
-                <article key={category.label} className="rounded-[1.1rem] border border-black/8 bg-white p-6 shadow-[0_20px_70px_rgba(0,0,0,0.04)]">
-                  <Icon size={18} style={{ color: category.color }} />
-                  <h2 className="mt-4 text-xl font-black tracking-tight">{category.title}</h2>
-                  <p className="mt-2 text-sm font-medium leading-relaxed text-black/54">{category.blurb}</p>
-                </article>
-              );
-            })}
+        <section className="hide-on-print px-5 pb-24 sm:px-8 lg:px-12">
+          <div className="mx-auto max-w-[1240px] space-y-20">
+            {AUDIT_CONTENT.map((section) => <AuditContentSection key={section.title} section={section} />)}
+            <section>
+              <p className="mb-5 text-[10px] font-black uppercase tracking-[0.24em] text-black/36">FAQ</p>
+              <h2 className="max-w-4xl font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">Frequently asked questions</h2>
+              <div className="mt-10 divide-y divide-black/10 rounded-[1.1rem] border border-black/8 bg-white shadow-[0_20px_70px_rgba(0,0,0,0.04)]">
+                {AUDIT_FAQS.map(([question, answer]) => (
+                  <details key={question} className="group [&_summary::-webkit-details-marker]:hidden">
+                    <summary className="flex cursor-pointer items-center justify-between gap-6 p-7 text-xl font-black tracking-tight">
+                      {question}
+                      <span className="text-[#ad5b2b] transition group-open:rotate-45">+</span>
+                    </summary>
+                    <p className="px-7 pb-7 text-base font-medium leading-relaxed text-black/56">{answer}</p>
+                  </details>
+                ))}
+              </div>
+            </section>
+            <section className="rounded-[1.4rem] bg-[#2f3438] p-8 text-center text-white shadow-[0_35px_100px_rgba(47,52,56,0.22)] md:p-14">
+              <p className="mb-5 text-[10px] font-black uppercase tracking-[0.24em] text-[#e0b48b]">Run your free SEO audit</p>
+              <h2 className="font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">Get a clear first view of search problems.</h2>
+              <p className="mx-auto mt-7 max-w-2xl text-lg font-medium leading-relaxed text-white/62">No account. No card details. No long report filled with unexplained warnings.</p>
+              <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <a href="#audit-tool" className="inline-flex min-h-12 items-center justify-center rounded-md bg-[#ad5b2b] px-6 text-sm font-black text-white transition hover:bg-[#8d4822]">Run free SEO audit</a>
+                <Link href="/contact" className="text-sm font-black text-white/72 underline underline-offset-4 transition hover:text-white">Ask KLARAI for a human review</Link>
+              </div>
+            </section>
           </div>
         </section>
       )}
@@ -369,6 +510,32 @@ function AuditorCore() {
         }
       `}</style>
     </main>
+  );
+}
+
+function AuditContentSection({ section }) {
+  return (
+    <section className="grid gap-10 border-t border-black/10 pt-14 lg:grid-cols-[0.42fr_1fr]">
+      <div>
+        <p className="mb-5 text-[10px] font-black uppercase tracking-[0.24em] text-black/36">SEO audit guide</p>
+        <h2 className="font-serif text-4xl font-medium leading-tight tracking-tight sm:text-6xl">{section.title}</h2>
+      </div>
+      <div className="space-y-7 text-lg font-medium leading-relaxed text-black/62">
+        {(section.paragraphs || []).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        {section.subsections && (
+          <div className="grid gap-4 md:grid-cols-2">
+            {section.subsections.map(([title, ...paragraphs]) => (
+              <article key={title} className="rounded-[1.1rem] border border-black/8 bg-white p-6 shadow-[0_20px_70px_rgba(0,0,0,0.04)]">
+                <h3 className="text-2xl font-black tracking-tight">{title}</h3>
+                <div className="mt-4 space-y-3 text-sm font-medium leading-relaxed text-black/56">
+                  {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
