@@ -52,7 +52,12 @@ function normalizeServiceImport(page = {}) {
     } : page.process,
     faq: page.faq || page.faqs ? {
       ...(page.faq || {}),
-      qas: delimitedText(page.faq?.qas || page.faqs, "|", ["q", "question", "title"], ["a", "answer", "desc"]),
+      qas: Array.isArray(page.faq?.qas || page.faqs)
+        ? (page.faq?.qas || page.faqs).map((faq) => ({
+          question: faq.question || faq.q || faq.title || "",
+          answer: faq.answer || faq.a || faq.desc || "",
+        }))
+        : page.faq?.qas,
     } : page.faq,
   };
 }

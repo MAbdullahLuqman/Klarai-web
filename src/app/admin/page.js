@@ -461,6 +461,31 @@ export default function AdminDashboard() {
     updateServiceSections(sections);
   };
 
+  const parseServiceFaqs = (value) => {
+    if (Array.isArray(value)) {
+      return value.map((faq) => ({
+        question: faq.question || faq.q || faq.title || "",
+        answer: faq.answer || faq.a || faq.desc || "",
+      }));
+    }
+
+    return String(value || "")
+      .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
+      .replace(/<\/?p[^>]*>/gi, "")
+      .split("\n")
+      .filter(Boolean)
+      .flatMap((line) => {
+        const matches = [...line.matchAll(/([^|?]+\?)\|([\s\S]*?)(?=\s+[A-Z][^|?]+\?\||$)/g)];
+        if (matches.length > 1) return matches.map((match) => ({ question: match[1].trim(), answer: match[2].trim() }));
+        const [question, ...answer] = line.split("|");
+        return { question: question?.trim() || "", answer: answer.join("|").trim() };
+      });
+  };
+
+  const updateServiceFaqs = (faqs) => handleNestedChange("faq", "qas", faqs);
+
+  const serviceFaqs = parseServiceFaqs(content[activeTab]?.faq?.qas);
+
   const renderSectionHeader = (sectionKey, title) => {
     const isVisible = content[activeTab][sectionKey]?.visible !== false;
     return (
@@ -795,7 +820,22 @@ export default function AdminDashboard() {
                           {renderSectionHeader("faq", "Block 7: FAQ")}
                           <div className="space-y-4">
                               <div><label className="block text-xs text-gray-500 font-bold uppercase mb-2">H2 Headline</label><input type="text" value={content[activeTab].faq?.h2 || ""} onChange={(e) => handleNestedChange('faq', 'h2', e.target.value)} className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-3 text-sm text-white" /></div>
-                              <TipTapEditor label="Questions & Answers (Format: Question?|Answer) - One per line" name="qas" value={content[activeTab].faq?.qas || ""} onChange={(e) => handleNestedChange('faq', 'qas', e.target.value)} />
+                              <div className="space-y-4 border-l-2 border-white/10 pl-4">
+                                <div className="flex items-center justify-between">
+                                  <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">FAQ Items</label>
+                                  <button type="button" onClick={() => updateServiceFaqs([...serviceFaqs, { question: "", answer: "" }])} className="text-[10px] bg-white/10 px-3 py-2 rounded text-white uppercase tracking-widest font-bold hover:bg-white/20">+ Add FAQ</button>
+                                </div>
+                                {serviceFaqs.map((faq, index) => (
+                                  <div key={index} className="bg-[#111] border border-white/10 rounded-xl p-4 space-y-3 relative">
+                                    <button type="button" onClick={() => updateServiceFaqs(serviceFaqs.filter((_, itemIndex) => itemIndex !== index))} className="absolute top-4 right-4 text-red-500 hover:text-red-400 font-bold text-xs uppercase">Delete</button>
+                                    <div className="w-3/4">
+                                      <label className="block text-xs text-gray-500 font-bold uppercase mb-2">Question</label>
+                                      <input type="text" value={faq.question || ""} onChange={(event) => updateServiceFaqs(serviceFaqs.map((item, itemIndex) => itemIndex === index ? { ...item, question: event.target.value } : item))} className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-sm text-white font-bold" />
+                                    </div>
+                                    <TipTapEditor label="Answer" name={`service-faq-${index}-answer`} value={faq.answer || ""} onChange={(event) => updateServiceFaqs(serviceFaqs.map((item, itemIndex) => itemIndex === index ? { ...item, answer: event.target.value } : item))} />
+                                  </div>
+                                ))}
+                              </div>
                           </div>
                       </section>
 
