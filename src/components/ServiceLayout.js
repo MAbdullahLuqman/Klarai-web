@@ -9,15 +9,50 @@ import { safeGetDoc, safeGetDocs } from "@/lib/firestore-safe";
 import { hydrateCaseStudyRefs } from "@/lib/caseStudies";
 import RelatedCaseStudies from "@/components/RelatedCaseStudies";
 
-const parseDelimitedList = (text, delimiter = ":") => {
-  if (!text) return [];
-  return text
-    .split("\n")
-    .filter(Boolean)
-    .map((line) => {
+const stripTags = (value = "") => String(value).replace(/<[^>]*>/g, "").trim();
+
+const richTextLines = (value = "") => String(value)
+  .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
+  .replace(/<br\s*\/?>/gi, "\n")
+  .replace(/<\/?p[^>]*>/gi, "")
+  .split("\n")
+  .map((line) => line.trim())
+  .filter(Boolean);
+
+const parseCollapsedDelimitedText = (line, delimiter) => {
+  if (delimiter === "|") {
+    const matches = [...line.matchAll(/([^|?]+\?)\|([\s\S]*?)(?=\s+[A-Z][^|?]+\?\||$)/g)];
+    if (matches.length > 1) {
+      return matches.map((match) => ({ title: stripTags(match[1]), desc: match[2].trim() }));
+    }
+  }
+
+  if (delimiter === ":") {
+    const matches = [...line.matchAll(/([A-Z][A-Za-z0-9 &/,-]+):\s*([\s\S]*?)(?=\s+[A-Z][A-Za-z0-9 &/,-]+:\s|$)/g)];
+    if (matches.length > 1) {
+      return matches.map((match) => ({ title: stripTags(match[1]), desc: match[2].trim() }));
+    }
+  }
+
+  return null;
+};
+
+const parseDelimitedList = (value, delimiter = ":") => {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => ({
+        title: stripTags(item.title || item.name || item.heading || item.q || item.question || ""),
+        desc: item.desc || item.description || item.text || item.a || item.answer || "",
+      }))
+      .filter((item) => item.title || item.desc);
+  }
+  return richTextLines(value).flatMap((line) => {
+      const collapsedItems = parseCollapsedDelimitedText(line, delimiter);
+      if (collapsedItems) return collapsedItems;
       const parts = line.split(delimiter);
       return {
-        title: parts[0]?.trim() || "",
+        title: stripTags(parts[0] || ""),
         desc: parts.slice(1).join(delimiter)?.trim() || "",
       };
     });
@@ -76,7 +111,7 @@ export default async function ServiceLayout({ serviceId }) {
   const processSteps = parseDelimitedList(page.process?.steps, ":");
   const faqs = parseDelimitedList(page.faq?.qas, "|");
   const contentSections = Array.isArray(page.sections) ? page.sections : [];
-  const caseStudyParts = page.results?.caseStudy ? page.results.caseStudy.split("|").map((part) => part.trim()) : [];
+  const caseStudyParts = page.results?.caseStudy ? stripTags(page.results.caseStudy).split("|").map((part) => part.trim()) : [];
   const faqSchema = faqs.length > 0 ? {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -106,13 +141,12 @@ export default async function ServiceLayout({ serviceId }) {
           <div className="relative mx-auto grid max-w-[1480px] gap-10 lg:grid-cols-[1fr_0.72fr] lg:items-end">
             <div>
               <SectionEyebrow>Service architecture</SectionEyebrow>
-              <h1
-                className="max-w-5xl font-serif text-5xl font-medium leading-[0.98] tracking-tight text-[#2f3438] sm:text-7xl lg:text-8xl"
-                dangerouslySetInnerHTML={{ __html: page.hero?.h1 || "" }}
-              />
+              <h1 className="max-w-5xl font-serif text-5xl font-medium leading-[0.98] tracking-tight text-[#2f3438] sm:text-7xl lg:text-8xl">
+                {stripTags(page.hero?.h1)}
+              </h1>
             </div>
             <div className="rounded-[1.2rem] border border-black/8 bg-white/72 p-7 shadow-[0_24px_80px_rgba(0,0,0,0.06)] backdrop-blur-sm">
-              <p className="text-lg font-medium leading-relaxed text-black/58" dangerouslySetInnerHTML={{ __html: page.hero?.sub || "" }} />
+              <div className="text-lg font-medium leading-relaxed text-black/58" dangerouslySetInnerHTML={{ __html: page.hero?.sub || "" }} />
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 {page.hero?.btn1Text && (
                   <Link href={page.hero.btn1Link || "/contact"} className="rounded-md bg-[#ad5b2b] px-6 py-3.5 text-center text-sm font-black text-white transition hover:bg-[#8d4822]">
@@ -133,8 +167,8 @@ export default async function ServiceLayout({ serviceId }) {
       {page.tldr?.visible !== false && page.tldr?.text && (
         <section className="px-5 py-16 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-[1120px] border-y border-black/10 py-10">
-            <SectionEyebrow>{page.tldr?.h2 || "TL;DR"}</SectionEyebrow>
-            <p className="font-serif text-2xl font-medium leading-snug text-[#2f3438] sm:text-3xl" dangerouslySetInnerHTML={{ __html: page.tldr.text }} />
+            <SectionEyebrow>{stripTags(page.tldr?.h2 || "TL;DR")}</SectionEyebrow>
+            <div className="font-serif text-2xl font-medium leading-snug text-[#2f3438] sm:text-3xl" dangerouslySetInnerHTML={{ __html: page.tldr.text }} />
           </div>
         </section>
       )}
@@ -144,11 +178,11 @@ export default async function ServiceLayout({ serviceId }) {
           <div className="mx-auto grid max-w-[1480px] gap-10 lg:grid-cols-[0.72fr_1.28fr]">
             <div>
               <SectionEyebrow>Problem</SectionEyebrow>
-              <h2 className="sticky top-32 font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{page.problem.h2}</h2>
+              <h2 className="sticky top-32 font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{stripTags(page.problem.h2)}</h2>
             </div>
             <div className="space-y-6 text-lg font-medium leading-relaxed text-black/62">
               {page.problem.paras.map((paragraph, index) => (
-                <p key={index} dangerouslySetInnerHTML={{ __html: paragraph }} />
+                <div key={index} dangerouslySetInnerHTML={{ __html: paragraph }} />
               ))}
             </div>
           </div>
@@ -160,7 +194,7 @@ export default async function ServiceLayout({ serviceId }) {
           <div className="mx-auto grid max-w-[1480px] gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
             <div>
               <SectionEyebrow>Definition</SectionEyebrow>
-              <h2 className="font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{page.definition?.h2}</h2>
+              <h2 className="font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{stripTags(page.definition?.h2)}</h2>
             </div>
             <div className="rounded-[1.2rem] border border-black/8 bg-white p-8 shadow-[0_24px_80px_rgba(0,0,0,0.05)]">
               <div className="text-lg font-medium leading-relaxed text-black/60" dangerouslySetInnerHTML={{ __html: page.definition?.para || "" }} />
@@ -183,13 +217,13 @@ export default async function ServiceLayout({ serviceId }) {
         <section className="border-y border-black/8 bg-[#f9f5ec] px-5 py-24 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-[1480px]">
             <SectionEyebrow>Included</SectionEyebrow>
-            <h2 className="max-w-4xl font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{page.included?.h2}</h2>
-            <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <h2 className="max-w-4xl font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{stripTags(page.included?.h2)}</h2>
+            <div className={`mt-14 grid gap-4 md:grid-cols-2 ${includedItems.length === 1 ? "lg:grid-cols-1" : "lg:grid-cols-3"}`}>
               {includedItems.map((item, index) => (
                 <div key={index} className="rounded-[1.1rem] border border-black/8 bg-white p-7 shadow-[0_20px_70px_rgba(0,0,0,0.04)]">
                   <div className="mb-10 text-[10px] font-black uppercase tracking-[0.2em] text-[#6f8fa3]">0{index + 1}</div>
                   <h3 className="text-2xl font-black tracking-tight">{item.title}</h3>
-                  <p className="mt-4 text-sm font-medium leading-relaxed text-black/54">{item.desc}</p>
+                  <div className="mt-4 text-sm font-medium leading-relaxed text-black/54" dangerouslySetInnerHTML={{ __html: item.desc }} />
                 </div>
               ))}
             </div>
@@ -202,9 +236,9 @@ export default async function ServiceLayout({ serviceId }) {
           <div className="mx-auto grid max-w-[1280px] gap-8 border-y border-black/10 py-14 lg:grid-cols-[0.45fr_1fr] lg:items-start">
             <div>
               <SectionEyebrow>Fit</SectionEyebrow>
-              <h2 className="font-serif text-4xl font-medium leading-tight tracking-tight sm:text-6xl">{page.audience.h2}</h2>
+              <h2 className="font-serif text-4xl font-medium leading-tight tracking-tight sm:text-6xl">{stripTags(page.audience.h2)}</h2>
             </div>
-            <p className="text-xl font-medium leading-relaxed text-black/60" dangerouslySetInnerHTML={{ __html: page.audience.text }} />
+            <div className="text-xl font-medium leading-relaxed text-black/60" dangerouslySetInnerHTML={{ __html: page.audience.text }} />
           </div>
         </section>
       )}
@@ -222,7 +256,7 @@ export default async function ServiceLayout({ serviceId }) {
               )}
             </div>
             <div className="border-t border-white/10 pt-8 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
-              <p className="text-xl font-medium leading-relaxed text-white/68" dangerouslySetInnerHTML={{ __html: page.results?.text || page.results?.quote || "" }} />
+              <div className="text-xl font-medium leading-relaxed text-white/68" dangerouslySetInnerHTML={{ __html: page.results?.text || page.results?.quote || "" }} />
               {page.results?.note && <p className="mt-6 text-sm font-bold leading-relaxed text-white/42">{page.results.note}</p>}
               {page.results?.author && <p className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-[#6f8fa3]">{page.results.author}</p>}
             </div>
@@ -235,7 +269,7 @@ export default async function ServiceLayout({ serviceId }) {
           <div className="mx-auto grid max-w-[1480px] gap-12 lg:grid-cols-[0.72fr_1.28fr]">
             <div>
               <SectionEyebrow>Process</SectionEyebrow>
-              <h2 className="sticky top-32 font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{page.process?.h2}</h2>
+              <h2 className="sticky top-32 font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{stripTags(page.process?.h2)}</h2>
             </div>
             <div className="space-y-4">
               {processSteps.map((step, index) => (
@@ -243,7 +277,7 @@ export default async function ServiceLayout({ serviceId }) {
                   <div className="text-4xl font-black tracking-tight text-[#ad5b2b]">0{index + 1}</div>
                   <div>
                     <h3 className="text-3xl font-black tracking-tight">{step.title}</h3>
-                    <p className="mt-3 max-w-2xl text-base font-medium leading-relaxed text-black/54">{step.desc}</p>
+                    <div className="mt-3 max-w-2xl text-base font-medium leading-relaxed text-black/54" dangerouslySetInnerHTML={{ __html: step.desc }} />
                   </div>
                 </div>
               ))}
@@ -257,9 +291,9 @@ export default async function ServiceLayout({ serviceId }) {
           <div className="mx-auto grid max-w-[1280px] gap-8 lg:grid-cols-[0.45fr_1fr] lg:items-start">
             <div>
               <SectionEyebrow>Engagement</SectionEyebrow>
-              <h2 className="font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{page.engagement.h2}</h2>
+              <h2 className="font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{stripTags(page.engagement.h2)}</h2>
             </div>
-            <p className="text-xl font-medium leading-relaxed text-black/60" dangerouslySetInnerHTML={{ __html: page.engagement.text }} />
+            <div className="text-xl font-medium leading-relaxed text-black/60" dangerouslySetInnerHTML={{ __html: page.engagement.text }} />
           </div>
         </section>
       )}
@@ -268,7 +302,7 @@ export default async function ServiceLayout({ serviceId }) {
         <section className="border-y border-black/8 bg-white px-5 py-24 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-[1280px]">
             <SectionEyebrow>Pricing</SectionEyebrow>
-            <h2 className="max-w-4xl font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{page.pricing?.h2}</h2>
+            <h2 className="max-w-4xl font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{stripTags(page.pricing?.h2)}</h2>
             <div className="mt-14 grid gap-5 md:grid-cols-3">
               {[pricing.starter, pricing.growth, pricing.premium].filter(Boolean).map((tier, index) => (
                 <div key={tier.name} className={`rounded-[1.2rem] border p-7 ${index === 1 ? "border-[#ad5b2b]/35 bg-[#2f3438] text-white shadow-[0_30px_90px_rgba(47,52,56,0.22)]" : "border-black/8 bg-[#f9f5ec] text-[#2f3438]"}`}>
@@ -299,20 +333,20 @@ export default async function ServiceLayout({ serviceId }) {
               <article key={section.id || index} id={section.id || undefined} className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr]">
                 <div>
                   <SectionEyebrow>Service guide</SectionEyebrow>
-                  <h2 className="sticky top-32 font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl" dangerouslySetInnerHTML={{ __html: section.heading || "" }} />
+                  <h2 className="sticky top-32 font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{stripTags(section.heading)}</h2>
                 </div>
                 <div className="space-y-8">
                   <div className="space-y-6 text-lg font-medium leading-relaxed text-black/62">
                     {(section.content || []).filter(Boolean).map((paragraph, paragraphIndex) => (
-                      <p key={paragraphIndex} dangerouslySetInnerHTML={{ __html: paragraph }} />
+                      <div key={paragraphIndex} dangerouslySetInnerHTML={{ __html: paragraph }} />
                     ))}
                   </div>
                   {(section.subheadings || []).filter((subheading) => subheading.title || subheading.content?.length).map((subheading, subIndex) => (
                     <div key={subIndex} className="rounded-[1.1rem] border border-black/8 bg-white p-7 shadow-[0_20px_70px_rgba(0,0,0,0.04)]">
-                      {subheading.title && <h3 className="text-3xl font-black tracking-tight" dangerouslySetInnerHTML={{ __html: subheading.title }} />}
+                      {subheading.title && <h3 className="text-3xl font-black tracking-tight">{stripTags(subheading.title)}</h3>}
                       <div className="mt-4 space-y-4 text-base font-medium leading-relaxed text-black/54">
                         {(subheading.content || []).filter(Boolean).map((paragraph, paragraphIndex) => (
-                          <p key={paragraphIndex} dangerouslySetInnerHTML={{ __html: paragraph }} />
+                          <div key={paragraphIndex} dangerouslySetInnerHTML={{ __html: paragraph }} />
                         ))}
                       </div>
                     </div>
@@ -327,7 +361,7 @@ export default async function ServiceLayout({ serviceId }) {
       {page.faq?.visible !== false && faqs.length > 0 && (
         <section className="bg-[#f9f5ec] px-5 py-24 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-[1120px]">
-            <h2 className="font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{page.faq?.h2}</h2>
+            <h2 className="font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{stripTags(page.faq?.h2)}</h2>
             <div className="mt-12 divide-y divide-black/10 rounded-[1.1rem] border border-black/8 bg-white">
               {faqs.map((faq, index) => (
                 <details key={index} className="group [&_summary::-webkit-details-marker]:hidden">
@@ -335,7 +369,7 @@ export default async function ServiceLayout({ serviceId }) {
                     {faq.title}
                     <span className="text-[#ad5b2b] transition group-open:rotate-45">+</span>
                   </summary>
-                  <p className="px-7 pb-7 text-base font-medium leading-relaxed text-black/56" dangerouslySetInnerHTML={{ __html: faq.desc }} />
+                  <div className="px-7 pb-7 text-base font-medium leading-relaxed text-black/56" dangerouslySetInnerHTML={{ __html: faq.desc }} />
                 </details>
               ))}
             </div>
@@ -375,8 +409,8 @@ export default async function ServiceLayout({ serviceId }) {
         <section className="bg-white px-5 py-24 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-[1050px] rounded-[1.4rem] bg-[#2f3438] p-10 text-center text-white shadow-[0_35px_100px_rgba(47,52,56,0.22)] md:p-16">
             <SectionEyebrow light>Next step</SectionEyebrow>
-            <h2 className="font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{page.cta?.h2}</h2>
-            <p className="mx-auto mt-7 max-w-2xl text-lg font-medium leading-relaxed text-white/62" dangerouslySetInnerHTML={{ __html: page.cta?.text || "" }} />
+            <h2 className="font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{stripTags(page.cta?.h2)}</h2>
+            <div className="mx-auto mt-7 max-w-2xl text-lg font-medium leading-relaxed text-white/62" dangerouslySetInnerHTML={{ __html: page.cta?.text || "" }} />
             <Link href={page.cta?.btnLink || "/seoauditor"} className="mt-9 inline-flex rounded-md bg-[#ad5b2b] px-8 py-4 text-sm font-black text-white transition hover:bg-[#8d4822]">
               {page.cta?.btnText}
             </Link>

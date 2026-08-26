@@ -27,6 +27,36 @@ async function getCollectionMap(collectionName) {
   return docs;
 }
 
+const fieldFromObject = (item = {}, titleKeys = ["title", "name", "heading"], descKeys = ["desc", "description", "text"]) => {
+  const title = titleKeys.map((key) => item[key]).find(Boolean) || "";
+  const desc = descKeys.map((key) => item[key]).find(Boolean) || "";
+  return [title, desc];
+};
+
+const delimitedText = (value, delimiter, titleKeys, descKeys) => (
+  Array.isArray(value)
+    ? value.map((item) => fieldFromObject(item, titleKeys, descKeys).filter(Boolean).join(delimiter)).join("\n")
+    : value
+);
+
+function normalizeServiceImport(page = {}) {
+  return {
+    ...page,
+    included: page.included ? {
+      ...page.included,
+      items: delimitedText(page.included.items, ": ", ["title", "name", "heading"], ["desc", "description", "text"]),
+    } : page.included,
+    process: page.process ? {
+      ...page.process,
+      steps: delimitedText(page.process.steps, ": ", ["title", "name", "heading"], ["desc", "description", "text"]),
+    } : page.process,
+    faq: page.faq || page.faqs ? {
+      ...(page.faq || {}),
+      qas: delimitedText(page.faq?.qas || page.faqs, "|", ["q", "question", "title"], ["a", "answer", "desc"]),
+    } : page.faq,
+  };
+}
+
 export function useAdminContent() {
   const [user, setUser] = useState(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
@@ -139,8 +169,9 @@ export function useAdminContent() {
   };
 
   const handleServiceJsonImport = (payload) => {
-    const page = payload?.[activeTab] || payload;
-    if (!page || Array.isArray(page) || typeof page !== "object") return;
+    const rawPage = payload?.[activeTab] || payload;
+    if (!rawPage || Array.isArray(rawPage) || typeof rawPage !== "object") return;
+    const page = normalizeServiceImport(rawPage);
     setContent((prev) => ({
       ...prev,
       [activeTab]: mergeServicePageContent(activeTab, page),
