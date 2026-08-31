@@ -4,7 +4,7 @@ import { doc } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import ScrollProgressBar from '@/components/ScrollProgressBar';
-import { breadcrumbSchema, canonical, organizationSchema } from '@/lib/seo-config';
+import { breadcrumbSchema, canonical, jsonLd, organizationSchema } from '@/lib/seo-config';
 import { stripHtml } from '@/lib/html';
 import { safeGetDoc } from '@/lib/firestore-safe';
 import { hydrateCaseStudyRefs } from '@/lib/caseStudies';
@@ -143,9 +143,9 @@ export default async function BlogPostPage({ params }) {
   return (
     <div className="bg-[#f4efe4] text-[#2f3438] font-sans selection:bg-[#ad5b2b] selection:text-white min-h-screen relative">
       
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }} />
-      {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs) }} />
+      {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />}
 
      <ScrollProgressBar />
 

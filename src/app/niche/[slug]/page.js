@@ -3,7 +3,7 @@ import { db } from '@/lib/firebase';
 import { doc, collection, query, orderBy, limit } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { canonical } from '@/lib/seo-config';
+import { canonical, jsonLd } from '@/lib/seo-config';
 import { safeGetDoc, safeGetDocs } from '@/lib/firestore-safe';
 import { hydrateCaseStudyRefs } from '@/lib/caseStudies';
 import RelatedCaseStudies from '@/components/RelatedCaseStudies';
@@ -69,7 +69,7 @@ export default async function NicheLandingPage({ params }) {
 
   return (
     <div className="bg-[#f4efe4] text-[#2f3438] font-sans selection:bg-[#ad5b2b] selection:text-white min-h-screen">
-      {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />}
 
       <main className="pt-[140px] pb-24 max-w-7xl mx-auto px-6 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start relative">
         

@@ -2,6 +2,7 @@
 import React, { useRef } from 'react';
 import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { jsonLd } from '@/lib/seo-config';
 
 export default function ServicePageTemplate({ data }) {
   const isVisible = (sectionData) => sectionData?.visible !== false && sectionData?.visible !== 'false';
@@ -41,7 +42,7 @@ export default function ServicePageTemplate({ data }) {
 
   return (
     <div className="bg-[#fafafa] text-gray-900 font-sans selection:bg-cyan-300 selection:text-black min-h-screen overflow-hidden">
-      {isVisible(data?.faq) && faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
+      {isVisible(data?.faq) && faqs.length > 0 && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />}
 
       <main className="pt-32 pb-24 space-y-32">
         

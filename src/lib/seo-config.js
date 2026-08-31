@@ -20,6 +20,10 @@ export function canonical(path = "/") {
   return `${SITE_URL}${normalizedPath}`;
 }
 
+export function jsonLd(data) {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
+
 export function organizationSchema() {
   return {
     "@context": "https://schema.org",

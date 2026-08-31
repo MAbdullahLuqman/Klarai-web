@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import gsap from "gsap";
 import AuditSearchBar from "@/components/AuditSearchBar";
 import WebsitePreviewFrame from "@/components/WebsitePreviewFrame";
+import { jsonLd } from "@/lib/seo-config";
 
 const mountainVideo = "/hero-mountain-base.mp4";
 const mountainForegroundImage = "/images/hero-mountain-foreground-clean.webp";
@@ -185,7 +186,7 @@ export default function HomePage() {
       <div className="min-h-screen overflow-x-hidden bg-[#f4efe4] text-[#2f3438] selection:bg-[#ad5b2b] selection:text-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }}
       />
       <main>
         <section ref={heroRef} className="relative min-h-[720px] h-[100svh] bg-[#151b1e] md:min-h-[620px]">

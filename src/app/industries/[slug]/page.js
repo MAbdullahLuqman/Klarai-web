@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { doc } from "firebase/firestore";
-import { canonical, breadcrumbSchema, SITE_URL } from "@/lib/seo-config";
+import { canonical, breadcrumbSchema, jsonLd, SITE_URL } from "@/lib/seo-config";
 import { safeGetDoc } from "@/lib/firestore-safe";
 import { hydrateCaseStudyRefs } from "@/lib/caseStudies";
 import RelatedCaseStudies from "@/components/RelatedCaseStudies";
@@ -38,7 +38,7 @@ function FaqSchema({ qas }) {
       acceptedAnswer: { "@type": "Answer", text: q.a },
     })),
   };
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }} />;
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(json) }} />;
 }
 
 function ServiceSchema({ slug, page }) {
@@ -51,7 +51,7 @@ function ServiceSchema({ slug, page }) {
     areaServed: "United Kingdom",
     url: `${SITE_URL}/industries/${slug}`,
   };
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }} />;
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(json) }} />;
 }
 
 function sectionId(section, index) {
@@ -81,7 +81,7 @@ export default async function IndustrySlugPage({ params }) {
 
   return (
     <main className="min-h-screen bg-white px-5 pb-24 pt-28 text-[#171b1f] sm:px-8 lg:px-12">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumb) }} />
       <ServiceSchema slug={slug} page={page} />
       <FaqSchema qas={faqs} />
 

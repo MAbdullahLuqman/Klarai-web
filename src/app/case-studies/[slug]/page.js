@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { breadcrumbSchema, canonical, SITE_URL } from "@/lib/seo-config";
+import { breadcrumbSchema, canonical, jsonLd, SITE_URL } from "@/lib/seo-config";
 import { safeGetDoc } from "@/lib/firestore-safe";
 import { defaultCaseStudies } from "@/lib/case-study-content";
 
@@ -41,7 +41,7 @@ function JsonLd({ study }) {
     url: `${SITE_URL}/case-studies/${study.slug}`,
     author: { "@type": "Organization", name: "Klarai", url: SITE_URL },
   };
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }} />;
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(json) }} />;
 }
 
 function TextSection({ eyebrow, title, children }) {
@@ -69,7 +69,7 @@ export default async function CaseStudyDetailPage({ params }) {
   return (
     <main className="min-h-screen bg-[#f4efe4] px-5 pb-24 pt-32 text-[#2f3438] sm:px-8 lg:px-12">
       <JsonLd study={study} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumb) }} />
 
       <section className="mx-auto grid max-w-[1180px] gap-10 lg:grid-cols-[1fr_360px] lg:items-end">
         <div>

@@ -2,10 +2,12 @@ import { db } from "@/lib/firebase";
 import { doc } from "firebase/firestore";
 import { getServiceBySlug } from "@/lib/service-routing";
 import { canonical } from "@/lib/seo-config";
-import { mergeServicePageContent } from "@/lib/service-page-content";
+import { mergeServicePageContent, servicePageContent } from "@/lib/service-page-content";
 import { safeGetDoc } from "@/lib/firestore-safe";
 
 export const dynamic = "force-dynamic";
+
+const hardcodedServiceIds = new Set(["aeo", "seo", "web"]);
 
 export async function GET(request, { params }) {
   try {
@@ -15,8 +17,9 @@ export async function GET(request, { params }) {
       return new Response("Service architecture not found.", { status: 404 });
     }
 
-    const docSnap = await safeGetDoc(doc(db, "pages", service.id), `pages/${service.id} llms`);
-    const data = mergeServicePageContent(service.id, docSnap?.exists?.() ? docSnap.data() : {});
+    const data = hardcodedServiceIds.has(service.id)
+      ? servicePageContent[service.id]
+      : mergeServicePageContent(service.id, (await safeGetDoc(doc(db, "pages", service.id), `pages/${service.id} llms`))?.data?.() || {});
     if (!data.hero?.h1) return new Response("Service data not found.", { status: 404 });
 
     let mdContent = `# Klarai Core Architecture: ${data.hero?.h1 || service.label}\n\n`;

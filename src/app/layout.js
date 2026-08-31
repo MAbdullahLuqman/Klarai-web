@@ -1,7 +1,7 @@
 import "./globals.css";
 import GlobalHeader from '@/components/GlobalHeader'; 
 import GlobalFooter from '@/components/GlobalFooter'; 
-import { canonical, organizationSchema, SITE_URL, websiteSchema } from '@/lib/seo-config';
+import { canonical, jsonLd, organizationSchema, SITE_URL, websiteSchema } from '@/lib/seo-config';
 
 // THE FIX: Import the provider
 import { AdminModeProvider } from '@/context/AdminModeContext';
@@ -21,11 +21,11 @@ export default function RootLayout({ children }) {
       <body className="bg-[#030303] text-white flex flex-col min-h-screen antialiased">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema()) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(organizationSchema()) }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema()) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(websiteSchema()) }}
         />
         
         {/* THE FIX: Wrap your app inside the AdminModeProvider */}
