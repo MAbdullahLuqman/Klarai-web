@@ -19,6 +19,9 @@ export const metadata = {
   alternates: {
     canonical: canonical("/industries"),
   },
+  openGraph: {
+    url: canonical("/industries"),
+  },
 };
 
 export const dynamic = "force-dynamic";

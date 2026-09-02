@@ -6,6 +6,9 @@ export const metadata = {
   alternates: {
     canonical: canonical("/portfolio"),
   },
+  openGraph: {
+    url: canonical("/portfolio"),
+  },
 };
 
 export default function PortfolioLayout({ children }) {

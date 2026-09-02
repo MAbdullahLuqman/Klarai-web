@@ -4,7 +4,7 @@ import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { collection, doc, limit, query } from "firebase/firestore";
 import { notFound } from "next/navigation";
-import { jsonLd, removedNicheSlugs } from "@/lib/seo-config";
+import { jsonLd, removedNicheSlugs, SITE_URL } from "@/lib/seo-config";
 import { mergeServicePageContent } from "@/lib/service-page-content";
 import { safeGetDoc, safeGetDocs } from "@/lib/firestore-safe";
 import { hydrateCaseStudyRefs } from "@/lib/caseStudies";
@@ -137,7 +137,7 @@ export default async function ServiceLayout({ serviceId, pageOverride = null }) 
     provider: {
       "@type": "ProfessionalService",
       name: "Klarai",
-      url: "https://klarai.uk",
+      url: SITE_URL,
     },
     areaServed: "GB",
   };

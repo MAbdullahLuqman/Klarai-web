@@ -30,8 +30,8 @@ export default function PortfolioPage() {
   const currentProject = portfolioProjects[currentIndex];
 
   return (
-    <main className="min-h-screen bg-[#f4efe4] px-5 pb-24 pt-32 text-[#2f3438] sm:px-8 lg:px-12">
-      <div className="mx-auto max-w-[1480px]">
+    <main className="min-h-screen overflow-x-hidden bg-[#f4efe4] px-5 pb-24 pt-32 text-[#2f3438] sm:px-8 lg:px-12">
+      <div className="mx-auto w-full max-w-7xl">
         <section className="mb-12 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             <Link href="/" className="mb-8 inline-flex text-[10px] font-black uppercase tracking-[0.2em] text-black/38 transition hover:text-[#ad5b2b]">

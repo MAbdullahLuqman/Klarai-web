@@ -1,4 +1,4 @@
-import { SITE_URL } from "@/lib/seo-config";
+import { redirectedCaseStudySlugs, SITE_URL } from "@/lib/seo-config";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { defaultCaseStudySlugs } from "@/lib/case-study-content";
@@ -11,6 +11,7 @@ const staticRoutes = [
   "/case-studies",
   "/seoauditor",
   "/industries",
+  "/industries/seo-for-accountants",
   "/services",
   "/services/seo-services",
   "/services/aeo-services",
@@ -19,8 +20,6 @@ const staticRoutes = [
   "/services/seo-content-writing-services",
   "/services/white-label-seo-agency",
   "/blog",
-  "/privacy-policy",
-  "/terms-and-conditions",
 ];
 
 export default async function sitemap() {
@@ -44,7 +43,7 @@ export default async function sitemap() {
     // Registry not created yet — sitemap falls back to static routes only
   }
 
-  return [
+  const urls = [
     ...staticRoutes.map((p) => ({
       url: `${SITE_URL}${p || "/"}`,
       lastModified: now,
@@ -69,11 +68,18 @@ export default async function sitemap() {
       changeFrequency: "monthly",
       priority: 0.6,
     })),
-    ...Array.from(new Set([...defaultCaseStudySlugs, ...caseStudySlugs])).map((s) => ({
+    ...Array.from(new Set([...defaultCaseStudySlugs, ...caseStudySlugs])).filter((s) => !redirectedCaseStudySlugs.has(s)).map((s) => ({
       url: `${SITE_URL}/case-studies/${s}`,
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.7,
     })),
   ];
+
+  const seen = new Set();
+  return urls.filter(({ url }) => {
+    if (seen.has(url)) return false;
+    seen.add(url);
+    return true;
+  });
 }

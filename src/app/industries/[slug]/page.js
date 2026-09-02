@@ -24,6 +24,7 @@ export async function generateMetadata({ params }) {
     title: page.meta?.title || `${page.hero?.h1 || slug} | Klarai`,
     description: page.meta?.description || page.tldr?.text?.slice(0, 160) || "",
     alternates: { canonical: canonical(`/industries/${slug}`) },
+    openGraph: { url: canonical(`/industries/${slug}`) },
   };
 }
 

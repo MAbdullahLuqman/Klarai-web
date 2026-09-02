@@ -47,7 +47,7 @@ export default function WebsitePreviewFrame({
   );
 
   return (
-    <div className={`overflow-hidden rounded-[1.35rem] border bg-[#0d1214] shadow-[0_35px_100px_rgba(0,0,0,0.18)] ${className}`}>
+    <div className={`w-full max-w-full overflow-hidden rounded-[1.35rem] border bg-[#0d1214] shadow-[0_35px_100px_rgba(0,0,0,0.18)] ${className}`}>
       <div className={`flex h-12 items-center justify-between border-b border-white/10 bg-[#151b1e] px-4 ${chromeClassName}`}>
         <div className="flex shrink-0 gap-2">
           <span className="h-3 w-3 rounded-full bg-[#ff5f56]" />

@@ -6,6 +6,9 @@ export const metadata = {
   alternates: {
     canonical: canonical("/seoauditor"),
   },
+  openGraph: {
+    url: canonical("/seoauditor"),
+  },
 };
 
 export default function SeoAuditorLayout({ children }) {

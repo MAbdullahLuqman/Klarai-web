@@ -13,6 +13,9 @@ export const metadata = {
   alternates: {
     canonical: canonical("/"),
   },
+  openGraph: {
+    url: canonical("/"),
+  },
 };
 
 export default function RootLayout({ children }) {

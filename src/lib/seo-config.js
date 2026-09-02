@@ -1,5 +1,7 @@
-export const SITE_URL = "https://klarai.uk";
+export const SITE_URL = "https://www.klarai.uk";
 export const SITE_NAME = "Klarai";
+const SITE_HOST = new URL(SITE_URL).hostname;
+const OWN_HOSTS = new Set(["klarai.uk", SITE_HOST]);
 
 export const removedNicheRedirects = {
   "/niche/seo-for-pest-control": "/services/seo-services",
@@ -14,8 +16,17 @@ export const removedNicheSlugs = new Set(
   Object.keys(removedNicheRedirects).map((path) => path.replace("/niche/", ""))
 );
 
+export const redirectedCaseStudySlugs = new Set(["pitchside-ai"]);
+
 export function canonical(path = "/") {
-  if (/^https?:\/\//.test(path)) return path;
+  if (/^https?:\/\//.test(path)) {
+    const url = new URL(path);
+    if (!OWN_HOSTS.has(url.hostname)) return path;
+    url.protocol = "https:";
+    url.hostname = SITE_HOST;
+    url.port = "";
+    return url.toString();
+  }
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${SITE_URL}${normalizedPath}`;
 }

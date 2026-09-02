@@ -6,6 +6,9 @@ export const metadata = {
   alternates: {
     canonical: canonical("/about"),
   },
+  openGraph: {
+    url: canonical("/about"),
+  },
 };
 
 export default function AboutLayout({ children }) {

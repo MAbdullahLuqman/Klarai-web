@@ -47,15 +47,15 @@
    - `/services/seo-services`, `/services/aeo-services`, `/services/web-development`
 3. **Update existing blog posts** via `/admin` panel using Part A:
    - `/blog/seo-for-plumbers`, `/blog/seo-for-garages-uk`, `/blog/what-is-answer-engine-optimisation`, `/blog/plumbing-seo-keywords`
-4. **Resubmit sitemap** at `https://klarai.uk/sitemap.xml` in Google Search Console.
+4. **Resubmit sitemap** at `https://www.klarai.uk/sitemap.xml` in Google Search Console.
 5. **Request reindex** in GSC for: the 3 new industries, 4 new blog posts, and all 6 redirected niche URLs.
 6. **Honesty checks before publishing live**: no fake testimonials, Pitchside AI reference only with Dave Coombs' written approval, Klarai GBP must be live before recommending GBP best practice.
 7. Monitor plumber + garage clusters in GSC for ranking movement over the next 4 weeks.
 
 ## Prior Cleanup (kept)
 
-- Canonical host standardised to `https://klarai.uk`.
-- `robots.txt` points at `https://klarai.uk/sitemap.xml`.
+- Canonical host standardised to `https://www.klarai.uk`.
+- `robots.txt` points at `https://www.klarai.uk/sitemap.xml`.
 - Sitewide `Organization` and `WebSite` JSON-LD.
 - Blog post schema is `BlogPosting`; `BreadcrumbList` added.
 - `klarai.com` canonicals in generated `llms.txt` routes corrected.

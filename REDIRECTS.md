@@ -1,8 +1,10 @@
 # Redirects
 
-Canonical host: `https://klarai.uk`
+Canonical host: `https://www.klarai.uk`
 
-All redirects are enforced via `next.config.mjs` (`async redirects()`), returning HTTP 301.
+Host redirects are handled in `src/proxy.js`. Retired path redirects are enforced via `next.config.mjs` and `src/proxy.js`.
+
+Vercel should set `www.klarai.uk` as the primary production domain and permanently redirect `klarai.uk` to `www.klarai.uk`.
 
 | From | To | Status | Reason |
 | --- | --- | --- | --- |
@@ -12,6 +14,7 @@ All redirects are enforced via `next.config.mjs` (`async redirects()`), returnin
 | `/niche/web-design-for-tuning-garages-uk` | `/industries/seo-for-garages` | 301 | Consolidated into new garage industry hub. |
 | `/niche/web-design-for-architects-uk` | `/services/web-development` | 301 | Thin niche page consolidated into core web development service. |
 | `/niche/seo-for-plumbers` | `/blog/seo-for-plumbers` | 301 | Thin duplicate consolidated into the stronger plumber blog post. |
+| `/case-studies/pitchside-ai` | `/case-studies/pitchside-ai-free-tools-strategy` | 301 | Sparse duplicate consolidated into the full Pitchside case study. |
 
 ## Page-level redirects (already in place)
 

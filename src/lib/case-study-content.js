@@ -51,7 +51,7 @@ export const defaultCaseStudies = {
     contentType: "case-study",
     canonicalPath: "/case-studies/klarai-zero-domain-authority-geo-aeo-growth",
     clientName: "Klarai",
-    clientWebsite: "https://klarai.uk",
+    clientWebsite: "https://www.klarai.uk",
     industry: "Digital Agency / UK SEO",
     primaryService: "GEO / AEO / SEO",
     projectType: "New-domain organic growth",

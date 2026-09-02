@@ -13,6 +13,9 @@ export const metadata = {
   alternates: {
     canonical: canonical("/services"),
   },
+  openGraph: {
+    url: canonical("/services"),
+  },
 };
 
 const serviceCards = [

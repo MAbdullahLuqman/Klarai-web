@@ -26,6 +26,9 @@ export async function generateMetadata({ params }) {
     alternates: {
       canonical: canonical(service.path),
     },
+    openGraph: {
+      url: canonical(service.path),
+    },
   };
 }
 

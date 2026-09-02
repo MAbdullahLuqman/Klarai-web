@@ -21,6 +21,7 @@ const nextConfig = {
       { source: '/niche/web-design-for-tuning-garages-uk', destination: '/industries/seo-for-garages', permanent: true },
       { source: '/niche/web-design-for-architects-uk', destination: '/services/web-development', permanent: true },
       { source: '/niche/seo-for-plumbers', destination: '/blog/seo-for-plumbers', permanent: true },
+      { source: '/case-studies/pitchside-ai', destination: '/case-studies/pitchside-ai-free-tools-strategy', permanent: true },
     ];
   },
 };

@@ -151,14 +151,14 @@ export default function HomePage() {
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
       tl.fromTo(".hero-sky-night", { autoAlpha: 0.92 }, { autoAlpha: 0.2, duration: 2.2 }, 0)
-        .fromTo(".hero-video-base", { scale: 1.06, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 1.8, ease: "power2.out" }, 0)
+        .fromTo(".hero-video-base", { scale: 1, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 1.8, ease: "power2.out" }, 0)
         .fromTo(
           ".hero-brand-letter",
           { yPercent: 125, scale: 0.72, rotationX: -38, autoAlpha: 0 },
           { yPercent: 0, scale: 1, rotationX: 0, autoAlpha: 1, duration: 1.35, stagger: 0.09, ease: "back.out(1.35)" },
           0.45,
         )
-        .fromTo(".hero-mountain-foreground", { yPercent: 18, scale: 1.1 }, { yPercent: 0, scale: 1, duration: 2.15, ease: "power2.out" }, 0.2)
+        .fromTo(".hero-mountain-foreground", { yPercent: 18, scale: 1 }, { yPercent: 0, scale: 1, duration: 2.15, ease: "power2.out" }, 0.2)
         .fromTo(".hero-mountain-shade", { autoAlpha: 0 }, { autoAlpha: 0.68, duration: 1.8 }, 0.65)
         .fromTo(".hero-content", { y: 34, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.15 }, 1.25);
     }, heroRef);
@@ -212,7 +212,7 @@ export default function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 mx-auto max-w-[1480px]"
+            className="relative z-10 mx-auto w-full max-w-7xl"
           >
             <p className="mb-5 text-[10px] font-black uppercase tracking-[0.24em] text-black/36">
               What we do
@@ -245,8 +245,8 @@ export default function HomePage() {
           </motion.div>
         </section>
 
-        <section className="relative overflow-visible bg-[#2f3438] px-5 py-24 text-white sm:px-8 lg:px-12">
-          <div className="mx-auto grid max-w-[1480px] gap-12 lg:grid-cols-[0.84fr_1.16fr]">
+        <section className="relative overflow-hidden bg-[#2f3438] px-5 py-24 text-white sm:px-8 lg:px-12">
+          <div className="mx-auto grid w-full max-w-7xl gap-12 lg:grid-cols-[0.84fr_1.16fr]">
             <div className="lg:sticky lg:top-28 lg:h-fit">
               <p className="mb-5 text-[10px] font-black uppercase tracking-[0.24em] text-[#e0b48b]">
                 Selected work
@@ -306,7 +306,7 @@ export default function HomePage() {
         </section>
 
         <section className="px-5 py-24 sm:px-8 lg:px-12">
-          <div className="mx-auto grid max-w-[1480px] gap-12 lg:grid-cols-[0.72fr_1.28fr]">
+          <div className="mx-auto grid w-full max-w-7xl gap-12 lg:grid-cols-[0.72fr_1.28fr]">
             <div>
               <p className="mb-5 text-[10px] font-black uppercase tracking-[0.24em] text-black/36">
                 Our process
@@ -330,7 +330,7 @@ export default function HomePage() {
         </section>
 
         <section className="border-y border-black/8 bg-white px-5 py-16 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-[1480px]">
+          <div className="mx-auto w-full max-w-7xl">
             <div className="grid gap-4 text-center md:grid-cols-3">
               {["UK-based", "Results-focused, no lock-in contracts", "Founder-led delivery"].map((item) => (
                 <div key={item} className="rounded-[1rem] border border-black/8 px-6 py-7 text-sm font-black uppercase tracking-[0.13em] text-black/62">
@@ -345,7 +345,7 @@ export default function HomePage() {
         </section>
 
         <section className="px-5 py-24 sm:px-8 lg:px-12">
-          <div className="mx-auto grid max-w-[1480px] gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div className="mx-auto grid w-full max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <h2 className="font-serif text-4xl font-medium leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl">
               Engineered by people who build, not just talk.
             </h2>
