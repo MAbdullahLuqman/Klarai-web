@@ -1,85 +1,66 @@
-import { redirectedCaseStudySlugs, SITE_URL } from "@/lib/seo-config";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
-import { defaultCaseStudySlugs } from "@/lib/case-study-content";
+import { SITE_URL } from "@/lib/seo-config";
 
-const staticRoutes = [
+const urls = [
   "",
+  "/services",
+  "/industries",
+  "/blog",
+  "/case-studies",
+  "/portfolio",
   "/about",
   "/contact",
-  "/portfolio",
-  "/case-studies",
   "/seoauditor",
-  "/industries",
-  "/industries/seo-for-accountants",
-  "/services",
+
   "/services/seo-services",
   "/services/aeo-services",
   "/services/web-development",
   "/services/technical-seo-audit",
   "/services/seo-content-writing-services",
   "/services/white-label-seo-agency",
-  "/blog",
+
+  "/industries/seo-for-accountants",
+  "/industries/aeo-for-local-business",
+  "/industries/seo-for-saas",
+  "/industries/saas-website-design-agency",
+  "/industries/seo-for-dentists",
+  "/industries/seo-for-garages",
+  "/industries/seo-for-plumbers",
+
+  "/case-studies/pitchside-ai-free-tools-strategy",
+  "/case-studies/klarai-zero-domain-authority-geo-aeo-growth",
+
+  "/blog/how-to-do-seo-for-accountants",
+  "/blog/what-technical-seo-audit-includes",
+  "/blog/agencies-that-redesign-websites-for-fast-growing-saas-companies",
+  "/blog/saas-website-design-agency",
+  "/blog/how-to-do-seo-for-dentists",
+  "/blog/what-is-answer-engine-optimisation",
+  "/blog/seo-for-garages-uk",
+  "/blog/plumbing-seo-keywords",
+  "/blog/seo-for-plumbers",
+  "/blog/aeo-vs-seo-vs-geo",
+  "/blog/how-to-rank-google-ai-overviews-uk",
+  "/privacy-policy",
+  "/terms-and-conditions",
 ];
 
-export default async function sitemap() {
-  const now = new Date();
-
-  // Fetch slug registry — single getDoc, always permitted by Firestore rules
-  let blogSlugs = [];
-  let industrySlugs = [];
-  let nicheSlugs = [];
-  let caseStudySlugs = [];
-  try {
-    const snap = await getDoc(doc(db, "_meta", "slugs"));
-    if (snap.exists()) {
-      const data = snap.data();
-      blogSlugs = data.blogSlugs || [];
-      industrySlugs = data.industrySlugs || [];
-      nicheSlugs = data.nicheSlugs || [];
-      caseStudySlugs = data.caseStudySlugs || [];
-    }
-  } catch {
-    // Registry not created yet — sitemap falls back to static routes only
-  }
-
-  const urls = [
-    ...staticRoutes.map((p) => ({
-      url: `${SITE_URL}${p || "/"}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: p === "" ? 1 : 0.7,
-    })),
-    ...industrySlugs.map((s) => ({
-      url: `${SITE_URL}/industries/${s}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    })),
-    ...nicheSlugs.map((s) => ({
-      url: `${SITE_URL}/niche/${s}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.7,
-    })),
-    ...blogSlugs.map((s) => ({
-      url: `${SITE_URL}/blog/${s}`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    })),
-    ...Array.from(new Set([...defaultCaseStudySlugs, ...caseStudySlugs])).filter((s) => !redirectedCaseStudySlugs.has(s)).map((s) => ({
-      url: `${SITE_URL}/case-studies/${s}`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    })),
-  ];
-
-  const seen = new Set();
-  return urls.filter(({ url }) => {
-    if (seen.has(url)) return false;
-    seen.add(url);
-    return true;
-  });
+export default function sitemap() {
+  return urls.map((path) => ({
+    url: `${SITE_URL}${path || "/"}`,
+    changeFrequency: path.startsWith("/blog/")
+      ? "monthly"
+      : path === ""
+        ? "weekly"
+        : "monthly",
+    priority:
+      path === ""
+        ? 1
+        : path.startsWith("/services/")
+          ? 0.9
+          : path.startsWith("/industries/")
+            ? 0.9
+            : path.startsWith("/blog/")
+              ? 0.7
+              : 0.6,
+  }));
 }
