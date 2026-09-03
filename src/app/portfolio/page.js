@@ -8,20 +8,47 @@ import WebsitePreviewFrame from "@/components/WebsitePreviewFrame";
 
 const portfolioProjects = [
   {
-    id: "atelier-architect",
-    title: "Atelier architectural portfolio",
-    description: "A calm editorial landing page for an architecture studio, built around spatial hierarchy, restrained motion, and strong first-viewport brand clarity.",
-    techStack: "Next.js, Framer Motion, Tailwind CSS",
-    liveUrl: "https://architect-landing-page.vercel.app/",
-    githubUrl: "https://github.com/MAbdullahLuqman/architect-landing-page",
-  },
-  {
     id: "pitchside",
     title: "Pitchside AI web experience",
     description: "A sports-tech homepage and search foundation built before launch so the platform can capture demand from day one.",
     techStack: "React, frontend development, responsive UI",
     liveUrl: "https://pitchside.ai",
     githubUrl: "https://github.com/MAbdullahLuqman/pticheside",
+  },
+  {
+    id: "asa-educators",
+    title: "ASA Educators",
+    description: "An education website built to present programmes, trust signals, and contact routes in a simple structure for students and parents.",
+    techStack: "Website design, content structure, responsive build",
+    liveUrl: "https://www.asaeducators.com/",
+    githubUrl: "#",
+    canEmbed: false,
+  },
+  {
+    id: "flowvix-solutions",
+    title: "Flowvix Solutions",
+    description: "A service-business website focused on clear positioning, fast scanning, and direct enquiry paths for visitors comparing solutions.",
+    techStack: "Web design, responsive UI, conversion layout",
+    liveUrl: "https://flowvix-solutions.vercel.app/",
+    githubUrl: "#",
+    isMockup: true,
+  },
+  {
+    id: "wash-pass",
+    title: "Wash Pass",
+    description: "A car-wash subscription concept with a product-style interface, pricing flow, and mobile-first landing experience.",
+    techStack: "Product mockup, SaaS landing page, responsive UI",
+    liveUrl: "https://wash-pass-io-mock.vercel.app/",
+    githubUrl: "#",
+    isMockup: true,
+  },
+  {
+    id: "atelier-architect",
+    title: "Atelier architectural portfolio",
+    description: "A calm editorial landing page for an architecture studio, built around spatial hierarchy, restrained motion, and strong first-viewport brand clarity.",
+    techStack: "Next.js, Framer Motion, Tailwind CSS",
+    liveUrl: "https://architect-landing-page.vercel.app/",
+    githubUrl: "https://github.com/MAbdullahLuqman/architect-landing-page",
   },
 ];
 
@@ -73,6 +100,11 @@ export default function PortfolioPage() {
           >
             <aside className="rounded-[1.1rem] border border-black/8 bg-white p-7 shadow-[0_24px_80px_rgba(0,0,0,0.05)] lg:sticky lg:top-28">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ad5b2b]">Featured project</p>
+              {currentProject.isMockup && (
+                <p className="mt-4 inline-flex rounded-md border border-[#ad5b2b]/20 bg-[#f9f5ec] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-[#9b542a]">
+                  Mockup
+                </p>
+              )}
               <h2 className="mt-5 text-4xl font-black leading-tight tracking-tight">{currentProject.title}</h2>
               <p className="mt-5 text-base font-medium leading-relaxed text-black/56">{currentProject.description}</p>
               <p className="mt-7 text-[10px] font-black uppercase tracking-[0.18em] text-black/38">{currentProject.techStack}</p>
@@ -91,6 +123,7 @@ export default function PortfolioPage() {
             <WebsitePreviewFrame
               url={currentProject.liveUrl}
               title={`${currentProject.title} preview`}
+              canEmbed={currentProject.canEmbed !== false}
               desktopHeight={1180}
               className="border-black/10"
               viewportClassName="min-h-[360px]"

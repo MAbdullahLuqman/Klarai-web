@@ -14,6 +14,7 @@ export default function WebsitePreviewFrame({
   chromeClassName = "",
   viewportClassName = "",
   action,
+  canEmbed = true,
 }) {
   const viewportRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -61,19 +62,37 @@ export default function WebsitePreviewFrame({
       </div>
 
       <div ref={viewportRef} className={`relative overflow-hidden bg-white ${viewportClassName}`} style={{ height: Math.round(desktopHeight * scale) || desktopHeight }}>
-        <iframe
-          src={url}
-          title={title}
-          loading="lazy"
-          allowFullScreen
-          className="absolute left-0 top-0 border-0"
-          style={{
-            width: DESKTOP_WIDTH,
-            height: desktopHeight,
-            transform: `scale(${scale})`,
-            transformOrigin: "top left",
-          }}
-        />
+        {canEmbed ? (
+          <iframe
+            src={url}
+            title={title}
+            loading="lazy"
+            allowFullScreen
+            className="absolute left-0 top-0 border-0"
+            style={{
+              width: DESKTOP_WIDTH,
+              height: desktopHeight,
+              transform: `scale(${scale})`,
+              transformOrigin: "top left",
+            }}
+          />
+        ) : (
+          <div className="flex h-full min-h-[360px] flex-col items-center justify-center bg-[#f4efe4] p-8 text-center text-[#2f3438]">
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-black/38">Preview unavailable</p>
+            <h3 className="mt-4 max-w-md text-3xl font-black tracking-tight">{title}</h3>
+            <p className="mt-4 max-w-sm text-sm font-medium leading-relaxed text-black/56">
+              This live site blocks embedded previews, so open it in a new tab.
+            </p>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-7 inline-flex items-center gap-2 rounded-md bg-[#ad5b2b] px-6 py-3.5 text-sm font-black text-white transition hover:bg-[#8d4822]"
+            >
+              Open site <Maximize2 size={15} />
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
