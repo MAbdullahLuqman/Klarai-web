@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SiteHero from "@/components/SiteHero";
 import { canonical } from "@/lib/seo-config";
 import ContactForm from "./ContactForm";
 
@@ -14,42 +15,8 @@ export const metadata = {
 };
 
 export default function ContactPage() {
-  return (
-    <main className="min-h-screen bg-[#f4efe4] px-5 pb-24 pt-36 text-[#2f3438] sm:px-8 lg:px-12">
-      <section className="mx-auto grid max-w-[1180px] gap-12 lg:grid-cols-[0.88fr_0.82fr] lg:items-start">
-        <div>
-          <p className="mb-5 text-[10px] font-black uppercase tracking-[0.24em] text-black/36">
-            Contact
-          </p>
-          <h1 className="font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl lg:text-8xl">
-            Talk to Klarai about search visibility.
-          </h1>
-          <p className="mt-7 max-w-2xl text-lg font-medium leading-relaxed text-black/58">
-            Send your name and email. We will reply with the shortest useful next step.
-          </p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <a
-              href="mailto:abdullah@klarai.uk?subject=Klarai%20project%20enquiry"
-              className="rounded-md bg-[#ad5b2b] px-7 py-4 text-center text-sm font-black text-white transition hover:bg-[#8d4822]"
-            >
-              Email abdullah@klarai.uk
-            </a>
-            <Link
-              href="/seoauditor"
-              className="rounded-md border border-[#ad5b2b] px-7 py-4 text-center text-sm font-black text-[#9b542a] transition hover:bg-white"
-            >
-              Run SEO Audit
-            </Link>
-          </div>
-          <div className="mt-10 grid gap-3 text-sm font-bold text-black/54 sm:grid-cols-3">
-            <div className="rounded-md border border-black/8 bg-white/60 p-4">Name</div>
-            <div className="rounded-md border border-black/8 bg-white/60 p-4">Email</div>
-            <div className="rounded-md border border-black/8 bg-white/60 p-4">No hard sell</div>
-          </div>
-        </div>
-
-        <ContactForm />
-      </section>
-    </main>
-  );
+  return <div className="site-page">
+    <SiteHero eyebrow="Contact" description="A question, a project, or an idea. Tell us where you want to go and we’ll work out the next step together.">Let’s make<br /><em>something happen.</em></SiteHero>
+    <section className="home-container site-contact-layout"><address><p className="home-eyebrow">Say hello</p><p>Talk directly to the person<br />building your next chapter.</p><p><a className="site-contact-email" href="mailto:abdullah@klarai.uk">abdullah@klarai.uk ↗</a></p><p>Prefer to start with your website?<br />An audit is a useful first look.</p><Link href="/seoauditor" className="home-button">Run an SEO audit ↗</Link></address><ContactForm /></section>
+  </div>;
 }

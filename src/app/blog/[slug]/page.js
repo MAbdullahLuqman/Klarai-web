@@ -39,29 +39,29 @@ const renderComparisonCards = (comp, basePath, slug) => {
   if (!comp || !comp.cards || comp.cards.length === 0) return null;
   
   return (
-    <div className="my-16 grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch w-full">
+    <div className="site-detail site-reading my-16 grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch w-full">
       {comp.cards.map((card, idx) => {
         const isHighlighted = card.badge && card.badge.trim() !== '';
 
         return (
           <div key={idx} className={`relative flex flex-col rounded-[1.5rem] p-6 md:p-8 transition-all duration-500 border-2 ${
             isHighlighted 
-              ? 'bg-gradient-to-b from-[#0A101D] to-[#061422] border-[#008dd8] shadow-[0_20px_50px_rgba(0,141,216,0.15)] md:-translate-y-2 z-10' 
+              ? 'bg-gradient-to-b from-[#2f3438] to-[#061422] border-[#ad5b2b] shadow-[0_20px_50px_rgba(0,141,216,0.15)] md:-translate-y-2 z-10' 
               : 'bg-[#111111] border-white/5 hover:border-white/10 shadow-xl'
           }`}>
             
             {isHighlighted && (
               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-[90%] text-center">
-                <span className="bg-[#e0f2fe] text-[#008dd8] text-[10px] font-black uppercase tracking-[0.1em] px-4 py-2 rounded-full shadow-lg border border-[#bae6fd] inline-block w-fit max-w-full truncate">
+                <span className="bg-[#e0f2fe] text-[#ad5b2b] text-[10px] font-black uppercase tracking-[0.1em] px-4 py-2 rounded-full shadow-lg border border-[#bae6fd] inline-block w-fit max-w-full truncate">
                   <LiveEditableField docId={slug} fieldPath={`${basePath}.cards.${idx}.badge`} initialHtml={card.badge} isHeading={true} />
                 </span>
               </div>
             )}
 
-            <div className={`flex flex-col gap-3 mb-6 pb-6 border-b ${isHighlighted ? 'border-[#008dd8]/30' : 'border-white/10'}`}>
+            <div className={`flex flex-col gap-3 mb-6 pb-6 border-b ${isHighlighted ? 'border-[#ad5b2b]/30' : 'border-white/10'}`}>
                <div className="flex items-center gap-4">
                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl shrink-0 shadow-inner ${
-                   isHighlighted ? 'bg-white text-[#0A101D]' : 'bg-[#1a1a1a] text-white border border-white/10'
+                   isHighlighted ? 'bg-white text-[#2f3438]' : 'bg-[#1a1a1a] text-white border border-white/10'
                  }`}>
                    <LiveEditableField docId={slug} fieldPath={`${basePath}.cards.${idx}.icon`} initialHtml={card.icon} isHeading={true} />
                  </div>
@@ -79,7 +79,7 @@ const renderComparisonCards = (comp, basePath, slug) => {
             <div className="space-y-6 flex-1">
               {card.metrics?.map((m, mIdx) => (
                 <div key={mIdx}>
-                  <div className={`text-[11px] uppercase tracking-[0.15em] font-black mb-1.5 ${isHighlighted ? 'text-[#008dd8]' : 'text-blue-400/60'}`}>
+                  <div className={`text-[11px] uppercase tracking-[0.15em] font-black mb-1.5 ${isHighlighted ? 'text-[#ad5b2b]' : 'text-blue-400/60'}`}>
                     <LiveEditableField docId={slug} fieldPath={`${basePath}.cards.${idx}.metrics.${mIdx}.label`} initialHtml={m.label} isHeading={true} />
                   </div>
                   <div className={`text-[14px] font-medium leading-relaxed ${isHighlighted ? 'text-gray-100' : 'text-gray-300'}`}>
@@ -142,7 +142,7 @@ export default async function BlogPostPage({ params }) {
   } : null;
 
   return (
-    <div className="bg-[#f4efe4] text-[#2f3438] font-sans selection:bg-[#ad5b2b] selection:text-white min-h-screen relative">
+    <div className="site-detail site-reading bg-[#f4efe4] text-[#2f3438] font-sans selection:bg-[#ad5b2b] selection:text-white min-h-screen relative">
       
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(articleSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs) }} />
@@ -150,7 +150,7 @@ export default async function BlogPostPage({ params }) {
 
      <ScrollProgressBar />
 
-      <main className="pt-[140px] pb-24 max-w-[1000px] mx-auto px-6 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start relative">
+      <div className="pt-[140px] pb-24 max-w-[1000px] mx-auto px-6 flex flex-col lg:flex-row gap-12 lg:gap-16 items-start relative">
         
         <article className="flex-1 w-full space-y-12 md:space-y-16">
           
@@ -196,7 +196,7 @@ export default async function BlogPostPage({ params }) {
           {/* MAIN BLOG QUESTION */}
           {post.quickAnswer && (
             <section className="pt-8 scroll-mt-32">
-              <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-[#0A101D]">
+              <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-[#2f3438]">
                 <LiveEditableField docId={slug} fieldPath="quickAnswer" initialHtml={post.quickAnswer} isHeading={true} />
               </h2>
             </section>
@@ -216,7 +216,7 @@ export default async function BlogPostPage({ params }) {
           {post.downloadAsset?.enabled === true && (
             <section className="rounded-[1.35rem] border border-[#ad5b2b]/20 bg-white p-8 shadow-[0_24px_80px_rgba(0,0,0,0.05)]">
               <p className="mb-4 text-[10px] font-black uppercase tracking-[0.22em] text-[#ad5b2b]">Download resource</p>
-              <h2 className="text-3xl font-black tracking-tight text-[#0A101D]">
+              <h2 className="text-3xl font-black tracking-tight text-[#2f3438]">
                 <LiveEditableField docId={slug} fieldPath="downloadAsset.title" initialHtml={post.downloadAsset.title || "Download the guide"} isHeading={true} />
               </h2>
               {post.downloadAsset.description && (
@@ -243,7 +243,7 @@ export default async function BlogPostPage({ params }) {
           {/* DYNAMIC SECTIONS (H2, H3, Lists, SaaS Cards) */}
           {post.sections && post.sections.map((sec, i) => (
             <section key={i} id={sec.id} className="space-y-6 pt-8 scroll-mt-32">
-              <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-[#0A101D]">
+              <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-[#2f3438]">
                 <LiveEditableField docId={slug} fieldPath={`sections.${i}.heading`} initialHtml={sec.heading} isHeading={true} />
               </h2>
               
@@ -264,10 +264,10 @@ export default async function BlogPostPage({ params }) {
               })}
 
               {sec.list && sec.list.length > 0 && sec.list[0] !== "" && (
-                <ul className={`space-y-4 pl-2 pt-4 ${sec.contentType === 'howto' ? 'list-decimal ml-6 font-bold text-[#0A101D] text-lg' : ''}`}>
+                <ul className={`space-y-4 pl-2 pt-4 ${sec.contentType === 'howto' ? 'list-decimal ml-6 font-bold text-[#2f3438] text-lg' : ''}`}>
                   {sec.list.map((item, idx) => (
                     <li key={idx} className={`leading-relaxed ${sec.contentType === 'howto' ? 'pl-2' : 'flex items-start gap-3'}`}>
-                      {sec.contentType !== 'howto' && <span className="text-[#008dd8] font-black mt-1">✓</span>}
+                      {sec.contentType !== 'howto' && <span className="text-[#ad5b2b] font-black mt-1">✓</span>}
                       <span className={sec.contentType !== 'howto' ? "text-gray-700 font-medium text-lg" : "block mt-1 font-medium text-gray-600 text-lg"}>
                         <LiveEditableField docId={slug} fieldPath={`sections.${i}.list.${idx}`} initialHtml={item} isHeading={true} />
                       </span>
@@ -281,7 +281,7 @@ export default async function BlogPostPage({ params }) {
 
               {sec.subheadings?.map((sub, idx) => (
                 <div key={idx} className="pt-8 space-y-5">
-                  <h3 className="text-2xl font-black tracking-tight text-[#0A101D]">
+                  <h3 className="text-2xl font-black tracking-tight text-[#2f3438]">
                     <LiveEditableField docId={slug} fieldPath={`sections.${i}.subheadings.${idx}.title`} initialHtml={sub.title} isHeading={true} />
                   </h3>
                   
@@ -313,9 +313,9 @@ export default async function BlogPostPage({ params }) {
 
           {/* DARK PREMIUM CTA BLOCK */}
           {post.toolBlock && post.toolBlock.title && (
-            <section className="bg-[#0A101D] border border-gray-800 p-10 md:p-14 rounded-[2.5rem] text-center mt-12 relative overflow-hidden shadow-2xl">
+            <section className="bg-[#2f3438] border border-gray-800 p-10 md:p-14 rounded-[2.5rem] text-center mt-12 relative overflow-hidden shadow-2xl">
               <div className="absolute top-[-50px] right-[-50px] w-64 h-64 bg-[#ccff00]/10 blur-[80px] rounded-full pointer-events-none"></div>
-              <div className="absolute bottom-[-50px] left-[-50px] w-40 h-40 bg-[#008dd8]/20 blur-[60px] rounded-full pointer-events-none"></div>
+              <div className="absolute bottom-[-50px] left-[-50px] w-40 h-40 bg-[#ad5b2b]/20 blur-[60px] rounded-full pointer-events-none"></div>
               
               <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-white mb-4 relative z-10">
                 <LiveEditableField docId={slug} fieldPath="toolBlock.title" initialHtml={post.toolBlock.title} isHeading={true} />
@@ -324,7 +324,7 @@ export default async function BlogPostPage({ params }) {
                 <LiveEditableField docId={slug} fieldPath="toolBlock.description" initialHtml={post.toolBlock.description} isHeading={true} />
               </div>
 
-              <Link href={post.toolBlock.ctaLink || post.toolBlock.ctaHref || "/seoauditor"} className="relative z-10 inline-flex items-center gap-2 bg-[#ccff00] text-[#0A101D] px-10 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:bg-[#b3e600] transition-all active:scale-95 shadow-[0_10px_30px_rgba(204,255,0,0.2)]">
+              <Link href={post.toolBlock.ctaLink || post.toolBlock.ctaHref || "/seoauditor"} className="relative z-10 inline-flex items-center gap-2 bg-[#ccff00] text-[#2f3438] px-10 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:bg-[#b3e600] transition-all active:scale-95 shadow-[0_10px_30px_rgba(204,255,0,0.2)]">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 {post.toolBlock.ctaText || post.toolBlock.cta || "Start audit"}
               </Link>
@@ -334,13 +334,13 @@ export default async function BlogPostPage({ params }) {
           {/* FAQs */}
           {post.faqs && post.faqs.length > 0 && post.faqs[0].question && (
             <section className="pt-16 border-t border-gray-200 space-y-6">
-              <h2 className="text-3xl font-black tracking-tighter text-[#0A101D]">Frequently Asked Questions</h2>
+              <h2 className="text-3xl font-black tracking-tighter text-[#2f3438]">Frequently Asked Questions</h2>
               <div className="space-y-4">
                 {post.faqs.map((faq, i) => (
-                  <details key={i} className="group border border-gray-200 bg-white rounded-2xl [&_summary::-webkit-details-marker]:hidden cursor-pointer shadow-sm hover:border-[#008dd8]/30 transition-colors">
+                  <details key={i} className="group border border-gray-200 bg-white rounded-2xl [&_summary::-webkit-details-marker]:hidden cursor-pointer shadow-sm hover:border-[#ad5b2b]/30 transition-colors">
                     <summary className="flex items-center justify-between p-6 font-bold text-lg text-gray-900">
                       <LiveEditableField docId={slug} fieldPath={`faqs.${i}.question`} initialHtml={faq.question} isHeading={true} />
-                      <span className="transition group-open:rotate-180 text-[#008dd8]">
+                      <span className="transition group-open:rotate-180 text-[#ad5b2b]">
                         <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
                       </span>
                     </summary>
@@ -364,11 +364,11 @@ export default async function BlogPostPage({ params }) {
             <ul className="space-y-4 text-sm font-bold">
               {post.sections?.map((sec, i) => sec.heading && (
                 <li key={i}>
-                  <a href={`#${sec.id}`} className="text-gray-500 hover:text-[#008dd8] transition-colors block">{stripHtml(sec.heading)}</a>
+                  <a href={`#${sec.id}`} className="text-gray-500 hover:text-[#ad5b2b] transition-colors block">{stripHtml(sec.heading)}</a>
                   {sec.subheadings?.length > 0 && (
                     <ul className="pl-4 mt-3 space-y-3 border-l-2 border-gray-100 ml-2">
                       {sec.subheadings.map((sub, idx) => sub.title && (
-                        <li key={idx}><a href={`#${sec.id}`} className="text-gray-400 hover:text-[#0A101D] font-medium text-[12px]">{stripHtml(sub.title)}</a></li>
+                        <li key={idx}><a href={`#${sec.id}`} className="text-gray-400 hover:text-[#2f3438] font-medium text-[12px]">{stripHtml(sub.title)}</a></li>
                       ))}
                     </ul>
                   )}
@@ -377,7 +377,7 @@ export default async function BlogPostPage({ params }) {
             </ul>
             
             <div className="mt-10 pt-8 border-t border-gray-100">
-               <Link href="/seoauditor" className="flex items-center justify-center gap-2 w-full bg-[#ccff00] text-[#0A101D] py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-[#b3e600] transition-all shadow-md">
+               <Link href="/seoauditor" className="flex items-center justify-center gap-2 w-full bg-[#ccff00] text-[#2f3438] py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-[#b3e600] transition-all shadow-md">
                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                  Initiate Sequence
                </Link>
@@ -385,7 +385,7 @@ export default async function BlogPostPage({ params }) {
           </div>
         </aside>
 
-      </main>
+      </div>
     </div>
   );
 }

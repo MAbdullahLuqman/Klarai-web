@@ -1,15 +1,12 @@
-"use client";
-
-import React, { useState } from "react";
-import { ExternalLink, Github, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import WebsitePreviewFrame from "@/components/WebsitePreviewFrame";
+import Image from "next/image";
+import SiteHero from "@/components/SiteHero";
 
 const portfolioProjects = [
   {
     id: "pitchside",
-    title: "Pitchside AI web experience",
+    title: "Pitchside.ai",
+    logo: "/brands/pitchside.webp", logoClass: "home-logo-pitchside", width: 384, height: 46,
     description: "A sports-tech homepage and search foundation built before launch so the platform can capture demand from day one.",
     techStack: "React, frontend development, responsive UI",
     liveUrl: "https://pitchside.ai",
@@ -18,6 +15,7 @@ const portfolioProjects = [
   {
     id: "asa-educators",
     title: "ASA Educators",
+    logo: "/brands/asa-educators.webp", logoClass: "home-logo-asa", width: 384, height: 442,
     description: "An education website built to present programmes, trust signals, and contact routes in a simple structure for students and parents.",
     techStack: "Website design, content structure, responsive build",
     liveUrl: "https://www.asaeducators.com/",
@@ -52,85 +50,28 @@ const portfolioProjects = [
   },
 ];
 
+
+const brands = [
+  ...portfolioProjects.slice(0, 2),
+  { id: "drifty", title: "Drifty.so", logo: "/brands/drifty.png", logoClass: "home-logo-drifty", width: 2030, height: 1035, liveUrl: "https://drifty.so", description: "A brand we’ve worked with.", techStack: "Digital experience" },
+  { id: "rovolto", title: "Rovolto", logo: "/brands/rovolto.jpeg", logoClass: "home-logo-rovolto", width: 200, height: 200, description: "A brand we’ve worked with.", techStack: "Client collaboration" },
+  { id: "backhouse", title: "Backhouse Care Home", description: "A new website is taking shape. More to share when it’s ready.", techStack: "Under construction" },
+];
 export default function PortfolioPage() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const currentProject = portfolioProjects[currentIndex];
-
-  return (
-    <main className="min-h-screen overflow-x-hidden bg-[#f4efe4] px-5 pb-24 pt-32 text-[#2f3438] sm:px-8 lg:px-12">
-      <div className="mx-auto w-full max-w-7xl">
-        <section className="mb-12 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-          <div>
-            <Link href="/" className="mb-8 inline-flex text-[10px] font-black uppercase tracking-[0.2em] text-black/38 transition hover:text-[#ad5b2b]">
-              Back to home
-            </Link>
-            <p className="mb-5 text-[10px] font-black uppercase tracking-[0.24em] text-black/36">
-              Selected work
-            </p>
-            <h1 className="font-serif text-6xl font-medium leading-[0.96] tracking-tight sm:text-8xl">
-              Real builds with visible architecture.
-            </h1>
-          </div>
-          <div className="lg:justify-self-end">
-            <p className="max-w-2xl text-lg font-medium leading-relaxed text-black/58">
-              A focused record of Klarai web experiences, search foundations, and interface systems. More work will be added as the portfolio grows.
-            </p>
-            <div className="mt-8 flex items-center gap-3">
-              <button onClick={() => setCurrentIndex((prev) => (prev - 1 + portfolioProjects.length) % portfolioProjects.length)} className="grid h-12 w-12 place-items-center rounded-full border border-black/10 bg-white text-[#2f3438] transition hover:border-[#ad5b2b] hover:text-[#ad5b2b]" aria-label="Previous project">
-                <ChevronLeft size={20} />
-              </button>
-              <div className="min-w-24 text-center text-[10px] font-black uppercase tracking-[0.18em] text-black/38">
-                0{currentIndex + 1} / 0{portfolioProjects.length}
-              </div>
-              <button onClick={() => setCurrentIndex((prev) => (prev + 1) % portfolioProjects.length)} className="grid h-12 w-12 place-items-center rounded-full border border-black/10 bg-white text-[#2f3438] transition hover:border-[#ad5b2b] hover:text-[#ad5b2b]" aria-label="Next project">
-                <ChevronRight size={20} />
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <AnimatePresence mode="wait">
-          <motion.section
-            key={currentProject.id}
-            initial={{ opacity: 0, y: 34 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -24 }}
-            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="grid gap-8 lg:grid-cols-[0.38fr_0.62fr] lg:items-start"
-          >
-            <aside className="rounded-[1.1rem] border border-black/8 bg-white p-7 shadow-[0_24px_80px_rgba(0,0,0,0.05)] lg:sticky lg:top-28">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ad5b2b]">Featured project</p>
-              {currentProject.isMockup && (
-                <p className="mt-4 inline-flex rounded-md border border-[#ad5b2b]/20 bg-[#f9f5ec] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-[#9b542a]">
-                  Mockup
-                </p>
-              )}
-              <h2 className="mt-5 text-4xl font-black leading-tight tracking-tight">{currentProject.title}</h2>
-              <p className="mt-5 text-base font-medium leading-relaxed text-black/56">{currentProject.description}</p>
-              <p className="mt-7 text-[10px] font-black uppercase tracking-[0.18em] text-black/38">{currentProject.techStack}</p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col">
-                <a href={currentProject.liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-md bg-[#ad5b2b] px-6 py-3.5 text-sm font-black text-white transition hover:bg-[#8d4822]">
-                  Live demo <ExternalLink size={16} />
-                </a>
-                {currentProject.githubUrl !== "#" && (
-                  <a href={currentProject.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 rounded-md border border-[#ad5b2b] px-6 py-3.5 text-sm font-black text-[#9b542a] transition hover:bg-[#f9f5ec]">
-                    Source code <Github size={16} />
-                  </a>
-                )}
-              </div>
-            </aside>
-
-            <WebsitePreviewFrame
-              url={currentProject.liveUrl}
-              title={`${currentProject.title} preview`}
-              canEmbed={currentProject.canEmbed !== false}
-              desktopHeight={1180}
-              className="border-black/10"
-              viewportClassName="min-h-[360px]"
-            />
-          </motion.section>
-        </AnimatePresence>
-      </div>
-    </main>
-  );
+  const featured = brands[0];
+  return <div className="site-page site-portfolio">
+    <SiteHero eyebrow="Selected work" description="Different businesses, shared ambition. A look at the brands we’ve worked with and the websites we’ve brought to life." actions={<Link className="home-button" href="#client-work">Explore the work ↓</Link>}>Good partnerships.<br /><em>Thoughtful websites.</em></SiteHero>
+    <section id="client-work" className="home-container site-featured-project" aria-labelledby="featured-title">
+      <Link href="/case-studies/pitchside-ai-free-tools-strategy" className="site-featured-preview"><Image src="/images/pitchside-case-study-01.png" alt="Pitchside.ai website, designed for grassroots football" fill sizes="(max-width: 767px) calc(100vw - 48px), 1200px" className="object-cover object-top" /><span className="site-featured-label">Featured collaboration / 01</span></Link>
+      <div className="site-featured-copy"><div><span className="home-eyebrow">Sports technology</span><h2 id="featured-title">{featured.title}</h2></div><div><p>{featured.description}</p><div className="home-actions"><Link href="/case-studies/pitchside-ai-free-tools-strategy" className="home-button home-button-solid">Read the story ↗</Link><a href={featured.liveUrl} target="_blank" rel="noopener noreferrer" className="home-button">Visit website ↗</a></div></div></div>
+    </section>
+    <section className="home-container site-section" aria-labelledby="collaborations-title"><div className="home-section-intro"><p className="home-eyebrow">Shared ambitions</p><h2 id="collaborations-title" className="site-section-title">More good <em>company.</em></h2></div><div className="site-work-grid site-portfolio-brands">
+      {brands.slice(1).map((project, index) => <article className={`site-work-card ${project.id === "rovolto" ? "site-rovolto-card" : ""}`} key={project.id}>
+        <div className="site-brand-preview">{project.logo ? <span className={`home-brand-logo ${project.logoClass}`}><Image src={project.logo} alt={project.title} width={project.width} height={project.height} /></span> : <span className="site-preview-wordmark site-italic">{project.title}</span>}</div>
+        <div className="site-work-body"><span className="site-number">0{index + 2} / {project.techStack}</span><h3>{project.title}</h3><p>{project.description}</p>{project.liveUrl && <div className="home-actions"><a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="home-button">Visit website ↗</a></div>}</div>
+      </article>)}
+    </div></section>
+    <section className="site-portfolio-experiments site-section"><div className="home-container"><p className="home-eyebrow">Design & development explorations</p><h2 className="site-section-title">Room to <em>explore.</em></h2><div className="site-editorial-rows">{portfolioProjects.slice(2).map((project, index) => <article className="site-editorial-row" key={project.id}><span className="site-number">0{index + 1}</span><div><h3>{project.title}</h3><span className="site-project-kind">{project.isMockup ? "Concept / mockup" : "Portfolio build"}</span></div><div><p>{project.description}</p><div className="home-actions mt-6"><a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="home-button">{project.isMockup ? "View concept" : "View build"} ↗</a>{project.githubUrl !== "#" && <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="home-button">Source code ↗</a>}</div></div></article>)}</div></div></section>
+    <section className="site-callout"><div className="home-container"><h2>Your brand.<br /><em>Our next chapter.</em></h2><p>Let’s build something that feels right for your business.</p><Link href="/contact" className="home-button home-button-solid">Work with us ↗</Link></div></section>
+  </div>;
 }

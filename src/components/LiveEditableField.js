@@ -55,10 +55,8 @@ export default function LiveEditableField({ collectionName = 'blog_posts', docId
   const renderedContent = normalizeStoredHtml(content);
   const cleanHeading = renderedContent.replace(/^<\/?p[^>]*>/g, '').replace(/<\/?p[^>]*>$/g, '');
 
-  if (!mounted || authLoading) return <div className="opacity-0">{content}</div>; 
-
   // VERSION 1: PUBLIC VIEW
-  if (!isAdminLoggedIn || viewMode === 'user') {
+  if (!mounted || authLoading || !isAdminLoggedIn || viewMode === 'user') {
     if (isHeading) {
       return <span dangerouslySetInnerHTML={{ __html: cleanHeading }} />;
     }

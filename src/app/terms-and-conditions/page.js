@@ -32,7 +32,7 @@ const sections = [
 
 export default function TermsConditions() {
   return (
-    <main className="min-h-screen bg-[#f4efe4] px-5 pb-24 pt-32 text-[#2f3438] sm:px-8 lg:px-12">
+    <div className="site-detail site-reading min-h-screen bg-[#f4efe4] px-5 pb-24 pt-32 text-[#2f3438] sm:px-8 lg:px-12">
       <div className="mx-auto max-w-4xl">
         <p className="mb-5 text-[10px] font-black uppercase tracking-[0.24em] text-black/36">
           Legal
@@ -56,6 +56,6 @@ export default function TermsConditions() {
           ))}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

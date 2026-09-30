@@ -1,4 +1,7 @@
 import "./globals.css";
+import "./home.css";
+import "./site.css";
+import PublicSiteFrame from "@/components/PublicSiteFrame";
 import GlobalHeader from '@/components/GlobalHeader'; 
 import GlobalFooter from '@/components/GlobalFooter'; 
 import { canonical, jsonLd, organizationSchema, SITE_URL, websiteSchema } from '@/lib/seo-config';
@@ -34,6 +37,7 @@ export default function RootLayout({ children }) {
         {/* THE FIX: Wrap your app inside the AdminModeProvider */}
         <AdminModeProvider>
           
+          <PublicSiteFrame>
           <GlobalHeader />
 
           <main className="flex-grow flex flex-col relative w-full">
@@ -41,6 +45,7 @@ export default function RootLayout({ children }) {
           </main>
 
           <GlobalFooter />
+          </PublicSiteFrame>
           
         </AdminModeProvider>
 

@@ -1,4 +1,5 @@
-import React from "react";
+import SiteHero from "@/components/SiteHero";
+import HomepageServices from "@/components/HomepageServices";
 import Image from "next/image";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
@@ -98,6 +99,8 @@ export default async function ServiceLayout({ serviceId, pageOverride = null }) 
   const docSnap = pageOverride ? null : await safeGetDoc(doc(db, "pages", serviceId), `pages/${serviceId}`);
   const page = pageOverride || mergeServicePageContent(serviceId, docSnap?.exists?.() ? docSnap.data() : {});
   if (!page.hero?.h1) notFound();
+  const heroTitle = stripTags(page.hero.h1);
+  const heroBreak = heroTitle.lastIndexOf(" ");
   const relatedCaseStudies = await hydrateCaseStudyRefs(page.relatedCaseStudies || []);
 
   let activeNiches = [];
@@ -149,48 +152,17 @@ export default async function ServiceLayout({ serviceId, pageOverride = null }) 
   };
 
   return (
-    <div className="min-h-screen bg-[#f4efe4] text-[#2f3438] selection:bg-[#ad5b2b] selection:text-white">
+    <div className="site-detail site-service min-h-screen bg-[#f4efe4] text-[#2f3438] selection:bg-[#ad5b2b] selection:text-white">
       <JsonLdScript data={serviceSchema} />
       {faqSchema && <JsonLdScript data={faqSchema} />}
 
-      {page.hero?.visible !== false && (
-        <section className="relative overflow-hidden bg-[#1f2528] px-5 pb-16 pt-40 text-white sm:px-8 lg:px-12">
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(31,37,40,0.94),rgba(31,37,40,0.72),rgba(31,37,40,0.36)),url('/klarai-service-hero.jpg')] bg-cover bg-center" />
-          <div className="relative mx-auto grid max-w-[1480px] gap-10 lg:grid-cols-[1fr_0.72fr] lg:items-end">
-            <div>
-              <SectionEyebrow light>{page.hero?.eyebrow || "Klarai service"}</SectionEyebrow>
-              <h1 className="max-w-5xl font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl lg:text-8xl">
-                {stripTags(page.hero?.h1)}
-              </h1>
-            </div>
-            <div className="rounded-[1.2rem] border border-white/12 bg-white/12 p-7 shadow-[0_24px_80px_rgba(0,0,0,0.18)] backdrop-blur-sm">
-              <div className="text-lg font-medium leading-relaxed text-white/72" dangerouslySetInnerHTML={{ __html: page.hero?.sub || "" }} />
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                {page.hero?.btn1Text && (
-                  <Link href={page.hero.btn1Link || "/contact"} className="rounded-md bg-[#ad5b2b] px-6 py-3.5 text-center text-sm font-black text-white transition hover:bg-[#8d4822]">
-                    {page.hero.btn1Text}
-                  </Link>
-                )}
-                {page.hero?.btn2Text && (
-                  <Link href={page.hero.btn2Link || "/services"} className="rounded-md border border-white/24 px-6 py-3.5 text-center text-sm font-black text-white transition hover:bg-white/10">
-                    {page.hero.btn2Text}
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-          {proofStats.length > 0 && (
-            <div className="relative mx-auto mt-14 grid max-w-[1480px] gap-px overflow-hidden rounded-[1.1rem] border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
-              {proofStats.map((stat, index) => (
-                <div key={index} className="bg-[#1f2528]/72 p-5 backdrop-blur-sm">
-                  <div className="font-serif text-3xl font-medium text-[#e0b48b]">{stat.value}</div>
-                  <p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-white/58">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
+      {page.hero?.visible !== false && <>
+        <SiteHero eyebrow={page.hero.eyebrow || "Klarai services"} description={stripTags(page.hero.sub)} actions={<>
+          {page.hero.btn1Text && <Link className="home-button home-button-solid" href={page.hero.btn1Link || "/contact"}>{page.hero.btn1Text} ↗</Link>}
+          {page.hero.btn2Text && <Link className="home-button" href={page.hero.btn2Link || "/services"}>{page.hero.btn2Text} ↗</Link>}
+        </>}>{heroBreak > 0 ? <>{heroTitle.slice(0, heroBreak)} <em>{heroTitle.slice(heroBreak + 1)}</em></> : <em>{heroTitle}</em>}</SiteHero>
+        {proofStats.length > 0 && <div className="home-container site-service-proof">{proofStats.map((stat, index) => <div key={index}><strong>{stat.value}</strong><p>{stat.label}</p></div>)}</div>}
+      </>}
 
       {page.tldr?.visible !== false && page.tldr?.text && (
         <section className="px-5 py-16 sm:px-8 lg:px-12">
@@ -241,23 +213,11 @@ export default async function ServiceLayout({ serviceId, pageOverride = null }) 
         </section>
       )}
 
-      {page.included?.visible !== false && includedItems.length > 0 && (
-        <section className="border-y border-black/8 bg-[#f9f5ec] px-5 py-24 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-[1480px]">
-            <SectionEyebrow>Included</SectionEyebrow>
-            <h2 className="max-w-4xl font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{stripTags(page.included?.h2)}</h2>
-            <div className={`mt-14 grid gap-4 md:grid-cols-2 ${includedItems.length === 1 ? "lg:grid-cols-1" : "lg:grid-cols-3"}`}>
-              {includedItems.map((item, index) => (
-                <div key={index} className="rounded-[1.1rem] border border-black/8 bg-white p-7 shadow-[0_20px_70px_rgba(0,0,0,0.04)]">
-                  <div className="mb-10 text-[10px] font-black uppercase tracking-[0.2em] text-[#6f8fa3]">0{index + 1}</div>
-                  <h3 className="text-2xl font-black tracking-tight">{item.title}</h3>
-                  <div className="mt-4 text-sm font-medium leading-relaxed text-black/54" dangerouslySetInnerHTML={{ __html: item.desc }} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {page.included?.visible !== false && includedItems.length > 0 && <section className="home-services site-section">
+        <div className="home-container"><div className="home-section-intro"><p className="home-eyebrow">What’s included</p><h2 className="site-section-title">{stripTags(page.included.h2)}</h2></div>
+          <HomepageServices services={includedItems.map(item => ({ title: item.title, body: stripTags(item.desc) }))} />
+        </div>
+      </section>}
 
       {page.audience?.visible !== false && page.audience?.text && (
         <section className="px-5 py-20 sm:px-8 lg:px-12">
@@ -379,27 +339,10 @@ export default async function ServiceLayout({ serviceId, pageOverride = null }) 
         </section>
       )}
 
-      {page.process?.visible !== false && processSteps.length > 0 && (
-        <section className="px-5 py-24 sm:px-8 lg:px-12">
-          <div className="mx-auto grid max-w-[1480px] gap-12 lg:grid-cols-[0.72fr_1.28fr]">
-            <div>
-              <SectionEyebrow>Process</SectionEyebrow>
-              <h2 className="sticky top-32 font-serif text-5xl font-medium leading-[0.98] tracking-tight sm:text-7xl">{stripTags(page.process?.h2)}</h2>
-            </div>
-            <div className="space-y-4">
-              {processSteps.map((step, index) => (
-                <div key={index} className="grid gap-6 rounded-[1.1rem] border border-black/8 bg-white p-7 shadow-[0_24px_80px_rgba(0,0,0,0.05)] sm:grid-cols-[0.2fr_1fr]">
-                  <div className="text-4xl font-black tracking-tight text-[#ad5b2b]">0{index + 1}</div>
-                  <div>
-                    <h3 className="text-3xl font-black tracking-tight">{step.title}</h3>
-                    <div className="mt-3 max-w-2xl text-base font-medium leading-relaxed text-black/54" dangerouslySetInnerHTML={{ __html: step.desc }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {page.process?.visible !== false && processSteps.length > 0 && <section className="site-section home-container">
+        <p className="home-eyebrow">Our process</p><h2 className="site-section-title">{stripTags(page.process.h2)}</h2>
+        <div className="site-editorial-rows">{processSteps.map((step, index) => <article className="site-editorial-row" key={index}><span className="site-number">0{index + 1}</span><h3>{step.title}</h3><div className="site-row-copy" dangerouslySetInnerHTML={{ __html: step.desc }} /></article>)}</div>
+      </section>}
 
       {page.engagement?.visible !== false && page.engagement?.text && (
         <section className="border-y border-black/8 bg-white px-5 py-24 sm:px-8 lg:px-12">

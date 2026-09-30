@@ -81,7 +81,7 @@ export default async function IndustrySlugPage({ params }) {
   ]);
 
   return (
-    <main className="min-h-screen bg-white px-5 pb-24 pt-28 text-[#171b1f] sm:px-8 lg:px-12">
+    <div className="site-detail site-reading min-h-screen bg-white px-5 pb-24 pt-28 text-[#2f3438] sm:px-8 lg:px-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumb) }} />
       <ServiceSchema slug={slug} page={page} />
       <FaqSchema qas={faqs} />
@@ -91,7 +91,7 @@ export default async function IndustrySlugPage({ params }) {
           <div className="sticky top-28 space-y-9">
             {sectionsWithIds.length > 0 && (
               <nav className="border-b border-black/10 pb-8">
-                <p className="mb-6 text-[9px] font-black uppercase tracking-[0.28em] text-[#9cc600]">Contents</p>
+                <p className="mb-6 text-[9px] font-black uppercase tracking-[0.28em] text-[#914820]">Contents</p>
                 <ul className="space-y-4">
                   {sectionsWithIds.map((section) => (
                     <li key={section.id}>
@@ -106,12 +106,12 @@ export default async function IndustrySlugPage({ params }) {
 
             {related.length > 0 && (
               <div>
-                <p className="mb-5 text-[9px] font-black uppercase tracking-[0.28em] text-[#9cc600]">More to read</p>
+                <p className="mb-5 text-[9px] font-black uppercase tracking-[0.28em] text-[#914820]">More to read</p>
                 <div className="space-y-5">
                   {related.slice(0, 4).map((r, i) => (
                     <Link key={i} href={r.href} className="block">
-                      <p className="mb-1 text-[9px] font-black uppercase tracking-[0.22em] text-[#9cc600]">Guide</p>
-                      <p className="text-[13px] font-black leading-5 text-black transition hover:text-[#628000]">{r.label}</p>
+                      <p className="mb-1 text-[9px] font-black uppercase tracking-[0.22em] text-[#914820]">Guide</p>
+                      <p className="text-[13px] font-black leading-5 text-black transition hover:text-[#914820]">{r.label}</p>
                     </Link>
                   ))}
                 </div>
@@ -122,8 +122,8 @@ export default async function IndustrySlugPage({ params }) {
 
         <article className="min-w-0">
           <header className="mb-10">
-            <p className="mb-5 text-[10px] font-black uppercase tracking-[0.28em] text-[#9cc600]">Industry hub</p>
-            <h1 className="font-serif text-5xl font-medium leading-[1.02] tracking-tight text-[#171b1f] sm:text-7xl">
+            <p className="mb-5 text-[10px] font-black uppercase tracking-[0.28em] text-[#914820]">Industry hub</p>
+            <h1 className="font-serif text-5xl font-medium leading-[1.02] tracking-tight text-[#2f3438] sm:text-7xl">
               {page.hero?.h1}
             </h1>
             {page.hero?.sub && (
@@ -138,7 +138,7 @@ export default async function IndustrySlugPage({ params }) {
           )}
 
           {page.tldr?.text && (
-            <section className="mb-12 rounded-[1.1rem] border border-[#b9ff00] bg-[#fbfff4] p-8">
+            <section className="mb-12 rounded-[1.1rem] border border-[#ad5b2b] bg-[#f9f5ec] p-8">
               <p className="mb-5 text-[10px] font-black uppercase tracking-[0.24em] text-black/70">Executive summary</p>
               <p className="text-base font-medium leading-8 text-black/78">{page.tldr.text}</p>
             </section>
@@ -153,7 +153,7 @@ export default async function IndustrySlugPage({ params }) {
           <div className="space-y-20">
           {sectionsWithIds.map((s, i) => (
             <section key={i} id={s.id} className="scroll-mt-32">
-              <h2 className="font-mono text-3xl font-black uppercase tracking-tight text-[#171b1f]">{s.h2}</h2>
+              <h2 className="font-mono text-3xl font-black uppercase tracking-tight text-[#2f3438]">{s.h2}</h2>
               <div className="mt-6 space-y-5">
                 {s.paras?.map((p, idx) => (
                   <p key={idx} className="text-base font-medium leading-8 text-black/62">{p}</p>
@@ -211,7 +211,7 @@ export default async function IndustrySlugPage({ params }) {
           {relatedCaseStudies.length > 0 && <RelatedCaseStudies studies={relatedCaseStudies} />}
 
           {page.cta && (
-            <section className="mt-20 rounded-[1rem] border border-[#b9ff00] bg-[#080a0d] px-7 py-14 text-center text-white sm:px-10">
+            <section className="mt-20 rounded-[1rem] border border-[#ad5b2b] bg-[#080a0d] px-7 py-14 text-center text-white sm:px-10">
               <h2 className="mx-auto max-w-3xl font-mono text-3xl font-black uppercase leading-[1.08] sm:text-4xl">
                 {page.cta.heading}
               </h2>
@@ -232,6 +232,6 @@ export default async function IndustrySlugPage({ params }) {
           )}
         </article>
       </div>
-    </main>
+    </div>
   );
 }

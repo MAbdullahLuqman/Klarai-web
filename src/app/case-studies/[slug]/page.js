@@ -1,4 +1,5 @@
 import React from "react";
+import SiteHero from "@/components/SiteHero";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -96,37 +97,12 @@ function PitchsideHardcodedCaseStudy({ study, breadcrumb }) {
   ];
 
   return (
-    <main className="bg-[#f4efe4] text-[#151b1e]">
+    <div className="site-detail site-reading site-case bg-[#f4efe4] text-[#151b1e]">
       <JsonLd study={study} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumb) }} />
 
-      <section className="px-5 pt-28 sm:px-8">
-        <div className="relative mx-auto h-[78vh] max-w-[1400px] overflow-hidden rounded-lg border border-black/10 bg-black shadow-[0_40px_120px_rgba(0,0,0,0.18)]">
-          <Image src={pitchsideImages[0].src} alt="Pitchside.ai homepage hero" fill priority sizes="(max-width: 768px) 100vw, 1400px" className="object-cover object-[center_4%]" />
-        </div>
-      </section>
-
-      <section className="mx-auto grid max-w-[1400px] gap-4 px-5 py-6 sm:px-8 lg:grid-cols-[1fr_340px]">
-        <div className="bg-white/52 p-7 sm:p-9">
-          <Link href="/case-studies" className="mb-6 inline-flex text-[10px] font-black uppercase tracking-[0.24em] text-black/38 transition hover:text-[#ad5b2b]">
-            Back to case studies
-          </Link>
-          <h1 className="max-w-5xl text-4xl font-black leading-[0.94] tracking-tight text-[#151b1e] sm:text-6xl lg:text-[clamp(3rem,4.2vw,5rem)]">
-            Pitchside AI is a football recording and highlights platform built for grassroots teams, players and parents.
-          </h1>
-        </div>
-        <aside className="bg-[#0b3a2a] p-7 text-white sm:p-9">
-          <p className="mb-6 text-[10px] font-black uppercase tracking-[0.22em] text-[#e0b48b]">Project Details</p>
-          <dl className="space-y-5 text-sm leading-relaxed text-white/66">
-            {details.map(([label, value]) => (
-              <div key={label}>
-                <dt className="font-black text-[#e0b48b]">{label}</dt>
-                <dd className="mt-1">{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </aside>
-      </section>
+      <SiteHero eyebrow="Case study / Pitchside.ai" description="A football recording and highlights platform for grassroots teams, players, and parents. Search strategy and a web experience built for launch." actions={<a className="home-button" href="https://pitchside.ai" target="_blank" rel="noopener noreferrer">Visit Pitchside.ai ↗</a>}>Built for the game.<br /><em>Ready to be found.</em></SiteHero>
+      <section className="home-container"><div className="site-case-hero-image"><Image src={pitchsideImages[0].src} alt="Pitchside.ai homepage" fill priority sizes="(max-width: 767px) calc(100vw - 48px), 1200px" className="object-cover object-top" /></div><dl className="site-case-details">{details.map(([label, value]) => <div key={label}><dt className="home-eyebrow">{label}</dt><dd>{value}</dd></div>)}</dl></section>
 
       <section className="mx-auto grid max-w-6xl gap-12 px-5 py-24 sm:px-8 md:grid-cols-3">
         {sections.map(([heading, body]) => (
@@ -195,7 +171,7 @@ function PitchsideHardcodedCaseStudy({ study, breadcrumb }) {
           </div>
         </div>
       </footer>
-    </main>
+    </div>
   );
 }
 
@@ -221,11 +197,11 @@ export default async function CaseStudyDetailPage({ params }) {
   ].filter(([label]) => label !== "Metrics" || study.metrics?.length);
 
   return (
-    <main className="min-h-screen bg-[#f4efe4] text-[#2f3438]">
+    <div className="site-detail site-reading min-h-screen bg-[#f4efe4] text-[#2f3438]">
       <JsonLd study={study} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumb) }} />
 
-      <section className="px-5 pb-14 pt-32 sm:px-8 lg:h-screen lg:px-12 lg:pb-8 lg:pt-24">
+      <section className="px-5 pb-14 pt-32 sm:px-8 lg:px-12 lg:pb-8 lg:pt-24">
         <div className="mx-auto flex h-full max-w-[1480px] flex-col lg:min-h-0">
           <Link href="/case-studies" className="mb-7 inline-flex text-[10px] font-black uppercase tracking-[0.2em] text-black/38 transition-[color,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:text-[#ad5b2b] active:scale-[0.98] lg:mb-5">
             Back to case studies
@@ -248,7 +224,7 @@ export default async function CaseStudyDetailPage({ params }) {
               </nav>
             </aside>
           </div>
-          <div className="relative mt-10 aspect-[16/8] min-h-[280px] overflow-hidden bg-[#d8d4cd] shadow-[0_30px_90px_rgba(33,39,38,0.18)] lg:mt-6 lg:min-h-0 lg:flex-1">
+          <div className="relative mt-10 aspect-[16/8] min-h-[280px] overflow-hidden bg-[#d8d4cd] shadow-[0_30px_90px_rgba(33,39,38,0.18)] lg:mt-6 lg:min-h-0 ">
             {heroImage.startsWith("/") ? (
               <Image src={heroImage} alt={study.heroTitle || study.title} fill priority sizes="(max-width: 768px) 100vw, 1480px" className="object-cover" />
             ) : (
@@ -397,6 +373,6 @@ export default async function CaseStudyDetailPage({ params }) {
           </div>
         </section>
       )}
-    </main>
+    </div>
   );
 }

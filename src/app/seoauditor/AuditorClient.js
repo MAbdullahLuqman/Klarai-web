@@ -188,7 +188,7 @@ const AUDIT_FAQS = [
 
 function AuditorFallback() {
   return (
-    <div className="min-h-screen bg-[#f4efe4] px-5 pt-36 text-center text-[10px] font-black uppercase tracking-[0.2em] text-[#2f3438]/46">
+    <div className="site-detail site-reading min-h-screen bg-[#f4efe4] px-5 pt-36 text-center text-[10px] font-black uppercase tracking-[0.2em] text-[#2f3438]/46">
       Loading audit console
     </div>
   );
@@ -252,10 +252,8 @@ function AuditorCore() {
   }, [filter, result]);
 
   return (
-    <main className="min-h-screen bg-[#f4efe4] text-[#2f3438] selection:bg-[#ad5b2b] selection:text-white">
-      <section className="hide-on-print relative overflow-hidden bg-[#20272b] px-5 pb-20 pt-32 text-white sm:px-8 lg:px-12 lg:pt-36">
-        <div className="absolute inset-0 bg-[url('/images/hero-mountain.jpg')] bg-cover bg-center opacity-16 mix-blend-luminosity" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(20,27,30,0.96)_0%,rgba(32,39,43,0.9)_48%,rgba(32,39,43,0.72)_100%)]" />
+    <div className="site-detail site-reading min-h-screen bg-[#f4efe4] text-[#2f3438] selection:bg-[#ad5b2b] selection:text-white">
+      <section className="hide-on-print site-audit-hero relative overflow-hidden bg-[#f4efe4] px-5 pb-20 pt-32 text-[#2f3438] sm:px-8 lg:px-12 lg:pt-36">
         <div className="relative mx-auto grid max-w-[1480px] gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <header>
             <div>
@@ -264,10 +262,10 @@ function AuditorCore() {
                 Free AI SEO audit tool
               </p>
               <h1 className="max-w-4xl font-serif text-5xl font-medium leading-[0.98] text-white sm:text-7xl lg:text-8xl">
-                Free AI SEO audit tool for clear website fixes
+                A clearer picture of your website.
               </h1>
               <p className="mt-7 max-w-2xl text-lg font-medium leading-relaxed text-white/72">
-                Enter any public website URL. KLARAI checks technical SEO, page content, local signals, structured data and AI search readiness, then returns a plain English report in about 30 seconds.
+                Enter any public website URL. KLARAI checks technical SEO, page content, local signals, structured data and AI search readiness, then returns a plain English report.
               </p>
               <p className="mt-4 max-w-2xl text-sm font-black uppercase tracking-[0.16em] text-white/46">No account. No credit card. Plain English fixes.</p>
             </div>
@@ -509,7 +507,7 @@ function AuditorCore() {
           }
         }
       `}</style>
-    </main>
+    </div>
   );
 }
 
@@ -703,7 +701,7 @@ function ScoreGauge({ score, color, label, sublabel }) {
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - Math.max(0, Math.min(100, score)) / 100);
   return (
-    <div className="flex items-center gap-4">
+    <div className="site-detail site-reading flex items-center gap-4">
       <div className="relative h-24 w-24 shrink-0">
         <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
           <circle cx="50" cy="50" r={radius} fill="none" strokeWidth="9" className="stroke-white/10" />
@@ -725,7 +723,7 @@ function ScoreGauge({ score, color, label, sublabel }) {
 
 function StatTile({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-[0.9rem] border border-black/8 bg-white p-4 shadow-[0_16px_50px_rgba(0,0,0,0.035)]">
+    <div className="site-detail site-reading rounded-[0.9rem] border border-black/8 bg-white p-4 shadow-[0_16px_50px_rgba(0,0,0,0.035)]">
       <div className="flex items-center gap-2 text-black/42">
         <Icon size={14} />
         <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>

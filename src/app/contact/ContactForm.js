@@ -42,16 +42,16 @@ export default function ContactForm() {
 
   if (status === "sent") {
     return (
-      <div className="rounded-[1.1rem] border border-black/8 bg-white p-7 shadow-[0_24px_80px_rgba(0,0,0,0.05)]">
+      <div className="site-contact-form p-7 shadow-[0_24px_80px_rgba(0,0,0,0.05)]">
         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#ad5b2b]">Sent</p>
         <h2 className="mt-3 text-3xl font-black tracking-tight text-[#2f3438]">We will reply soon.</h2>
-        <p className="mt-3 text-sm font-semibold leading-relaxed text-black/52">Your enquiry is saved in the admin leads list.</p>
+        <p className="mt-3 text-sm font-semibold leading-relaxed text-black/52">Thanks for telling us about your project. We’ll be in touch by email.</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-[1.1rem] border border-black/8 bg-white p-5 shadow-[0_24px_80px_rgba(0,0,0,0.05)] sm:p-7">
+    <div className="site-contact-form p-5 shadow-[0_24px_80px_rgba(0,0,0,0.05)] sm:p-7">
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#ad5b2b]">Step {step + 1} of 3</p>
@@ -71,7 +71,7 @@ export default function ContactForm() {
       {step === 0 && (
         <label className="block">
           <span className="text-[10px] font-black uppercase tracking-[0.18em] text-black/40">Name</span>
-          <input autoFocus required value={form.name} onChange={(event) => update("name", event.target.value)} onKeyDown={(event) => event.key === "Enter" && next()} autoComplete="name" className="mt-2 min-h-14 w-full rounded-md border border-black/10 bg-[#f9f5ec] px-4 text-base font-bold outline-none focus:border-[#ad5b2b]" />
+          <input required value={form.name} onChange={(event) => update("name", event.target.value)} onKeyDown={(event) => event.key === "Enter" && next()} autoComplete="name" className="mt-2 min-h-14 w-full rounded-md border border-black/10 bg-[#f9f5ec] px-4 text-base font-bold outline-none focus:border-[#ad5b2b]" />
         </label>
       )}
 
@@ -87,7 +87,7 @@ export default function ContactForm() {
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-black/40">Optional</p>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             {goals.map((goal) => (
-              <button key={goal} type="button" onClick={() => update("goal", goal)} className={`rounded-md border px-4 py-3 text-left text-sm font-black transition ${form.goal === goal ? "border-[#ad5b2b] bg-[#ad5b2b] text-white" : "border-black/10 bg-[#f9f5ec] text-[#2f3438]/64 hover:text-[#2f3438]"}`}>
+              <button key={goal} type="button" onClick={() => update("goal", goal)} aria-pressed={form.goal === goal} className={`rounded-md border px-4 py-3 text-left text-sm font-black transition ${form.goal === goal ? "border-[#ad5b2b] bg-[#ad5b2b] text-white" : "border-black/10 bg-[#f9f5ec] text-[#2f3438]/64 hover:text-[#2f3438]"}`}>
                 {goal}
               </button>
             ))}
